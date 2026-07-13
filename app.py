@@ -155,6 +155,10 @@ def dignities_to_dataframe(dignities):
 
 if submitted:
     try:
+        st.caption(f"🐛 Debug: generate_live={generate_live}, "
+                   f"ANTHROPIC_AVAILABLE={ANTHROPIC_AVAILABLE}, "
+                   f"api_key_found={bool(get_api_key())}")
+
         with st.spinner("Resolving location and timezone..."):
             birth = resolve_birth_data(datetime_str, location_str, verbose=False)
 
