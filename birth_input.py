@@ -9,6 +9,18 @@ run_chart.py, compare_house_systems.py, future synastry scripts, etc. —
 should import resolve_birth_data from here rather than reimplementing it.
 """
 
+import os
+
+# Disable numba's JIT compilation before timezonefinder imports it.
+# timezonefinder uses numba to speed up its lookups, but numba's JIT
+# compiler can crash in some cloud/notebook environments (Colab included)
+# with an unrelated-looking "No such file or directory" error while
+# trying to format an error message. Disabling JIT makes timezonefinder
+# fall back to plain, un-compiled Python — marginally slower, but this
+# only runs once per chart lookup, so the difference isn't noticeable,
+# and it sidesteps the crash entirely.
+os.environ.setdefault("NUMBA_DISABLE_JIT", "1")
+
 from zoneinfo import ZoneInfo
 from dateutil import parser as date_parser
 from geopy.geocoders import Nominatim
