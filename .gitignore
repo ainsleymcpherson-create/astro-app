@@ -1,0 +1,18 @@
+# Ephemeris data (downloaded via download_ephemeris.py, don't commit large binary files
+# unless you specifically want them in the repo for easier deployment)
+ephe/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+
+# Generated output
+interpretation_prompt.txt
