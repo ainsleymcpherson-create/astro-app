@@ -186,7 +186,7 @@ if submitted:
                                 max_tokens=2000,
                                 messages=[{"role": "user", "content": prompt}],
                             )
-                            interpretation_text = response.content[0].text
+                            interpretation_text = "".join(     block.text for block in response.content if block.type == "text" )
                         except Exception as e:
                             interpretation_error = f"Claude API call failed: {e}"
 
