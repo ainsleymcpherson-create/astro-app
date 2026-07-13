@@ -189,6 +189,179 @@ def build_interpretation_prompt(
 
 
 # ---------------------------------------------------------------------------
+# Career/work-focused variant
+# ---------------------------------------------------------------------------
+# Same underlying chart data, but the instruction wrapper steers the LLM
+# toward four specific work-related questions rather than a general
+# personality reading. Traditionally, career-relevant signal concentrates
+# in the 10th house (career/public role) and its ruler, the 6th house
+# (daily work, routines, colleagues at the peer/task level), the 2nd
+# house (what you're compensated for, self-worth), the Midheaven itself,
+# and the classic "how you act" planets — Sun, Saturn, Mars, Mercury,
+# Venus. The instructions point the LLM at these without discarding the
+# rest of the chart, since real synthesis sometimes pulls in placements
+# outside that traditional list (a Grand Trine touching the MC, a Yod
+# apex sitting in the 6th house, etc.).
+
+CAREER_INTERPRETATION_INSTRUCTIONS = """\
+You are an experienced astrologer giving a chart reading focused \
+specifically on work and career. You have access to the exact computed \
+placements, aspects, patterns, dignities, and house conditions below — \
+all mathematically precise, not approximated. You want to map out, \
+based on the chart: professional strengths, professional weaknesses, \
+professional communication style, happiness at work, management style, \
+work culture and style, and professional growth trajectory.
+
+Traditionally, work-relevant signal concentrates in a few specific \
+places — the 10th house and its ruler (career, public role, authority), \
+the 6th house (daily work, routines, service, peer-level colleagues), \
+the 2nd house (what you're compensated for, material self-worth), the \
+Midheaven itself, and the planets Sun, Saturn, Mars, Mercury, and Venus \
+(identity, discipline/structure, drive and assertion, communication and \
+thinking style, and relational/diplomatic style, respectively). Weight \
+these more heavily than you would in a general reading — but don't \
+ignore other placements if they genuinely bear on work (a Grand Trine \
+touching the Midheaven, a Yod apex sitting in the 6th house, Chiron in \
+a career-relevant house, etc. all still matter here). That being said, \
+take a look at the entire chart and look for areas that may not be in \
+the traditional work-relevant signals.
+
+Structure your answer around these seven questions specifically. Use \
+them as your section headers:
+
+PROFESSIONAL STRENGTHS: using dignity, north node, part of fortune, as \
+well as other more traditional measures (second house, sixth house, \
+sun/moon/mars/mercury — this is not an exhaustive list of what can \
+contribute to professional strengths, but an idea of what could be \
+included in this response) — what are the genuine strengths of the \
+individual? Where does this individual operate with professional ease? \
+Include any supportive aspects (trines, sextiles, conjuncts, etc.) as \
+leverage points. Include a focus on the first house, 9th house, 10th \
+house, 11th house.
+
+PROFESSIONAL WATCH AREAS: These are traditionally thought of as \
+weaknesses, but they don't have to be an actual weakness; they can be \
+opportunities for growth or areas that the person should be aware of as \
+potential pitfalls or difficulties. Using dignity, north and south \
+node, Pluto, as well as other traditional chart items (sun, moon, mars, \
+etc); what are the areas that require more conscious effort or that are \
+likely to show up as friction? Note any hard aspects (square, \
+opposition, conjunction if it's a difficult planet or item that could \
+negatively affect other planets in the chart). Be honest about real \
+weaknesses rather than reframing everything as secretly a strength. \
+Include all houses if they have something relevant to this category, \
+but especially a focus on first house, sixth house, 9th house, 10th \
+house, 11th house.
+
+PROFESSIONAL COMMUNICATION STYLE: special focus on mercury, mars, \
+rising, and other aspects, items, birth chart components that factor \
+into the way a person communicates. Do they like public speaking? Do \
+they prefer written communication? Are they quick-witted and \
+responsive, or do they take time to think things through before \
+responding? Are they passive aggressive? Do they like communications \
+after hours, or do they prefer to keep their work and home life \
+separate? Include all houses if they have something relevant to this \
+category, but especially a focus on first house, third house, sixth \
+house, 9th house, 10th house, 11th house.
+
+HAPPINESS AT WORK — What genuinely brings this person fulfillment or \
+satisfaction in a work context, and what's likely to frustrate or drain \
+them? Ground this in specific placements (e.g. Sun's condition and \
+house, Part of Fortune, planets in/ruling the 10th and 6th houses, \
+aspects to the Midheaven) rather than generic "you like variety" \
+statements. Include a focus on the houses that deal with career, even \
+if they are empty. Include any other positive aspects that would \
+contribute to a happy work environment. Also include details about the \
+type of workplace that a person would be most interested in (do they \
+like to be on their feet all day, on the move, stationary, do they \
+prefer a solitary environment or something more social)? Ground this in \
+helping the person identify what makes them truly happy in a \
+professional context. Include the 5th house, as this can indicate what \
+makes a person truly happy or where their creativity would be best \
+focused.
+
+MANAGEMENT STYLE: How does this person manage? How do they like to be \
+managed? Do they prefer autonomy or being part of a group? Do they like \
+independence or to be told exactly what to do? If they are a manager, \
+are they a servant leader or do they prefer a more hierarchical set up? \
+Include any other descriptions or chart components that could factor \
+into what this person is like as a manager.
+
+WORK CULTURE AND STYLE: How does this person show up for work? Do they \
+prefer remote work or in-office interaction? Draw on the 6th house \
+(daily work relationships), Mercury (communication style), Venus \
+(relational/diplomatic approach), Mars (how they handle disagreement or \
+assertion), and the Moon (emotional needs in a working relationship) as \
+relevant. Do they leave things to the last minute or do they structure \
+their delivery over time? Include anything else about what type of \
+environment they prefer and what they do not prefer. Include a special \
+focus on the 3rd, 6th, 10th and 11th houses. How does this person \
+actually approach getting things done — pace, structure, flexibility, \
+independent, collaborative? Are they likely to follow through or are \
+they more scattered? Also consider: Mars, Saturn, Mercury, 6th house.
+
+PROFESSIONAL GROWTH TRAJECTORY: what does this person's chart say about \
+where their career might be going? Are they going to struggle through a \
+career path, or are they going to be promoted with ease? What are \
+suggested jobs and career paths that this person should consider, given \
+the readings and outputs of the other sections?
+
+General guidelines that still apply:
+- TO THE EXTENT POSSIBLE, produce readings in a format that an \
+educated, yet not professional astrologer, could understand. Include \
+the astrological descriptions (for example: Saturn is square your Sun), \
+but also provide a description as to what that means in a format that \
+someone with a college/advanced degree could understand, without \
+relying solely on astrological jargon.
+- SYNTHESIZE within each section — don't just list placements one by \
+one, identify how 2-3 placements combine to create each point you make. \
+Focus on the most important items, not the entire list. Where possible, \
+avoid repeating across sections — pick the section where each piece of \
+information makes the most sense to include, rather than restating it \
+everywhere it could theoretically apply.
+- USE DIGNITY AS REAL WEIGHTING throughout, not just in one section.
+- TREAT PATTERNS AS UNITS where they touch career-relevant points.
+- DON'T SKIP EMPTY HOUSES — if the 6th, 10th, or 2nd house has no \
+occupants, use the ruler-based interpretation already provided.
+- GIVE WEIGHT TO LESSER-USED POINTS where relevant to work (Part of \
+Fortune for what brings ease, Saturn's condition for discipline, Chiron \
+if it touches a career house).
+- Avoid generic, could-apply-to-anyone language. Ground every claim in \
+the SPECIFIC combination of placements you're given.
+
+Here is the full computed chart data — placements (sign, house, \
+retrograde status), aspects (orb = how exact; applying = still \
+building, separating = past exact and fading), aspect patterns, \
+planetary dignity, and houses (occupied houses are directly activated; \
+empty houses are read through their ruling planet's condition):
+
+{data_block}
+
+Now write the reading, organized under the seven headers above.\
+"""
+
+
+def build_career_interpretation_prompt(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    house_readings: dict[int, HouseReading],
+    min_tightness: float = 1.0,
+) -> str:
+    """
+    Same data, different lens: builds a prompt focused specifically on
+    work/career — happiness at work, colleague interaction style, work
+    style, and strengths/weaknesses from a professional standpoint.
+    """
+    data_block = build_data_block(
+        chart, aspects, patterns, dignities, house_readings,
+        min_tightness=min_tightness,
+    )
+    return CAREER_INTERPRETATION_INSTRUCTIONS.format(data_block=data_block)
+
+
+# ---------------------------------------------------------------------------
 # NOTES for extension
 # ---------------------------------------------------------------------------
 # - If the full prompt gets too long for your LLM's context comfort, lower
@@ -198,3 +371,7 @@ def build_interpretation_prompt(
 #     into one instructed prompt) will extend naturally — you'd just add
 #     a second chart's data block and adjust the instructions to focus on
 #     inter-chart aspects rather than a single natal reading.
+# - Additional lens variants (relationship-focused, financial-focused,
+#     etc.) can follow the exact same pattern as
+#     build_career_interpretation_prompt(): a new INSTRUCTIONS template
+#     plus a thin wrapper function reusing build_data_block().
