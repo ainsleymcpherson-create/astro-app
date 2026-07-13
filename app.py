@@ -188,6 +188,8 @@ if submitted:
                             )
                             interpretation_text = "".join(     block.text for block in response.content if block.type == "text" )
                         except Exception as e:
+                            import traceback
+                            traceback.print_exc()
                             interpretation_error = f"Claude API call failed: {e}"
 
         st.success(
