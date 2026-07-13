@@ -199,12 +199,32 @@ if submitted:
                                 max_tokens=2000,
                                 messages=[{"role": "user", "content": prompt}],
                             )
-                            interpretation_text = "".join(
+                            text_parts = [
                                 block.text for block in response.content
-                                if block.type == "text"
-                            )
+                                if getattr(block, "type", None) == "text"
+                            ]
+                            result_text = "".join(text_parts)
+
+                            if result_text:
+                                interpretation_text = result_text
+                            else:
+                                # The call succeeded but returned no usable
+                                # text — surface this as an error rather
+                                # than silently falling back to the generic
+                                # "check the box" message, which would hide
+                                # a real problem.
+                                stop_reason = getattr(response, "stop_reason", "unknown")
+                                interpretation_error = (
+                                    f"Claude responded but returned no text content "
+                                    f"(stop_reason: {stop_reason}). Raw content blocks: "
+                                    f"{response.content!r}"
+                                )
                         except Exception as e:
-                            interpretation_error = f"Claude API call failed: {e}"
+                            import traceback
+                            interpretation_error = (
+                                f"Claude API call failed: {type(e).__name__}: {e}\n\n"
+                                f"Full traceback:\n{traceback.format_exc()}"
+                            )
 
         st.success(
             f"Chart computed for {datetime_str} in {location_str} "
@@ -217,7 +237,8 @@ if submitted:
             if interpretation_text:
                 st.markdown(interpretation_text)
             elif interpretation_error:
-                st.warning(interpretation_error)
+                st.warning("Something went wrong generating the live interpretation:")
+                st.code(interpretation_error)
             else:
                 st.info("Check the \"Generate written interpretation\" box above "
                          "and recompute to get a live reading here — or use the "
