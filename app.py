@@ -4,7 +4,8 @@ app.py
 Streamlit frontend for the astrology chart engine. Lets you type in a
 birth date/time and location, computes the full chart (points, aspects,
 patterns, dignity, houses), and displays everything interactively —
-plus generates the LLM interpretation prompt with a one-click copy.
+plus generates the LLM interpretation prompt and (optionally) calls
+Claude directly to produce the actual written interpretation.
 
 Run locally:
     streamlit run app.py
@@ -32,6 +33,29 @@ from dignity import compute_chart_dignities
 from house_interpretation import build_house_readings
 from prompt_builder import build_interpretation_prompt
 from birth_input import resolve_birth_data
+
+# --- Optional: live Claude interpretation ---
+# Requires: pip install anthropic
+# Requires an ANTHROPIC_API_KEY available either as:
+#   - a Colab secret (accessed via google.colab.userdata), or
+#   - an environment variable, for local/non-Colab runs
+try:
+    import anthropic
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
+
+
+def get_api_key():
+    """Try Colab secrets first, then fall back to environment variable."""
+    try:
+        from google.colab import userdata
+        key = userdata.get("ANTHROPIC_API_KEY")
+        if key:
+            return key
+    except Exception:
+        pass
+    return os.environ.get("ANTHROPIC_API_KEY")
 
 
 st.set_page_config(page_title="Astrology Chart Calculator", layout="wide")
@@ -66,6 +90,12 @@ with st.form("birth_form"):
         "Placidus": b"P", "Whole Sign": b"W", "Equal": b"E", "Koch": b"K",
         "Campanus": b"C", "Regiomontanus": b"R", "Alcabitius": b"B",
     }
+
+    generate_live = st.checkbox(
+        "Generate written interpretation with Claude (uses API credits)",
+        value=False,
+        help="If unchecked, you'll get the raw prompt to copy/paste yourself instead.",
+    )
 
     submitted = st.form_submit_button("Compute Chart", use_container_width=True)
 
@@ -131,20 +161,73 @@ if submitted:
             house_readings = build_house_readings(chart)
             prompt = build_interpretation_prompt(chart, aspects, patterns, dignities, house_readings)
 
+        interpretation_text = None
+        interpretation_error = None
+
+        if generate_live:
+            if not ANTHROPIC_AVAILABLE:
+                interpretation_error = (
+                    "The `anthropic` package isn't installed. Run "
+                    "`pip install anthropic` and restart the app."
+                )
+            else:
+                api_key = get_api_key()
+                if not api_key:
+                    interpretation_error = (
+                        "No API key found. Add ANTHROPIC_API_KEY as a Colab "
+                        "secret, or set it as an environment variable."
+                    )
+                else:
+                    with st.spinner("Generating interpretation with Claude..."):
+                        try:
+                            client = anthropic.Anthropic(api_key=api_key)
+                            response = client.messages.create(
+                                model="claude-sonnet-5",
+                                max_tokens=2000,
+                                messages=[{"role": "user", "content": prompt}],
+                            )
+                            interpretation_text = response.content[0].text
+                        except Exception as e:
+                            interpretation_error = f"Claude API call failed: {e}"
+
         st.success(
             f"Chart computed for {datetime_str} in {location_str} "
             f"({house_system_label} houses)"
         )
 
-        tabs = st.tabs(["Points", "Aspects", "Patterns", "Dignity", "Houses", "Interpretation Prompt"])
+        tabs = st.tabs(["Interpretation", "Points", "Aspects", "Patterns", "Dignity", "Houses"])
 
         with tabs[0]:
-            st.dataframe(points_to_dataframe(chart), use_container_width=True, hide_index=True)
+            if interpretation_error:
+                st.warning(interpretation_error)
+                st.text_area("Prompt (copy this into Claude yourself instead)",
+                             value=prompt, height=400)
+            elif interpretation_text:
+                st.markdown(interpretation_text)
+                st.divider()
+                with st.expander("View the raw prompt used"):
+                    st.text_area("Prompt", value=prompt, height=300, label_visibility="collapsed")
+            else:
+                st.info("Check \"Generate written interpretation with Claude\" above, "
+                        "then recompute — or copy the prompt below into Claude yourself.")
+                st.text_area("Full prompt (copy this into Claude or send via API)",
+                             value=prompt, height=400)
+
+            st.download_button(
+                "Download prompt as .txt",
+                data=prompt,
+                file_name="interpretation_prompt.txt",
+                mime="text/plain",
+                use_container_width=True,
+            )
 
         with tabs[1]:
-            st.dataframe(aspects_to_dataframe(aspects), use_container_width=True, hide_index=True)
+            st.dataframe(points_to_dataframe(chart), use_container_width=True, hide_index=True)
 
         with tabs[2]:
+            st.dataframe(aspects_to_dataframe(aspects), use_container_width=True, hide_index=True)
+
+        with tabs[3]:
             any_patterns = False
             for kind, plist in patterns.items():
                 if not plist:
@@ -156,24 +239,13 @@ if submitted:
             if not any_patterns:
                 st.info("No aspect patterns detected within the configured orbs.")
 
-        with tabs[3]:
+        with tabs[4]:
             st.dataframe(dignities_to_dataframe(dignities), use_container_width=True, hide_index=True)
 
-        with tabs[4]:
+        with tabs[5]:
             for num, reading in house_readings.items():
                 with st.expander(f"House {num} ({reading.sign_on_cusp})"):
                     st.write(reading.interpretation)
-
-        with tabs[5]:
-            st.text_area("Full prompt (copy this into Claude or send via API)",
-                         value=prompt, height=400)
-            st.download_button(
-                "Download prompt as .txt",
-                data=prompt,
-                file_name="interpretation_prompt.txt",
-                mime="text/plain",
-                use_container_width=True,
-            )
 
     except ValueError as e:
         st.error(f"Couldn't resolve birth data: {e}")
