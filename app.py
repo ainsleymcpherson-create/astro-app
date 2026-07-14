@@ -208,7 +208,7 @@ if submitted:
                             client = anthropic.Anthropic(api_key=api_key)
                             response = client.messages.create(
                                 model="claude-sonnet-5",
-                                max_tokens=8000,
+                                max_tokens=16000,
                                 messages=[{"role": "user", "content": prompt}],
                             )
                             text_parts = [
@@ -224,12 +224,24 @@ if submitted:
                                 # text — surface this as an error rather
                                 # than silently falling back to the generic
                                 # "check the box" message, which would hide
-                                # a real problem.
+                                # a real problem. Summarize block types/sizes
+                                # instead of dumping raw content, since a
+                                # thinking block's signature can be tens of
+                                # thousands of characters of base64 — useless
+                                # for debugging and unreadable in the UI.
                                 stop_reason = getattr(response, "stop_reason", "unknown")
+                                block_summary = ", ".join(
+                                    f"{getattr(b, 'type', 'unknown')} "
+                                    f"({len(getattr(b, 'thinking', '') or getattr(b, 'text', '') or '')} chars)"
+                                    for b in response.content
+                                )
                                 interpretation_error = (
-                                    f"Claude responded but returned no text content "
-                                    f"(stop_reason: {stop_reason}). Raw content blocks: "
-                                    f"{response.content!r}"
+                                    f"Claude ran out of room before writing the answer "
+                                    f"(stop_reason: {stop_reason}). This model spent its "
+                                    f"whole token budget on internal reasoning first. "
+                                    f"Content blocks received: {block_summary}. "
+                                    f"Try increasing max_tokens further in app.py if this "
+                                    f"keeps happening."
                                 )
                         except Exception as e:
                             import traceback
