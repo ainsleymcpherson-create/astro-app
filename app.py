@@ -142,7 +142,7 @@ with st.form("birth_form"):
         "Campanus": b"C", "Regiomontanus": b"R", "Alcabitius": b"B",
     }
 
-        if reading_type == "Transits":
+    if reading_type == "Transits":
         transit_date = st.date_input(
             "Transit date",
             value=date_type.today(),
