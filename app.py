@@ -455,77 +455,96 @@ if submitted:
                         "prompt below is still available to copy manually."
                     )
                 else:
-                    with st.spinner("Generating interpretation with Claude "
-                                     "(this makes a billed API call — may take "
-                                     "a couple minutes for a full reading)..."):
-                        try:
-                            client = anthropic.Anthropic(api_key=api_key)
-                            # Streaming is required here rather than a plain
-                            # blocking call: with max_tokens this high, the
-                            # SDK estimates generation could exceed its
-                            # 10-minute non-streaming timeout and refuses to
-                            # run without it. get_final_message() waits for
-                            # the stream to finish and hands back a normal
-                            # Message object — same .content/.stop_reason
-                            # shape as the non-streaming response, so nothing
-                            # downstream needs to change.
-                            with client.messages.stream(
-                                model="claude-sonnet-5",
-                                max_tokens=32000,
-                                messages=[{"role": "user", "content": prompt}],
-                            ) as stream:
-                                response = stream.get_final_message()
-                            text_parts = [
-                                block.text for block in response.content
-                                if getattr(block, "type", None) == "text"
-                            ]
-                            result_text = "".join(text_parts)
-                            stop_reason = getattr(response, "stop_reason", "unknown")
+                    st.caption("Generating live — this makes a billed API call and "
+                               "may take a couple minutes for a full reading. Keep "
+                               "this tab open and in the foreground until it finishes.")
+                    try:
+                        client = anthropic.Anthropic(api_key=api_key)
+                        # Streaming is required here rather than a plain
+                        # blocking call: with max_tokens this high, the SDK
+                        # estimates generation could exceed its 10-minute
+                        # non-streaming timeout and refuses to run without it.
+                        #
+                        # IMPORTANT: we actively write each chunk to the page
+                        # as it arrives (rather than silently waiting for
+                        # get_final_message() to finish) so the connection
+                        # keeps sending data the whole time. A long silent
+                        # wait is exactly what can get killed by an
+                        # infrastructure-level idle-connection timeout —
+                        # which would tear down this whole script AFTER
+                        # Claude has already generated (and billed) the
+                        # tokens, but BEFORE we ever get to save or show the
+                        # result. This was the actual cause of "the API runs
+                        # but returns nothing."
+                        live_preview = st.empty()
+                        accumulated_text = ""
+                        chunk_count = 0
+                        with client.messages.stream(
+                            model="claude-sonnet-5",
+                            max_tokens=32000,
+                            messages=[{"role": "user", "content": prompt}],
+                        ) as stream:
+                            for text_chunk in stream.text_stream:
+                                accumulated_text += text_chunk
+                                chunk_count += 1
+                                # Update every few chunks rather than every
+                                # single one, to avoid hammering the UI with
+                                # excessive re-renders on a long response.
+                                if chunk_count % 3 == 0:
+                                    live_preview.markdown(accumulated_text + " ▌")
+                            live_preview.markdown(accumulated_text)
+                            response = stream.get_final_message()
 
-                            if result_text and stop_reason == "max_tokens":
-                                # There IS text, but the response was cut
-                                # off mid-generation before finishing — show
-                                # it with a clear warning rather than
-                                # silently presenting partial content as if
-                                # it were the complete reading.
-                                interpretation_text = (
-                                    result_text +
-                                    "\n\n---\n\n⚠️ **This response was cut off before finishing** "
-                                    "(hit the token limit). What's above may be incomplete — "
-                                    "increase max_tokens in app.py if this keeps happening."
-                                )
-                            elif result_text:
-                                interpretation_text = result_text
-                            else:
-                                # The call succeeded but returned no usable
-                                # text — surface this as an error rather
-                                # than silently falling back to the generic
-                                # "check the box" message, which would hide
-                                # a real problem. Summarize block types/sizes
-                                # instead of dumping raw content, since a
-                                # thinking block's signature can be tens of
-                                # thousands of characters of base64 — useless
-                                # for debugging and unreadable in the UI.
-                                stop_reason = getattr(response, "stop_reason", "unknown")
-                                block_summary = ", ".join(
-                                    f"{getattr(b, 'type', 'unknown')} "
-                                    f"({len(getattr(b, 'thinking', '') or getattr(b, 'text', '') or '')} chars)"
-                                    for b in response.content
-                                )
-                                interpretation_error = (
-                                    f"Claude ran out of room before writing the answer "
-                                    f"(stop_reason: {stop_reason}). This model spent its "
-                                    f"whole token budget on internal reasoning first. "
-                                    f"Content blocks received: {block_summary}. "
-                                    f"Try increasing max_tokens further in app.py if this "
-                                    f"keeps happening."
-                                )
-                        except Exception as e:
-                            import traceback
-                            interpretation_error = (
-                                f"Claude API call failed: {type(e).__name__}: {e}\n\n"
-                                f"Full traceback:\n{traceback.format_exc()}"
+                        result_text = accumulated_text
+                        stop_reason = getattr(response, "stop_reason", "unknown")
+
+                        if result_text and stop_reason == "max_tokens":
+                            # There IS text, but the response was cut
+                            # off mid-generation before finishing — show
+                            # it with a clear warning rather than
+                            # silently presenting partial content as if
+                            # it were the complete reading.
+                            interpretation_text = (
+                                result_text +
+                                "\n\n---\n\n⚠️ **This response was cut off before finishing** "
+                                "(hit the token limit). What's above may be incomplete — "
+                                "increase max_tokens in app.py if this keeps happening."
                             )
+                        elif result_text:
+                            interpretation_text = result_text
+                        else:
+                            # The call succeeded but returned no usable
+                            # text — surface this as an error rather
+                            # than silently falling back to the generic
+                            # "check the box" message, which would hide
+                            # a real problem. Summarize block types/sizes
+                            # instead of dumping raw content, since a
+                            # thinking block's signature can be tens of
+                            # thousands of characters of base64 — useless
+                            # for debugging and unreadable in the UI.
+                            block_summary = ", ".join(
+                                f"{getattr(b, 'type', 'unknown')} "
+                                f"({len(getattr(b, 'thinking', '') or getattr(b, 'text', '') or '')} chars)"
+                                for b in response.content
+                            )
+                            interpretation_error = (
+                                f"Claude ran out of room before writing the answer "
+                                f"(stop_reason: {stop_reason}). This model spent its "
+                                f"whole token budget on internal reasoning first. "
+                                f"Content blocks received: {block_summary}. "
+                                f"Try increasing max_tokens further in app.py if this "
+                                f"keeps happening."
+                            )
+                        # Clear the raw live-typing preview now that the
+                        # final, nicely-formatted version will render below
+                        # via the normal results display.
+                        live_preview.empty()
+                    except Exception as e:
+                        import traceback
+                        interpretation_error = (
+                            f"Claude API call failed: {type(e).__name__}: {e}\n\n"
+                            f"Full traceback:\n{traceback.format_exc()}"
+                        )
 
         # Persist everything needed for display in st.session_state.
         # Streamlit reruns the ENTIRE script on every widget interaction —
