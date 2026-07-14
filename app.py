@@ -228,14 +228,25 @@ if submitted:
                     )
                 else:
                     with st.spinner("Generating interpretation with Claude "
-                                     "(this makes a billed API call)..."):
+                                     "(this makes a billed API call — may take "
+                                     "a couple minutes for a full reading)..."):
                         try:
                             client = anthropic.Anthropic(api_key=api_key)
-                            response = client.messages.create(
+                            # Streaming is required here rather than a plain
+                            # blocking call: with max_tokens this high, the
+                            # SDK estimates generation could exceed its
+                            # 10-minute non-streaming timeout and refuses to
+                            # run without it. get_final_message() waits for
+                            # the stream to finish and hands back a normal
+                            # Message object — same .content/.stop_reason
+                            # shape as the non-streaming response, so nothing
+                            # downstream needs to change.
+                            with client.messages.stream(
                                 model="claude-sonnet-5",
                                 max_tokens=32000,
                                 messages=[{"role": "user", "content": prompt}],
-                            )
+                            ) as stream:
+                                response = stream.get_final_message()
                             text_parts = [
                                 block.text for block in response.content
                                 if getattr(block, "type", None) == "text"
