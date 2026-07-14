@@ -32,7 +32,12 @@ from chart_points import compute_full_chart, extract_speeds
 from aspect_engine import compute_aspects, find_all_patterns
 from dignity import compute_chart_dignities
 from house_interpretation import build_house_readings
-from prompt_builder import build_interpretation_prompt, build_career_interpretation_prompt
+from prompt_builder import (
+    build_interpretation_prompt,
+    build_interpretation_prompt_no_time,
+    build_career_interpretation_prompt,
+    build_career_interpretation_prompt_no_time,
+)
 from birth_input import resolve_birth_data
 
 # --- Optional: live Claude interpretation ---
@@ -102,6 +107,19 @@ with st.form("birth_form"):
         help="General covers the whole chart. Career/Work focuses "
              "specifically on workplace happiness, colleague dynamics, "
              "work style, and professional strengths/weaknesses.",
+    )
+
+    unknown_time = st.checkbox(
+        "🕐 I don't know my exact birth time",
+        value=False,
+        help="The Ascendant, Midheaven, house placements, Vertex, and Part "
+             "of Fortune/Spirit all require an exact birth time to "
+             "calculate correctly — a noon guess doesn't approximate them, "
+             "it effectively randomizes them (the Ascendant alone shifts "
+             "about 1° every 4 minutes). Checking this excludes all of "
+             "those and works only with what's reliable regardless of "
+             "time: the planets, Chiron, the Nodes, and aspects between "
+             "them. Works for both General and Career/Work readings.",
     )
 
     generate_live = st.checkbox(
@@ -179,8 +197,15 @@ if submitted:
             patterns = find_all_patterns(chart, aspects)
             dignities = compute_chart_dignities(chart)
             house_readings = build_house_readings(chart)
-            if reading_type == "Career / Work":
+
+            if reading_type == "Career / Work" and unknown_time:
+                prompt = build_career_interpretation_prompt_no_time(
+                    chart, aspects, patterns, dignities
+                )
+            elif reading_type == "Career / Work":
                 prompt = build_career_interpretation_prompt(chart, aspects, patterns, dignities, house_readings)
+            elif unknown_time:
+                prompt = build_interpretation_prompt_no_time(chart, aspects, patterns, dignities)
             else:
                 prompt = build_interpretation_prompt(chart, aspects, patterns, dignities, house_readings)
 
