@@ -334,6 +334,21 @@ if submitted:
         with tabs[0]:
             if interpretation_text:
                 st.markdown(interpretation_text)
+                st.divider()
+                st.download_button(
+                    "Download reading as .txt",
+                    data=interpretation_text,
+                    file_name=f"reading_{birth_date.isoformat()}.txt",
+                    mime="text/plain",
+                    use_container_width=True,
+                )
+                with st.expander("Copy as plain text"):
+                    st.text_area(
+                        "Reading (tap inside, select all, copy)",
+                        value=interpretation_text,
+                        height=400,
+                        label_visibility="collapsed",
+                    )
             elif interpretation_error:
                 st.warning("Something went wrong generating the live interpretation:")
                 st.code(interpretation_error)
