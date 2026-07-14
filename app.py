@@ -455,45 +455,65 @@ if submitted:
                         "prompt below is still available to copy manually."
                     )
                 else:
-                    st.caption("Generating live — this makes a billed API call and "
-                               "may take a couple minutes for a full reading. Keep "
-                               "this tab open and in the foreground until it finishes.")
                     try:
                         client = anthropic.Anthropic(api_key=api_key)
-                        # Streaming is required here rather than a plain
-                        # blocking call: with max_tokens this high, the SDK
-                        # estimates generation could exceed its 10-minute
-                        # non-streaming timeout and refuses to run without it.
-                        #
-                        # IMPORTANT: we actively write each chunk to the page
-                        # as it arrives (rather than silently waiting for
-                        # get_final_message() to finish) so the connection
-                        # keeps sending data the whole time. A long silent
-                        # wait is exactly what can get killed by an
-                        # infrastructure-level idle-connection timeout —
-                        # which would tear down this whole script AFTER
-                        # Claude has already generated (and billed) the
-                        # tokens, but BEFORE we ever get to save or show the
-                        # result. This was the actual cause of "the API runs
-                        # but returns nothing."
-                        live_preview = st.empty()
-                        accumulated_text = ""
-                        chunk_count = 0
-                        with client.messages.stream(
-                            model="claude-sonnet-5",
-                            max_tokens=32000,
-                            messages=[{"role": "user", "content": prompt}],
-                        ) as stream:
-                            for text_chunk in stream.text_stream:
-                                accumulated_text += text_chunk
-                                chunk_count += 1
-                                # Update every few chunks rather than every
-                                # single one, to avoid hammering the UI with
-                                # excessive re-renders on a long response.
-                                if chunk_count % 3 == 0:
-                                    live_preview.markdown(accumulated_text + " ▌")
-                            live_preview.markdown(accumulated_text)
-                            response = stream.get_final_message()
+                        with st.spinner("Generating interpretation with Claude "
+                                         "(this makes a billed API call — may take "
+                                         "a couple minutes for a full reading). "
+                                         "Keep this tab open and in the foreground "
+                                         "until it finishes."):
+                            # Streaming is required here rather than a plain
+                            # blocking call: with max_tokens this high, the
+                            # SDK estimates generation could exceed its
+                            # 10-minute non-streaming timeout and refuses to
+                            # run without it.
+                            #
+                            # IMPORTANT: we iterate the RAW stream events
+                            # (not just stream.text_stream) so we can show
+                            # live progress during BOTH phases of
+                            # generation — this model does a lot of internal
+                            # "thinking" before writing any visible text,
+                            # and stream.text_stream only yields the text
+                            # portion, leaving the thinking phase completely
+                            # silent. A long silent gap either way is what
+                            # can get killed by an infrastructure-level
+                            # idle-connection timeout — tearing down this
+                            # whole script AFTER Claude has already
+                            # generated (and billed) the tokens, but BEFORE
+                            # we ever get to save or show the result. That
+                            # was the actual cause of "the API runs but
+                            # returns nothing."
+                            live_preview = st.empty()
+                            accumulated_text = ""
+                            thinking_chars = 0
+                            update_counter = 0
+                            with client.messages.stream(
+                                model="claude-sonnet-5",
+                                max_tokens=32000,
+                                messages=[{"role": "user", "content": prompt}],
+                            ) as stream:
+                                for event in stream:
+                                    if event.type != "content_block_delta":
+                                        continue
+                                    delta_type = getattr(event.delta, "type", None)
+                                    update_counter += 1
+                                    if delta_type == "thinking_delta":
+                                        thinking_chars += len(event.delta.thinking)
+                                        if update_counter % 5 == 0:
+                                            live_preview.markdown(
+                                                f"🤔 *Thinking through the chart... "
+                                                f"({thinking_chars} characters of "
+                                                f"reasoning so far — this part "
+                                                f"doesn't show in the final reading, "
+                                                f"it's just to confirm this is "
+                                                f"actively working.)*"
+                                            )
+                                    elif delta_type == "text_delta":
+                                        accumulated_text += event.delta.text
+                                        if update_counter % 3 == 0:
+                                            live_preview.markdown(accumulated_text + " ▌")
+                                live_preview.markdown(accumulated_text)
+                                response = stream.get_final_message()
 
                         result_text = accumulated_text
                         stop_reason = getattr(response, "stop_reason", "unknown")
