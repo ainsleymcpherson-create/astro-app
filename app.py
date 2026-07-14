@@ -208,7 +208,7 @@ if submitted:
                             client = anthropic.Anthropic(api_key=api_key)
                             response = client.messages.create(
                                 model="claude-sonnet-5",
-                                max_tokens=16000,
+                                max_tokens=32000,
                                 messages=[{"role": "user", "content": prompt}],
                             )
                             text_parts = [
@@ -216,8 +216,21 @@ if submitted:
                                 if getattr(block, "type", None) == "text"
                             ]
                             result_text = "".join(text_parts)
+                            stop_reason = getattr(response, "stop_reason", "unknown")
 
-                            if result_text:
+                            if result_text and stop_reason == "max_tokens":
+                                # There IS text, but the response was cut
+                                # off mid-generation before finishing — show
+                                # it with a clear warning rather than
+                                # silently presenting partial content as if
+                                # it were the complete reading.
+                                interpretation_text = (
+                                    result_text +
+                                    "\n\n---\n\n⚠️ **This response was cut off before finishing** "
+                                    "(hit the token limit). What's above may be incomplete — "
+                                    "increase max_tokens in app.py if this keeps happening."
+                                )
+                            elif result_text:
                                 interpretation_text = result_text
                             else:
                                 # The call succeeded but returned no usable
