@@ -17,7 +17,7 @@ GitHub and point Streamlit Cloud at it.
 """
 
 import os
-from datetime import date as date_type, time as time_type
+from datetime import date as date_type
 import streamlit as st
 import pandas as pd
 import swisseph as swe
@@ -76,7 +76,7 @@ st.caption("Computes birth charts with full support for Part of Fortune, "
 
 # --- Input form ---
 with st.form("birth_form"):
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns([1, 1.3, 1])
     with col1:
         birth_date = st.date_input(
             "Birth date",
@@ -86,12 +86,23 @@ with st.form("birth_form"):
             help="Tap to open the calendar picker.",
         )
     with col2:
-        birth_time = st.time_input(
-            "Birth time",
-            value=time_type(13, 30),
-            step=60,
-            help="Tap to open the time picker (1-minute increments).",
-        )
+        st.write("Birth time")
+        hour_col, minute_col, ampm_col = st.columns(3)
+        with hour_col:
+            birth_hour = st.selectbox(
+                "Hour", options=list(range(1, 13)), index=0,
+                label_visibility="collapsed",
+            )
+        with minute_col:
+            birth_minute = st.selectbox(
+                "Minute", options=[f"{m:02d}" for m in range(60)], index=30,
+                label_visibility="collapsed",
+            )
+        with ampm_col:
+            birth_ampm = st.selectbox(
+                "AM/PM", options=["AM", "PM"], index=1,
+                label_visibility="collapsed",
+            )
     with col3:
         location_str = st.text_input(
             "Birth location",
@@ -198,7 +209,7 @@ if submitted:
         # Combine the two separate picker widgets into the plain-language
         # string resolve_birth_data() expects (e.g. "December 24, 1981
         # 01:30 PM") — keeps birth_input.py's parsing logic unchanged.
-        datetime_str = f"{birth_date.strftime('%B %d, %Y')} {birth_time.strftime('%I:%M %p')}"
+        datetime_str = f"{birth_date.strftime('%B %d, %Y')} {birth_hour:02d}:{birth_minute} {birth_ampm}"
 
         with st.spinner("Resolving location and timezone..."):
             birth = resolve_birth_data(datetime_str, location_str, verbose=False)
