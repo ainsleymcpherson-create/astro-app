@@ -11,7 +11,6 @@ call each time it's used.
 Run locally:
     streamlit run app.py
 
-
 This same file is what you'd deploy to Streamlit Community Cloud later
 for a public version — no code changes needed, just push this repo to
 GitHub and point Streamlit Cloud at it.
@@ -19,10 +18,16 @@ GitHub and point Streamlit Cloud at it.
 
 import os
 import re
+import io
 from datetime import date as date_type, datetime, timezone
 import streamlit as st
 import pandas as pd
 import swisseph as swe
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.lib import colors
 
 # --- Ephemeris setup ---
 # Points at a local ./ephe folder (relative to this file) rather than
@@ -97,6 +102,7 @@ reading_type = st.selectbox(
          "answers 'what's happening right now' — how today's sky is "
          "currently interacting with this natal chart.",
 )
+
 with st.form("birth_form"):
     col1, col2, col3 = st.columns([1, 1.3, 1])
     with col1:
@@ -151,20 +157,21 @@ with st.form("birth_form"):
     else:
         transit_date = date_type.today()  # unused placeholder for non-Transit readings
 
-    unknown_time = st.checkbox(
-        "🕐 I don't know my exact birth time",
-        value=False,
-        help="The Ascendant, Midheaven, house placements, Vertex, and Part "
-             "of Fortune/Spirit all require an exact birth time to "
-             "calculate correctly — a noon guess doesn't approximate them, "
-             "it effectively randomizes them (the Ascendant alone shifts "
-             "about 1° every 4 minutes). Checking this excludes all of "
-             "those and works only with what's reliable regardless of "
-             "time: the planets, Chiron, the Nodes, and aspects between "
-             "them. Works for General and Career/Work readings (not "
-             "applicable to Transits, which always needs a real natal "
-             "chart to compare against).",
-    )
+    if reading_type != "Transits":
+        unknown_time = st.checkbox(
+            "🕐 I don't know my exact birth time",
+            value=False,
+            help="The Ascendant, Midheaven, house placements, Vertex, and Part "
+                 "of Fortune/Spirit all require an exact birth time to "
+                 "calculate correctly — a noon guess doesn't approximate them, "
+                 "it effectively randomizes them (the Ascendant alone shifts "
+                 "about 1° every 4 minutes). Checking this excludes all of "
+                 "those and works only with what's reliable regardless of "
+                 "time: the planets, Chiron, the Nodes, and aspects between "
+                 "them. Works for General and Career/Work readings.",
+        )
+    else:
+        unknown_time = False  # not applicable to Transits
 
     generate_live = st.checkbox(
         "🪙 Generate written interpretation with Claude (makes a real, billed API call)",
@@ -222,6 +229,63 @@ def dignities_to_dataframe(dignities):
             "Score": d.score,
         })
     return pd.DataFrame(rows)
+
+
+def markdown_to_pdf_bytes(markdown_text: str, title: str) -> bytes:
+    """
+    Converts the simple markdown structure our readings use (## headers,
+    **bold** inline, plain paragraphs) into a nicely formatted PDF —
+    real headers and bold text instead of raw ## and ** symbols. Doesn't
+    need a full markdown library since our reading format is
+    intentionally simple and predictable. Uses reportlab, which is pure
+    Python with no system-level dependencies (unlike some PDF libraries),
+    so it won't risk the kind of compiled-dependency build failures we
+    hit with pyswisseph on Streamlit Cloud.
+    """
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=letter,
+        topMargin=0.75 * inch, bottomMargin=0.75 * inch,
+        leftMargin=0.75 * inch, rightMargin=0.75 * inch,
+    )
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        "ReadingTitle", parent=styles["Title"], spaceAfter=16,
+    )
+    heading_style = ParagraphStyle(
+        "ReadingHeading", parent=styles["Heading2"],
+        spaceBefore=16, spaceAfter=8, textColor=colors.HexColor("#2c3e50"),
+    )
+    body_style = ParagraphStyle(
+        "ReadingBody", parent=styles["Normal"], spaceAfter=10, leading=15,
+    )
+
+    story = [Paragraph(title, title_style), Spacer(1, 12)]
+
+    def inline_format(text: str) -> str:
+        # Escape XML-special characters first (reportlab's Paragraph
+        # parses a small XML-like markup), then convert markdown bold
+        # syntax into reportlab's own <b> tag.
+        text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
+        return text
+
+    for raw_line in markdown_text.split("\n"):
+        line = raw_line.strip()
+        if not line:
+            story.append(Spacer(1, 6))
+            continue
+        if line.startswith("## "):
+            story.append(Paragraph(inline_format(line[3:]), heading_style))
+        elif line.startswith("### "):
+            story.append(Paragraph(inline_format(line[4:]), heading_style))
+        else:
+            story.append(Paragraph(inline_format(line), body_style))
+
+    doc.build(story)
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
+    return pdf_bytes
 
 
 def render_interpretation(text: str):
@@ -518,13 +582,27 @@ if st.session_state.get("results"):
         if r["interpretation_text"]:
             render_interpretation(r["interpretation_text"])
             st.divider()
-            st.download_button(
-                "Download reading as .txt",
-                data=r["interpretation_text"],
-                file_name=f"reading_{r['birth_date'].isoformat()}.txt",
-                mime="text/plain",
-                use_container_width=True,
-            )
+
+            pdf_title = f"{r['reading_type']} Reading — {r['datetime_str']}"
+            pdf_bytes = markdown_to_pdf_bytes(r["interpretation_text"], pdf_title)
+
+            dl_col1, dl_col2 = st.columns(2)
+            with dl_col1:
+                st.download_button(
+                    "📄 Download as .pdf",
+                    data=pdf_bytes,
+                    file_name=f"reading_{r['birth_date'].isoformat()}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                )
+            with dl_col2:
+                st.download_button(
+                    "Download as .txt",
+                    data=r["interpretation_text"],
+                    file_name=f"reading_{r['birth_date'].isoformat()}.txt",
+                    mime="text/plain",
+                    use_container_width=True,
+                )
             with st.expander("Copy as plain text"):
                 st.text_area(
                     "Reading (tap inside, select all, copy)",
