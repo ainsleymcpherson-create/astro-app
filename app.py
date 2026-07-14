@@ -32,7 +32,7 @@ from chart_points import compute_full_chart, extract_speeds
 from aspect_engine import compute_aspects, find_all_patterns
 from dignity import compute_chart_dignities
 from house_interpretation import build_house_readings
-from prompt_builder import build_interpretation_prompt
+from prompt_builder import build_interpretation_prompt, build_career_interpretation_prompt
 from birth_input import resolve_birth_data
 
 # --- Optional: live Claude interpretation ---
@@ -94,6 +94,15 @@ with st.form("birth_form"):
         "Placidus": b"P", "Whole Sign": b"W", "Equal": b"E", "Koch": b"K",
         "Campanus": b"C", "Regiomontanus": b"R", "Alcabitius": b"B",
     }
+
+    reading_type = st.selectbox(
+        "Reading focus",
+        options=["General", "Career / Work"],
+        index=0,
+        help="General covers the whole chart. Career/Work focuses "
+             "specifically on workplace happiness, colleague dynamics, "
+             "work style, and professional strengths/weaknesses.",
+    )
 
     generate_live = st.checkbox(
         "🪙 Generate written interpretation with Claude (makes a real, billed API call)",
@@ -170,7 +179,10 @@ if submitted:
             patterns = find_all_patterns(chart, aspects)
             dignities = compute_chart_dignities(chart)
             house_readings = build_house_readings(chart)
-            prompt = build_interpretation_prompt(chart, aspects, patterns, dignities, house_readings)
+            if reading_type == "Career / Work":
+                prompt = build_career_interpretation_prompt(chart, aspects, patterns, dignities, house_readings)
+            else:
+                prompt = build_interpretation_prompt(chart, aspects, patterns, dignities, house_readings)
 
         interpretation_text = None
         interpretation_error = None
@@ -228,7 +240,7 @@ if submitted:
 
         st.success(
             f"Chart computed for {datetime_str} in {location_str} "
-            f"({house_system_label} houses)"
+            f"({house_system_label} houses, {reading_type} reading)"
         )
 
         tabs = st.tabs(["Interpretation", "Prompt", "Points", "Aspects", "Patterns", "Dignity", "Houses"])
