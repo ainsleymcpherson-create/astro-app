@@ -228,7 +228,8 @@ Structure your answer as follows:
 
 First, provide a general and summarized overview of the chart and what \
 the reading uncovered — a short, plain-language orientation before the \
-detailed sections.
+detailed sections, written as a few flowing paragraphs (not chunked or \
+bulleted — see formatting guidelines below).
 
 Then, go into the following sections. Use them as your section headers:
 
@@ -289,13 +290,30 @@ the readings and outputs of the other sections?
 
 End with a conclusion and summary of key points, but try not to repeat \
 the intro summary — the intro orients the reader before the detail, the \
-conclusion should distill what actually matters most after reading it.
+conclusion should distill what actually matters most after reading it. \
+Write the conclusion as flowing prose too, matching the Overview's \
+style — not chunked or bulleted.
 
 General guidelines that still apply:
-- USE A TWO-PART FORMAT AT THE SECTION LEVEL, not per individual claim. \
-For EACH section (Overview, each of the headers below, and the \
-Conclusion), structure it as exactly two consolidated parts, IN THIS \
-ORDER:
+- THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
+PROSE — no "Career Implications" / "Astrological Basis" split, no \
+bolded sub-labels, no bullet chunking. Just a few well-written \
+paragraphs in accessible, jargon-light language. These two are meant \
+to read as a narrative frame around the detailed sections, not another \
+structured breakdown — the structure below is specifically for the six \
+section headers, not for these bookending pieces.
+- FOR THE SIX SECTION HEADERS ONLY (Professional Strengths through \
+Professional Growth Trajectory), OPEN EACH SECTION with 1-2 sentences \
+of brief plain-language prose summarizing the main takeaway of that \
+section — no bolding, no chunking, just a short lead-in sentence or \
+two, similar in style to the Overview. THEN, after that brief summary, \
+follow with the two-part chunked structure below. Every one of the six \
+sections should have this same shape: short prose summary first, then \
+chunked detail.
+- FOR THE SIX SECTION HEADERS ONLY (Professional Strengths through \
+Professional Growth Trajectory), USE A TWO-PART FORMAT AT THE SECTION \
+LEVEL, not per individual claim. Structure the detail AFTER the brief \
+summary above as exactly two consolidated parts, IN THIS ORDER:
     **Career Implications:** Written FIRST. Do NOT write this as one \
     dense paragraph — break it into 2-4 short, scannable chunks, each \
     just 1-3 sentences, using either short bullet points or brief bolded \
@@ -320,8 +338,9 @@ ORDER:
     Career Implications, not flowing prose.
   Do NOT alternate line-by-line between career interpretation and \
   astrological facts — group all the career interpretation together \
-  first, then all the supporting astrology together, once per section. \
-  This applies to every section including the Overview and Conclusion.
+  first, then all the supporting astrology together. This chunked \
+  two-part structure applies ONLY to the six section headers — the \
+  Overview and Conclusion stay in prose, per the note above.
 - SYNTHESIZE within each section — don't just list placements one by \
 one, identify how 2-3 placements combine to create each point you make. \
 Focus on the most important items, not the entire list. Where possible, \
