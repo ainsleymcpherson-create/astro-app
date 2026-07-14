@@ -200,6 +200,50 @@ def dignities_to_dataframe(dignities):
     return pd.DataFrame(rows)
 
 
+def dataframe_download_and_copy(df: pd.DataFrame, filename: str, key_prefix: str):
+    """Adds a CSV download button and a copy-friendly text area below a
+    dataframe. key_prefix keeps widget keys unique across tabs, since
+    Streamlit requires unique keys for repeated widgets on one page."""
+    csv_data = df.to_csv(index=False)
+    st.download_button(
+        f"Download as .csv",
+        data=csv_data,
+        file_name=filename,
+        mime="text/csv",
+        use_container_width=True,
+        key=f"{key_prefix}_download",
+    )
+    with st.expander("Copy as plain text"):
+        st.text_area(
+            "Data (tap inside, select all, copy)",
+            value=csv_data,
+            height=300,
+            label_visibility="collapsed",
+            key=f"{key_prefix}_copy",
+        )
+
+
+def text_download_and_copy(text: str, filename: str, key_prefix: str):
+    """Adds a .txt download button and a copy-friendly text area below
+    any plain-text tab content."""
+    st.download_button(
+        "Download as .txt",
+        data=text,
+        file_name=filename,
+        mime="text/plain",
+        use_container_width=True,
+        key=f"{key_prefix}_download",
+    )
+    with st.expander("Copy as plain text"):
+        st.text_area(
+            "Content (tap inside, select all, copy)",
+            value=text,
+            height=300,
+            label_visibility="collapsed",
+            key=f"{key_prefix}_copy",
+        )
+
+
 if submitted:
     try:
         st.caption(f"🐛 Debug: generate_live={generate_live}, "
@@ -370,30 +414,54 @@ if submitted:
             )
 
         with tabs[2]:
-            st.dataframe(points_to_dataframe(chart), use_container_width=True, hide_index=True)
+            points_df = points_to_dataframe(chart)
+            st.dataframe(points_df, use_container_width=True, hide_index=True)
+            dataframe_download_and_copy(points_df, f"points_{birth_date.isoformat()}.csv", "points")
 
         with tabs[3]:
-            st.dataframe(aspects_to_dataframe(aspects), use_container_width=True, hide_index=True)
+            aspects_df = aspects_to_dataframe(aspects)
+            st.dataframe(aspects_df, use_container_width=True, hide_index=True)
+            dataframe_download_and_copy(aspects_df, f"aspects_{birth_date.isoformat()}.csv", "aspects")
 
         with tabs[4]:
             any_patterns = False
+            pattern_lines = []
             for kind, plist in patterns.items():
                 if not plist:
                     continue
                 any_patterns = True
-                st.subheader(kind.replace("_", " ").title())
+                label = kind.replace("_", " ").title()
+                st.subheader(label)
+                pattern_lines.append(f"{label}:")
                 for p in plist:
-                    st.write(f"- {', '.join(p.points)}")
+                    line = ", ".join(p.points)
+                    st.write(f"- {line}")
+                    pattern_lines.append(f"  - {line}")
             if not any_patterns:
                 st.info("No aspect patterns detected within the configured orbs.")
+            else:
+                text_download_and_copy(
+                    "\n".join(pattern_lines),
+                    f"patterns_{birth_date.isoformat()}.txt",
+                    "patterns",
+                )
 
         with tabs[5]:
-            st.dataframe(dignities_to_dataframe(dignities), use_container_width=True, hide_index=True)
+            dignity_df = dignities_to_dataframe(dignities)
+            st.dataframe(dignity_df, use_container_width=True, hide_index=True)
+            dataframe_download_and_copy(dignity_df, f"dignity_{birth_date.isoformat()}.csv", "dignity")
 
         with tabs[6]:
+            house_lines = []
             for num, reading in house_readings.items():
                 with st.expander(f"House {num} ({reading.sign_on_cusp})"):
                     st.write(reading.interpretation)
+                house_lines.append(f"House {num} ({reading.sign_on_cusp}):\n{reading.interpretation}\n")
+            text_download_and_copy(
+                "\n".join(house_lines),
+                f"houses_{birth_date.isoformat()}.txt",
+                "houses",
+            )
 
     except ValueError as e:
         st.error(f"Couldn't resolve birth data: {e}")
