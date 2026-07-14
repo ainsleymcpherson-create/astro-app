@@ -393,6 +393,218 @@ def build_career_interpretation_prompt(
     )
     return CAREER_INTERPRETATION_INSTRUCTIONS.format(data_block=data_block)
 
+# ---------------------------------------------------------------------------
+# Unknown birth time variant
+# ---------------------------------------------------------------------------
+# Several chart elements depend directly on the precise birth time and
+# location: the Ascendant, Midheaven, all house cusps, the Vertex, and
+# both Arabic Parts (Fortune and Spirit, since both are calculated from
+# the Ascendant). Using a noon default when the real time is unknown
+# doesn't approximate these — it effectively randomizes them, since the
+# Ascendant alone moves roughly 1° every 4 minutes. Rather than silently
+# feed the LLM wrong data, this variant filters those points out
+# entirely and works only with what's actually reliable without an
+# exact time: the planets, Chiron, the Nodes, their signs, their
+# dignity, and aspects between them.
+
+TIME_DEPENDENT_POINTS = {
+    "Ascendant", "Descendant", "Midheaven", "Imum Coeli",
+    "Vertex", "Anti-Vertex", "Part of Fortune", "Part of Spirit",
+}
+
+
+def _is_time_dependent(name: str) -> bool:
+    return name in TIME_DEPENDENT_POINTS or name.startswith("House ")
+
+
+def filter_time_independent(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+) -> tuple[dict[str, ChartPoint], list[Aspect], dict[str, list[AspectPattern]]]:
+    """
+    Strips out every point (and every aspect/pattern touching one) that
+    depends on exact birth time/location, leaving only what's reliable
+    when the birth time is unknown or approximate.
+    """
+    filtered_chart = {
+        name: point for name, point in chart.items()
+        if not _is_time_dependent(name)
+    }
+    filtered_aspects = [
+        a for a in aspects
+        if not _is_time_dependent(a.point1) and not _is_time_dependent(a.point2)
+    ]
+    filtered_patterns = {
+        kind: [p for p in plist if not any(_is_time_dependent(pt) for pt in p.points)]
+        for kind, plist in patterns.items()
+    }
+    return filtered_chart, filtered_aspects, filtered_patterns
+
+
+def build_data_block_no_time(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+) -> str:
+    """Same as build_data_block, but with no Houses section (there are no
+    reliable houses without a birth time) and a note about the Moon's
+    lighter reliability."""
+    filtered_chart, filtered_aspects, filtered_patterns = filter_time_independent(
+        chart, aspects, patterns
+    )
+    moon_note = (
+        "NOTE ON THE MOON: unlike the other planets, the Moon moves about "
+        "13° per day, so if the birth time is genuinely unknown, there's a "
+        "small chance its sign shown here is slightly off (only relevant if "
+        "the true birth time was far from when this chart was generated and "
+        "the Moon was near a sign boundary that day). Treat the Moon's "
+        "placement as slightly less certain than the other planets, but "
+        "still worth including."
+    )
+    return "\n\n".join([
+        moon_note,
+        format_points_section(filtered_chart),
+        format_aspects_section(filtered_aspects, min_tightness=min_tightness),
+        format_patterns_section(filtered_patterns),
+        format_dignity_section(dignities),
+    ])
+
+
+CAREER_NO_TIME_INSTRUCTIONS = """\
+You are an experienced astrologer giving a chart reading to someone who \
+is not very well versed in astrology, focused specifically on work and \
+career. This person's exact birth TIME is unknown, so you only have \
+access to their planets, Chiron, the Lunar Nodes, the signs they fall \
+in, their essential dignity, and aspects between them — all \
+mathematically precise. You do NOT have their Ascendant, Midheaven, \
+house placements, Vertex, or either Arabic Part, because all of those \
+require an exact birth time to calculate correctly and would be \
+unreliable guesses otherwise. Do not speculate about houses, rising \
+sign, or any of the excluded points — work entirely with what's given.
+
+Without house placements, work-relevant signal instead concentrates in \
+the planets themselves and their conditions: the Sun (core identity and \
+vitality), Saturn (discipline, structure, and long-term follow-through), \
+Mars (drive, initiative, and how conflict is handled), Mercury \
+(communication and thinking style), Venus (values and relational \
+style), Jupiter (growth, opportunity, and expansiveness), and the Lunar \
+Nodes (the comfort zone vs. the real growth direction). Essential \
+dignity — whether a planet is comfortably or uncomfortably placed in \
+its sign — matters more here than usual, since it's one of the few \
+reliable weighting signals available without house data.
+
+Structure your answer as follows:
+
+First, provide a general and summarized overview of the chart and what \
+the reading uncovered — a short, plain-language orientation before the \
+detailed sections, written as a few flowing paragraphs (not chunked or \
+bulleted — see formatting guidelines below). Briefly and matter-of-factly \
+note that this reading is based on planets only, without birth-time-\
+dependent points like the rising sign or houses, so it won't cover things \
+like "what house your career planets fall in" the way a full reading \
+would — this isn't a limitation to apologize for, just an accurate \
+scope-setting note.
+
+Then, go into the following sections. Use them as your section headers:
+
+PROFESSIONAL STRENGTHS: what are the genuine strengths of the \
+individual, based on well-dignified planets and supportive aspects \
+(trines, sextiles, conjuncts) between career-relevant planets? Where \
+does this individual operate with professional ease?
+
+PROFESSIONAL WATCH AREAS: These are traditionally thought of as \
+weaknesses, but they don't have to be an actual weakness; they can be \
+opportunities for growth. Using poorly-dignified planets, hard aspects \
+(squares, oppositions) between career-relevant planets, and the \
+Nodes, what are the areas that require more conscious effort? Be \
+honest about real weaknesses rather than reframing everything as \
+secretly a strength.
+
+PROFESSIONAL COMMUNICATION STYLE: special focus on Mercury and Mars — \
+their signs, dignity, and aspects to other planets. Do they like public \
+speaking? Do they prefer written communication? Are they quick-witted \
+and responsive, or do they take time to think things through? Are they \
+passive aggressive or straightforward?
+
+HAPPINESS AT WORK — What genuinely brings this person fulfillment or \
+satisfaction in a work context, and what's likely to frustrate or drain \
+them? Ground this in the Sun's sign and condition, Jupiter's placement, \
+and any other positive aspects — with limited astrological jargon — \
+rather than generic "you like variety" statements.
+
+WORK CULTURE AND STYLE: How does this person show up for work? Draw on \
+Mercury (communication), Venus (relational/diplomatic approach), Mars \
+(how they handle disagreement or assertion), and Saturn (structure and \
+follow-through) as relevant. Do they leave things to the last minute or \
+structure their delivery over time? How does this person actually \
+approach getting things done — pace, structure, flexibility, \
+independent, collaborative?
+
+PROFESSIONAL GROWTH TRAJECTORY: what does this person's chart say about \
+where their career might be going, based on dignity, supportive vs. \
+challenging aspects among career-relevant planets, and the Nodes? What \
+are suggested jobs and career paths that this person should consider?
+
+End with a conclusion and summary of key points, but try not to repeat \
+the intro summary. Write the conclusion as flowing prose too, matching \
+the Overview's style — not chunked or bulleted.
+
+General guidelines that still apply:
+- THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
+PROSE — no "Career Implications" / "Astrological Basis" split, no \
+bolded sub-labels, no bullet chunking.
+- FOR THE SIX SECTION HEADERS ONLY, OPEN EACH SECTION with 1-2 \
+sentences of brief plain-language prose summarizing the main takeaway \
+of that section. THEN follow with a two-part chunked structure, IN \
+THIS ORDER:
+    **Career Implications:** Written FIRST, broken into 2-4 short, \
+    scannable chunks with bolded sub-labels, in plain business/career \
+    language with NO astrology jargon at all.
+    **Astrological Basis:** Written SECOND, also broken into 2-4 short \
+    chunks grouped by planet or aspect, with brief plain-language \
+    glosses of technical terms woven in (e.g. "...Exaltation, its \
+    strongest condition..." or "...square, a tense angle...").
+- SYNTHESIZE within each section — identify how 2-3 placements combine \
+to create each point, rather than listing them one by one. Avoid \
+repeating the same point across multiple sections.
+- USE DIGNITY AS REAL WEIGHTING throughout — it carries extra weight in \
+this time-unknown format since fewer other signals are available.
+- TREAT PATTERNS AS UNITS where they touch career-relevant planets.
+- Avoid generic, could-apply-to-anyone language. Ground every claim in \
+the SPECIFIC combination of placements you're given.
+
+Here is the full computed chart data — planets, Chiron, and the Lunar \
+Nodes only (no Ascendant, houses, Vertex, or Arabic Parts, since none \
+of those are reliable without an exact birth time):
+
+{data_block}
+
+Now write the reading, organized under the headers above.\
+"""
+
+
+def build_career_interpretation_prompt_no_time(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+) -> str:
+    """
+    Career-focused prompt for when birth time is unknown or approximate.
+    Filters out every birth-time-dependent point (Ascendant, Midheaven,
+    houses, Vertex, both Arabic Parts) rather than silently including
+    unreliable data, and reframes the instructions around what's still
+    solid: planets, dignity, and planet-to-planet aspects.
+    """
+    data_block = build_data_block_no_time(
+        chart, aspects, patterns, dignities, min_tightness=min_tightness,
+    )
+    return CAREER_NO_TIME_INSTRUCTIONS.format(data_block=data_block)
+
 
 # ---------------------------------------------------------------------------
 # NOTES for extension
@@ -408,3 +620,4 @@ def build_career_interpretation_prompt(
 #     etc.) can follow the exact same pattern as
 #     build_career_interpretation_prompt(): a new INSTRUCTIONS template
 #     plus a thin wrapper function reusing build_data_block().
+
