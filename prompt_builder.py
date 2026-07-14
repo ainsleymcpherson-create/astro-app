@@ -167,13 +167,16 @@ lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
     natural sentences like "your Mars is in Libra" — these are common \
     enough that most readers have some baseline familiarity with them. \
     However, do NOT use more complex or lesser-known astrological \
-    terminology here: no aspect names (trine, square, sextile, \
-    conjunction, opposition, quincunx, etc.), no dignity/technical \
-    status terms (Exaltation, Detriment, Rulership, Peregrine, etc.), \
-    no house numbers, no pattern names (Grand Trine, T-Square, Yod, \
-    Stellium, etc.), and don't name the lesser-used points directly \
-    (Chiron, the Nodes, the Vertex, Part of Fortune/Spirit) — describe \
-    their effects in plain language instead of naming them. All of that \
+    terminology here: no aspect names or aspect verbs (trine, square, \
+    sextile, conjunct, conjunction, opposition, quincunx, etc.), no \
+    angle names (Midheaven, Ascendant, Descendant, Imum Coeli), no \
+    dignity/technical status terms (Exaltation, Detriment, Rulership, \
+    Peregrine, etc.), no house numbers, no pattern names (Grand Trine, \
+    T-Square, Yod, Stellium, etc.), and don't name the lesser-used \
+    points directly (Chiron, the Nodes, the Vertex, Part of \
+    Fortune/Spirit) — describe their effects in plain language instead \
+    of naming them. A phrase like "conjunct your Midheaven" should \
+    NEVER appear here. All of that \
     more technical/niche vocabulary belongs in the Astrological Basis \
     section below, where it's fully explained. This is where the \
     actual interpretation and meaning for the person's life lives — \
@@ -314,14 +317,15 @@ structure, IN THIS ORDER:
     sentences like "your Mars is in Libra" — these are common enough \
     that most readers have some baseline familiarity with them. \
     However, do NOT use more complex or lesser-known astrological \
-    terminology here: no aspect names (trine, square, sextile, \
-    conjunction, opposition, quincunx, etc.), no dignity/technical \
-    status terms (Exaltation, Detriment, Rulership, Peregrine, etc.), \
-    no pattern names (Grand Trine, T-Square, Yod, Stellium, etc.), and \
-    don't name Chiron or the Nodes directly — describe their effects \
-    in plain language instead of naming them. All of that more \
-    technical/niche vocabulary belongs in the Astrological Basis \
-    section below, where it's fully explained.
+    terminology here: no aspect names or aspect verbs (trine, square, \
+    sextile, conjunct, conjunction, opposition, quincunx, etc.), no \
+    dignity/technical status terms (Exaltation, Detriment, Rulership, \
+    Peregrine, etc.), no pattern names (Grand Trine, T-Square, Yod, \
+    Stellium, etc.), and don't name Chiron or the Nodes directly — \
+    describe their effects in plain language instead of naming them. \
+    A phrase like "square your Sun" should NEVER appear here. All of \
+    that more technical/niche vocabulary belongs in the Astrological \
+    Basis section below, where it's fully explained.
     **Astrological Basis:** Written SECOND, also in 2-4 short chunks \
     grouped by planet or aspect, with brief plain-language glosses of \
     technical terms woven in (e.g. "...Exaltation, its strongest \
@@ -533,12 +537,28 @@ summary above as exactly two consolidated parts, IN THIS ORDER:
     dense paragraph — break it into 2-4 short, scannable chunks, each \
     just 1-3 sentences, using either short bullet points or brief bolded \
     sub-labels (e.g. "**Daily reliability:** ...", "**Building your \
-    network:** ...") so a reader can scan and absorb it quickly rather \
-    than parse a wall of text. Cover what this part of the chart \
-    actually means for this person professionally, in plain business/ \
-    career language with NO astrology jargon at all. This is where the \
-    actual interpretation, advice, and takeaways for the reader live — \
-    lead with this so the reader gets the point immediately.
+    network:** ..."). You MAY reference the 10 standard planets (Sun, \
+    Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto) \
+    and zodiac signs by name in simple, natural sentences like "your \
+    Mars is in Libra" — these are common enough that most readers have \
+    some baseline familiarity with them. However, do NOT use any more \
+    complex or lesser-known astrological terminology here — this \
+    includes but is not limited to: no aspect names or aspect verbs \
+    (trine, square, sextile, conjunct, conjunction, opposition, \
+    quincunx, etc.), no angle names (Midheaven, Ascendant, Descendant, \
+    Imum Coeli), no dignity/technical status terms (Exaltation, \
+    Detriment, Rulership, Peregrine, etc.), no house numbers, no \
+    pattern names (Grand Trine, T-Square, Yod, Stellium, etc.), and \
+    don't name the lesser-used points directly (Chiron, the Nodes, the \
+    Vertex, Part of Fortune/Spirit) — describe their effects in plain \
+    language instead. Every one of these belongs in the Astrological \
+    Basis section below, not here — a phrase like "conjunct your \
+    Midheaven" or "square your natal Sun" should NEVER appear in this \
+    section. Cover what this part of the chart actually means for this \
+    person professionally, in plain business/career language. This is \
+    where the actual interpretation, advice, and takeaways for the \
+    reader live — lead with this so the reader gets the point \
+    immediately.
     **Astrological Basis:** Written SECOND. Also break this into 2-4 \
     short, scannable chunks rather than one dense paragraph — group by \
     placement or pattern (e.g. "**Saturn:** ...", "**Supporting \
@@ -784,8 +804,21 @@ sentences of brief plain-language prose summarizing the main takeaway \
 of that section. THEN follow with a two-part chunked structure, IN \
 THIS ORDER:
     **Career Implications:** Written FIRST, broken into 2-4 short, \
-    scannable chunks with bolded sub-labels, in plain business/career \
-    language with NO astrology jargon at all.
+    scannable chunks with bolded sub-labels. You MAY reference the \
+    planets (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, \
+    Neptune, Pluto) and zodiac signs by name in simple, natural \
+    sentences like "your Mars is in Libra" — these are common enough \
+    that most readers have some baseline familiarity with them. \
+    However, do NOT use any more complex or lesser-known astrological \
+    terminology here: no aspect names or aspect verbs (trine, square, \
+    sextile, conjunct, conjunction, opposition, quincunx, etc.), no \
+    dignity/technical status terms (Exaltation, Detriment, Rulership, \
+    Peregrine, etc.), no pattern names (Grand Trine, T-Square, Yod, \
+    Stellium, etc.), and don't name Chiron or the Nodes directly — \
+    describe their effects in plain language instead. Every one of \
+    these belongs in the Astrological Basis section below, not here — \
+    a phrase like "square your natal Sun" should NEVER appear in this \
+    section.
     **Astrological Basis:** Written SECOND, also broken into 2-4 short \
     chunks grouped by planet or aspect, with brief plain-language \
     glosses of technical terms woven in (e.g. "...Exaltation, its \
@@ -954,12 +987,16 @@ structure, IN THIS ORDER:
     "transiting Saturn is currently in Libra" — these are common enough \
     that most readers have some baseline familiarity with them. However, \
     do NOT use more complex or lesser-known astrological terminology \
-    here: no aspect names (trine, square, sextile, conjunction, \
-    opposition, quincunx, etc.), no dignity/technical status terms \
-    (Exaltation, Detriment, Rulership, Peregrine, etc.), no house \
-    numbers, and don't name Chiron or the Nodes directly — describe \
-    their effects in plain language instead. All of that more technical \
-    vocabulary belongs in the Astrological Basis section below.
+    here: no aspect names or aspect verbs (trine, square, sextile, \
+    conjunct, conjunction, opposition, quincunx, etc.), no angle names \
+    (Midheaven, Ascendant, Descendant, Imum Coeli), no dignity/technical \
+    status terms (Exaltation, Detriment, Rulership, Peregrine, etc.), no \
+    house numbers, and don't name Chiron or the Nodes directly — \
+    describe their effects in plain language instead. A phrase like \
+    "transiting Saturn is conjunct your Midheaven" should NEVER appear \
+    here — say something like "this is putting real focus on your \
+    public reputation and career direction" instead. All of that more \
+    technical vocabulary belongs in the Astrological Basis section below.
     **Astrological Basis:** Written SECOND, also in 2-4 short chunks \
     grouped by transit, with brief plain-language glosses of technical \
     terms woven in as needed. All the complex/lesser-known vocabulary \
