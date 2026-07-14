@@ -201,7 +201,17 @@ an afterthought.
 placements are not weaknesses to soften into false positivity — describe \
 what the friction actually is and how it might show up, alongside what's \
 constructive about it.
-8. Avoid generic, could-apply-to-anyone language. Ground every claim in \
+8. AVOID A MYSTICAL OR ESOTERIC TONE. Even with astrology terminology \
+removed from "What This Means," the writing can still feel esoteric \
+through word choice and phrasing — avoid language like "your soul's \
+journey," "the universe is calling you toward...," "cosmic energy," \
+"your higher self," or similar mystical framing. Write the way a sharp, \
+grounded psychologist or coach would describe a personality pattern or \
+life tendency — concrete, specific, relatable to everyday situations \
+(work, relationships, decision-making, daily habits) — not the way a \
+fortune teller would. This matters as much as removing jargon for making \
+the reading genuinely accessible to a broad, non-astrology audience.
+9. Avoid generic, could-apply-to-anyone language. Ground every claim in \
 the SPECIFIC combination of placements you're given, not stock keyword \
 associations.
 
@@ -324,7 +334,15 @@ available in this format, since all three require an exact birth time.)
 placements are not weaknesses to soften into false positivity — describe \
 what the friction actually is and how it might show up, alongside what's \
 constructive about it.
-7. Avoid generic, could-apply-to-anyone language. Ground every claim in \
+7. AVOID A MYSTICAL OR ESOTERIC TONE. Even with astrology terminology \
+removed from "What This Means," the writing can still feel esoteric \
+through word choice and phrasing — avoid language like "your soul's \
+journey," "the universe is calling you toward...," "cosmic energy," \
+"your higher self," or similar mystical framing. Write the way a sharp, \
+grounded psychologist or coach would describe a personality pattern or \
+life tendency — concrete, specific, relatable to everyday situations — \
+not the way a fortune teller would.
+8. Avoid generic, could-apply-to-anyone language. Ground every claim in \
 the SPECIFIC combination of placements you're given, not stock keyword \
 associations.
 
