@@ -189,6 +189,90 @@ def build_interpretation_prompt(
 
 
 # ---------------------------------------------------------------------------
+# General reading — unknown birth time variant
+# ---------------------------------------------------------------------------
+# Same rationale as the career no-time variant: the Ascendant, Midheaven,
+# houses, Vertex, and both Arabic Parts are all unreliable without an
+# exact birth time, so this strips them out entirely rather than
+# silently interpreting a noon-guess chart as if it were accurate.
+
+GENERAL_NO_TIME_INSTRUCTIONS = """\
+You are an experienced astrologer giving a natal chart reading. This \
+person's exact birth TIME is unknown, so you only have access to their \
+planets, Chiron, the Lunar Nodes, the signs they fall in, their \
+essential dignity, and aspects between them — all mathematically \
+precise. You do NOT have their Ascendant, Midheaven, house placements, \
+Vertex, or either Arabic Part (Part of Fortune/Spirit), because all of \
+those require an exact birth time to calculate correctly and would be \
+unreliable guesses otherwise. Do not speculate about houses, rising \
+sign, or any of the excluded points — work entirely with what's given, \
+and briefly and matter-of-factly note this scope limitation near the \
+start of the reading (not as an apology, just an accurate framing of \
+what this reading can and can't cover without a known birth time).
+
+Guidelines for the reading:
+1. SYNTHESIZE, don't enumerate. Don't just restate each placement one by \
+one ("Sun in Cancer means X, Moon in Leo means Y"). Instead, identify the \
+2-4 biggest THEMES that emerge when you look at everything together — \
+which placements reinforce each other, which create tension, and why.
+2. USE DIGNITY AS REAL WEIGHTING. A planet in Rulership or Exaltation \
+should be discussed as operating strongly and directly; a planet in \
+Detriment or Fall should be discussed as needing more conscious effort \
+or expressing in a roundabout way. Don't treat all placements as equally \
+strong. Dignity carries extra weight in this format, since fewer other \
+signals (no houses) are available.
+3. TREAT PATTERNS AS UNITS. A Grand Trine, T-Square, or Yod is not just \
+"three aspects" — explain what the pattern as a whole represents (ease vs. \
+tension vs. a specific pressure point demanding resolution), and name \
+which planet is the focal/apex point where relevant. Only planet-to-\
+planet patterns are available here (no patterns involving angles or \
+houses, since those aren't part of this chart).
+4. GIVE WEIGHT TO THE LESSER-USED POINTS THAT ARE STILL AVAILABLE. \
+Chiron and the Lunar Nodes both carry real interpretive meaning even \
+without a birth time — don't relegate them to a footnote after covering \
+the 10 planets. (Part of Fortune, Part of Spirit, and the Vertex are NOT \
+available in this format, since all three require an exact birth time.)
+5. BE HONEST ABOUT TENSION. Squares, oppositions, and detriment/fall \
+placements are not weaknesses to soften into false positivity — describe \
+what the friction actually is and how it might show up, alongside what's \
+constructive about it.
+6. Avoid generic, could-apply-to-anyone language. Ground every claim in \
+the SPECIFIC combination of placements you're given, not stock keyword \
+associations.
+
+Here is the full computed chart data — planets, Chiron, and the Lunar \
+Nodes only (no Ascendant, houses, Vertex, or Arabic Parts, since none \
+of those are reliable without an exact birth time):
+
+{data_block}
+
+Now write the reading. Organize it however makes sense for what you're \
+seeing in this specific chart — you don't need to follow a rigid \
+template. Let the chart's own emphases (strong patterns, dignified \
+planets) guide what gets the most attention.\
+"""
+
+
+def build_interpretation_prompt_no_time(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+) -> str:
+    """
+    General reading prompt for when birth time is unknown or approximate.
+    Filters out every birth-time-dependent point (Ascendant, Midheaven,
+    houses, Vertex, both Arabic Parts) rather than silently including
+    unreliable data.
+    """
+    data_block = build_data_block_no_time(
+        chart, aspects, patterns, dignities, min_tightness=min_tightness,
+    )
+    return GENERAL_NO_TIME_INSTRUCTIONS.format(data_block=data_block)
+
+
+# ---------------------------------------------------------------------------
 # Career/work-focused variant
 # ---------------------------------------------------------------------------
 # Same underlying chart data, but the instruction wrapper steers the LLM
@@ -620,4 +704,3 @@ def build_career_interpretation_prompt_no_time(
 #     etc.) can follow the exact same pattern as
 #     build_career_interpretation_prompt(): a new INSTRUCTIONS template
 #     plus a thin wrapper function reusing build_data_block().
-
