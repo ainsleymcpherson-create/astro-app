@@ -11,6 +11,7 @@ call each time it's used.
 Run locally:
     streamlit run app.py
 
+
 This same file is what you'd deploy to Streamlit Community Cloud later
 for a public version — no code changes needed, just push this repo to
 GitHub and point Streamlit Cloud at it.
@@ -86,6 +87,16 @@ st.caption("Computes birth charts with full support for Part of Fortune, "
            "of empty houses — not just the standard 10 planets.")
 
 # --- Input form ---
+reading_type = st.selectbox(
+    "Reading focus",
+    options=["General", "Career / Work", "Transits"],
+    index=0,
+    help="General covers the whole chart. Career/Work focuses "
+         "specifically on workplace happiness, colleague dynamics, "
+         "work style, and professional strengths/weaknesses. Transits "
+         "answers 'what's happening right now' — how today's sky is "
+         "currently interacting with this natal chart.",
+)
 with st.form("birth_form"):
     col1, col2, col3 = st.columns([1, 1.3, 1])
     with col1:
@@ -131,23 +142,14 @@ with st.form("birth_form"):
         "Campanus": b"C", "Regiomontanus": b"R", "Alcabitius": b"B",
     }
 
-    reading_type = st.selectbox(
-        "Reading focus",
-        options=["General", "Career / Work", "Transits"],
-        index=0,
-        help="General covers the whole chart. Career/Work focuses "
-             "specifically on workplace happiness, colleague dynamics, "
-             "work style, and professional strengths/weaknesses. Transits "
-             "answers 'what's happening right now' — how today's sky is "
-             "currently interacting with this natal chart.",
-    )
-
-    transit_date = st.date_input(
-        "Transit date (only used for Transits reading)",
-        value=date_type.today(),
-        help="The date to check transits for — defaults to today. Ignored "
-             "for General and Career/Work readings.",
-    )
+        if reading_type == "Transits":
+        transit_date = st.date_input(
+            "Transit date",
+            value=date_type.today(),
+            help="The date to check transits for — defaults to today.",
+        )
+    else:
+        transit_date = date_type.today()  # unused placeholder for non-Transit readings
 
     unknown_time = st.checkbox(
         "🕐 I don't know my exact birth time",
