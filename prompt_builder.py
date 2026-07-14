@@ -1,681 +1,1076 @@
 """
-app.py
+prompt_builder.py
 
-Streamlit frontend for the astrology chart engine. Lets you type in a
-birth date/time and location, computes the full chart (points, aspects,
-patterns, dignity, houses), and generates the LLM interpretation prompt.
-Optionally generates the written reading live via the Claude API — this
-is OFF by default and clearly labeled, since it makes a real, billed API
-call each time it's used.
+Takes everything the other modules compute (chart points, aspects,
+patterns, dignity, house readings) and assembles it into a single,
+well-structured prompt suitable for handing to an LLM for interpretation.
 
-Run locally:
-    streamlit run app.py
+The goal of the instruction wrapper isn't just "explain this chart" — it
+specifically steers the LLM toward the things generic pop-astrology
+content skips: treating dignity as a real weighting factor, explaining
+empty houses through their ruler rather than ignoring them, and reading
+aspect PATTERNS (grand trines, T-squares, yods) as integrated units
+rather than restating each individual aspect in isolation.
 
-This same file is what you'd deploy to Streamlit Community Cloud later
-for a public version — no code changes needed, just push this repo to
-GitHub and point Streamlit Cloud at it.
+Depends on chart_points.py, aspect_engine.py, dignity.py,
+house_interpretation.py — but only for their return TYPES; this module
+just formats whatever data structures those already produce.
 """
 
-import os
-import re
-import io
-from datetime import date as date_type, datetime, timezone
-import streamlit as st
-import pandas as pd
-import swisseph as swe
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.lib import colors
-
-# --- Ephemeris setup ---
-# Points at a local ./ephe folder (relative to this file) rather than
-# Colab's /content/ephe, since this now runs on your own machine.
-# Run download_ephemeris.py once (see README) to populate this folder.
-EPHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ephe")
-swe.set_ephe_path(EPHE_PATH)
-
-from chart_points import compute_full_chart, extract_speeds
-from aspect_engine import compute_aspects, find_all_patterns
-from dignity import compute_chart_dignities
-from house_interpretation import build_house_readings
-from transit_engine import compute_transiting_points, assign_transit_houses, compute_transit_aspects
-from prompt_builder import (
-    build_interpretation_prompt,
-    build_interpretation_prompt_no_time,
-    build_career_interpretation_prompt,
-    build_career_interpretation_prompt_no_time,
-    build_transit_prompt,
-)
-from birth_input import resolve_birth_data
-
-# --- Optional: live Claude interpretation ---
-# Requires: pip install anthropic (already in requirements.txt)
-# Requires an ANTHROPIC_API_KEY available either as:
-#   - a Colab secret (accessed via google.colab.userdata), or
-#   - an environment variable, for local/non-Colab runs
-# IMPORTANT: the key is only ever READ from these two places. It is never
-# hardcoded anywhere in this file, and should never be pasted directly
-# into any file that gets committed to a public repo.
-try:
-    import anthropic
-    ANTHROPIC_AVAILABLE = True
-except ImportError:
-    ANTHROPIC_AVAILABLE = False
+from __future__ import annotations
+from chart_points import ChartPoint
+from aspect_engine import Aspect, AspectPattern
+from dignity import DignityResult
+from house_interpretation import HouseReading
 
 
-def get_api_key():
-    """Try Colab secrets first, then Streamlit Cloud's secrets manager,
-    then fall back to a plain environment variable — so the same code
-    works unchanged across Colab, Streamlit Community Cloud, and local
-    runs."""
-    try:
-        from google.colab import userdata
-        key = userdata.get("ANTHROPIC_API_KEY")
-        if key:
-            return key
-    except Exception:
-        pass
-    try:
-        if "ANTHROPIC_API_KEY" in st.secrets:
-            return st.secrets["ANTHROPIC_API_KEY"]
-    except Exception:
-        pass
-    return os.environ.get("ANTHROPIC_API_KEY")
+# ---------------------------------------------------------------------------
+# Section formatters — each turns one piece of computed data into a clean
+# text block. Kept separate so you can mix/match sections if you ever want
+# a shorter prompt (e.g. skip house system nuance, just do points+aspects).
+# ---------------------------------------------------------------------------
 
-
-st.set_page_config(page_title="Astrology Chart Calculator", layout="wide")
-st.title("🔭 Astrology Chart Calculator")
-st.caption("Computes birth charts with full support for Part of Fortune, "
-           "Nodes, Vertex, Chiron, dignity, and house-ruler interpretation "
-           "of empty houses — not just the standard 10 planets.")
-
-# --- Input form ---
-reading_type = st.selectbox(
-    "Reading focus",
-    options=["General", "Career / Work", "Transits"],
-    index=0,
-    help="General covers the whole chart. Career/Work focuses "
-         "specifically on workplace happiness, colleague dynamics, "
-         "work style, and professional strengths/weaknesses. Transits "
-         "answers 'what's happening right now' — how today's sky is "
-         "currently interacting with this natal chart.",
-)
-
-with st.form("birth_form"):
-    col1, col2, col3 = st.columns([1, 1.3, 1])
-    with col1:
-        birth_date = st.date_input(
-            "Birth date",
-            value=date_type(1981, 12, 24),
-            min_value=date_type(1900, 1, 1),
-            max_value=date_type.today(),
-            help="Tap to open the calendar picker.",
-        )
-    with col2:
-        st.write("Birth time")
-        hour_col, minute_col, ampm_col = st.columns(3)
-        with hour_col:
-            birth_hour = st.selectbox(
-                "Hour", options=list(range(1, 13)), index=0,
-                label_visibility="collapsed",
-            )
-        with minute_col:
-            birth_minute = st.selectbox(
-                "Minute", options=[f"{m:02d}" for m in range(60)], index=30,
-                label_visibility="collapsed",
-            )
-        with ampm_col:
-            birth_ampm = st.selectbox(
-                "AM/PM", options=["AM", "PM"], index=1,
-                label_visibility="collapsed",
-            )
-    with col3:
-        location_str = st.text_input(
-            "Birth location",
-            value="Brooklyn, New York, USA",
-            help="Be specific — add state/country if the place name is common",
-        )
-
-    house_system_label = st.selectbox(
-        "House system",
-        options=["Placidus", "Whole Sign", "Equal", "Koch", "Campanus", "Regiomontanus", "Alcabitius"],
-        index=0,
-    )
-    house_system_map = {
-        "Placidus": b"P", "Whole Sign": b"W", "Equal": b"E", "Koch": b"K",
-        "Campanus": b"C", "Regiomontanus": b"R", "Alcabitius": b"B",
-    }
-
-    if reading_type == "Transits":
-        transit_date = st.date_input(
-            "Transit date",
-            value=date_type.today(),
-            help="The date to check transits for — defaults to today.",
-        )
-    else:
-        transit_date = date_type.today()  # unused placeholder for non-Transit readings
-
-    if reading_type != "Transits":
-        unknown_time = st.checkbox(
-            "🕐 I don't know my exact birth time",
-            value=False,
-            help="The Ascendant, Midheaven, house placements, Vertex, and Part "
-                 "of Fortune/Spirit all require an exact birth time to "
-                 "calculate correctly — a noon guess doesn't approximate them, "
-                 "it effectively randomizes them (the Ascendant alone shifts "
-                 "about 1° every 4 minutes). Checking this excludes all of "
-                 "those and works only with what's reliable regardless of "
-                 "time: the planets, Chiron, the Nodes, and aspects between "
-                 "them. Works for General and Career/Work readings.",
-        )
-    else:
-        unknown_time = False  # not applicable to Transits
-
-    generate_live = st.checkbox(
-        "🪙 Generate written interpretation with Claude (makes a real, billed API call)",
-        value=False,
-        help="Unchecked (default): you get the raw prompt to copy/paste into "
-             "Claude yourself, for free. Checked: this app calls the Claude "
-             "API directly and you're charged for that usage, every time "
-             "you click Compute Chart with this box checked.",
-    )
-
-    submitted = st.form_submit_button("Compute Chart", use_container_width=True)
-
-
-def points_to_dataframe(chart):
-    rows = []
+def format_points_section(chart: dict[str, ChartPoint]) -> str:
+    lines = ["PLACEMENTS (sign, house, retrograde status):"]
     for name, point in sorted(chart.items(), key=lambda x: x[1].longitude):
         if name.startswith("House "):
-            continue
-        rows.append({
-            "Point": name,
-            "Sign": point.sign,
-            "Degree": f"{point.sign_degree:.2f}°",
-            "House": str(point.house) if point.house else "—",
-            "Retrograde": "R" if point.retrograde else "",
-        })
-    return pd.DataFrame(rows)
+            continue  # cusps listed separately in the houses section
+        house_str = f", House {point.house}" if point.house else ""
+        retro_str = " (retrograde)" if point.retrograde else ""
+        lines.append(
+            f"  - {name}: {point.sign_degree:.1f}° {point.sign}{house_str}{retro_str}"
+        )
+    return "\n".join(lines)
 
 
-def aspects_to_dataframe(aspects):
-    rows = []
-    for a in aspects:
-        motion = ""
+def format_aspects_section(aspects: list[Aspect], min_tightness: float = 1.0) -> str:
+    """
+    min_tightness: 1.0 includes everything within orb. Lower it (e.g. 0.5)
+    to only include the tighter/stronger half of aspects if the full list
+    is too long for your prompt budget.
+    """
+    lines = ["ASPECTS (orb = how exact; applying = still building, "
+             "separating = past exact and fading):"]
+    filtered = [a for a in aspects if a.tightness <= min_tightness]
+    for a in filtered:
+        app_str = ""
         if a.applying is True:
-            motion = "applying"
+            app_str = ", applying"
         elif a.applying is False:
-            motion = "separating"
-        rows.append({
-            "Point 1": a.point1,
-            "Aspect": a.aspect_name,
-            "Point 2": a.point2,
-            "Orb": f"{a.orb:.2f}°",
-            "Motion": motion,
-            "Nature": a.nature,
-        })
-    return pd.DataFrame(rows)
-
-
-def dignities_to_dataframe(dignities):
-    rows = []
-    for planet, d in dignities.items():
-        rows.append({
-            "Planet": planet,
-            "Sign": d.sign,
-            "Status": d.status,
-            "Score": d.score,
-        })
-    return pd.DataFrame(rows)
-
-
-def markdown_to_pdf_bytes(markdown_text: str, title: str) -> bytes:
-    """
-    Converts the simple markdown structure our readings use (## headers,
-    **bold** inline, plain paragraphs) into a nicely formatted PDF —
-    real headers and bold text instead of raw ## and ** symbols. Doesn't
-    need a full markdown library since our reading format is
-    intentionally simple and predictable. Uses reportlab, which is pure
-    Python with no system-level dependencies (unlike some PDF libraries),
-    so it won't risk the kind of compiled-dependency build failures we
-    hit with pyswisseph on Streamlit Cloud.
-    """
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(
-        buffer, pagesize=letter,
-        topMargin=0.75 * inch, bottomMargin=0.75 * inch,
-        leftMargin=0.75 * inch, rightMargin=0.75 * inch,
-    )
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        "ReadingTitle", parent=styles["Title"], spaceAfter=16,
-    )
-    heading_style = ParagraphStyle(
-        "ReadingHeading", parent=styles["Heading2"],
-        spaceBefore=16, spaceAfter=8, textColor=colors.HexColor("#2c3e50"),
-    )
-    body_style = ParagraphStyle(
-        "ReadingBody", parent=styles["Normal"], spaceAfter=10, leading=15,
-    )
-
-    story = [Paragraph(title, title_style), Spacer(1, 12)]
-
-    def inline_format(text: str) -> str:
-        # Escape XML-special characters first (reportlab's Paragraph
-        # parses a small XML-like markup), then convert markdown bold
-        # syntax into reportlab's own <b> tag.
-        text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
-        return text
-
-    for raw_line in markdown_text.split("\n"):
-        line = raw_line.strip()
-        if not line:
-            story.append(Spacer(1, 6))
-            continue
-        if line.startswith("## "):
-            story.append(Paragraph(inline_format(line[3:]), heading_style))
-        elif line.startswith("### "):
-            story.append(Paragraph(inline_format(line[4:]), heading_style))
-        else:
-            story.append(Paragraph(inline_format(line), body_style))
-
-    doc.build(story)
-    pdf_bytes = buffer.getvalue()
-    buffer.close()
-    return pdf_bytes
-
-
-def render_interpretation(text: str):
-    """
-    Renders an AI-generated reading with each section's 'Astrological
-    Basis' part collapsed into an expander — the plain-language
-    interpretation stays visible by default, and the technical detail
-    (planet placements, aspect names, dignity terms) is available on
-    tap for readers who want it, without cluttering the main view for
-    readers who don't. Falls back to plain rendering if the text
-    doesn't match the expected section structure (e.g. if the LLM
-    didn't follow the formatting instructions exactly).
-    """
-    section_pattern = re.compile(r"(?m)^## (.+)$")
-    matches = list(section_pattern.finditer(text))
-
-    if not matches:
-        st.markdown(text)
-        return
-
-    if matches[0].start() > 0:
-        st.markdown(text[:matches[0].start()].strip())
-
-    basis_pattern = re.compile(r"\*\*Astrological Basis:?\*\*", re.IGNORECASE)
-
-    for i, match in enumerate(matches):
-        header = match.group(1).strip()
-        start = match.end()
-        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        body = text[start:end].strip()
-
-        st.markdown(f"### {header}")
-
-        basis_match = basis_pattern.search(body)
-        if basis_match:
-            before_basis = body[:basis_match.start()].strip()
-            basis_content = body[basis_match.end():].strip()
-            if before_basis:
-                st.markdown(before_basis)
-            with st.expander("📐 Astrological Basis (tap to expand)"):
-                st.markdown(basis_content)
-        else:
-            # Overview, Conclusion, or any section that didn't include
-            # a basis split — just render the whole thing normally.
-            st.markdown(body)
-
-
-def dataframe_download_and_copy(df: pd.DataFrame, filename: str, key_prefix: str):
-    """Adds a CSV download button and a copy-friendly text area below a
-    dataframe. key_prefix keeps widget keys unique across tabs, since
-    Streamlit requires unique keys for repeated widgets on one page."""
-    csv_data = df.to_csv(index=False)
-    st.download_button(
-        f"Download as .csv",
-        data=csv_data,
-        file_name=filename,
-        mime="text/csv",
-        use_container_width=True,
-        key=f"{key_prefix}_download",
-    )
-    with st.expander("Copy as plain text"):
-        st.text_area(
-            "Data (tap inside, select all, copy)",
-            value=csv_data,
-            height=300,
-            label_visibility="collapsed",
-            key=f"{key_prefix}_copy",
+            app_str = ", separating"
+        lines.append(
+            f"  - {a.point1} {a.aspect_name} {a.point2} "
+            f"(orb {a.orb:.2f}°{app_str}, nature: {a.nature})"
         )
+    return "\n".join(lines)
 
 
-def text_download_and_copy(text: str, filename: str, key_prefix: str):
-    """Adds a .txt download button and a copy-friendly text area below
-    any plain-text tab content."""
-    st.download_button(
-        "Download as .txt",
-        data=text,
-        file_name=filename,
-        mime="text/plain",
-        use_container_width=True,
-        key=f"{key_prefix}_download",
-    )
-    with st.expander("Copy as plain text"):
-        st.text_area(
-            "Content (tap inside, select all, copy)",
-            value=text,
-            height=300,
-            label_visibility="collapsed",
-            key=f"{key_prefix}_copy",
-        )
-
-
-if submitted:
-    try:
-        st.caption(f"🐛 Debug: generate_live={generate_live}, "
-                   f"ANTHROPIC_AVAILABLE={ANTHROPIC_AVAILABLE}, "
-                   f"api_key_found={bool(get_api_key())}")
-
-        # Combine the two separate picker widgets into the plain-language
-        # string resolve_birth_data() expects (e.g. "December 24, 1981
-        # 01:30 PM") — keeps birth_input.py's parsing logic unchanged.
-        datetime_str = f"{birth_date.strftime('%B %d, %Y')} {birth_hour:02d}:{birth_minute} {birth_ampm}"
-
-        with st.spinner("Resolving location and timezone..."):
-            birth = resolve_birth_data(datetime_str, location_str, verbose=False)
-
-        house_system = house_system_map[house_system_label]
-
-        with st.spinner("Computing chart..."):
-            chart = compute_full_chart(birth, house_system=house_system)
-            aspects = compute_aspects(chart, speeds=extract_speeds(chart))
-            patterns = find_all_patterns(chart, aspects)
-            dignities = compute_chart_dignities(chart)
-            house_readings = build_house_readings(chart)
-
-            if reading_type == "Transits":
-                with st.spinner("Computing current transits..."):
-                    # Transits are read for a specific moment; noon UTC on
-                    # the chosen date is a reasonable default (matches
-                    # standard daily-ephemeris convention). Faster points
-                    # like the Moon can shift within a day, but this is
-                    # fine for a "what's the current climate" reading.
-                    transit_dt_utc = datetime(
-                        transit_date.year, transit_date.month, transit_date.day,
-                        12, 0, 0, tzinfo=timezone.utc,
-                    )
-                    transiting_points = compute_transiting_points(transit_dt_utc)
-
-                    # Map transiting planets onto this person's NATAL
-                    # houses (transits are read against natal houses, not
-                    # a fresh chart for the transit moment).
-                    natal_house_cusps = [
-                        chart[f"House {i}"] for i in range(1, 13)
-                    ]
-                    assign_transit_houses(transiting_points, natal_house_cusps)
-
-                    transit_aspects = compute_transit_aspects(
-                        chart, transiting_points,
-                        transiting_speeds=extract_speeds(transiting_points),
-                    )
-                    prompt = build_transit_prompt(transiting_points, transit_aspects, dignities)
-            elif reading_type == "Career / Work" and unknown_time:
-                prompt = build_career_interpretation_prompt_no_time(
-                    chart, aspects, patterns, dignities
-                )
-            elif reading_type == "Career / Work":
-                prompt = build_career_interpretation_prompt(chart, aspects, patterns, dignities, house_readings)
-            elif unknown_time:
-                prompt = build_interpretation_prompt_no_time(chart, aspects, patterns, dignities)
-            else:
-                prompt = build_interpretation_prompt(chart, aspects, patterns, dignities, house_readings)
-
-        interpretation_text = None
-        interpretation_error = None
-
-        if generate_live:
-            if not ANTHROPIC_AVAILABLE:
-                interpretation_error = (
-                    "The `anthropic` package isn't installed. Run "
-                    "`pip install anthropic` and restart the app."
-                )
-            else:
-                api_key = get_api_key()
-                if not api_key:
-                    interpretation_error = (
-                        "No API key found. Add ANTHROPIC_API_KEY as a Colab "
-                        "secret, or set it as an environment variable. The "
-                        "prompt below is still available to copy manually."
-                    )
-                else:
-                    with st.spinner("Generating interpretation with Claude "
-                                     "(this makes a billed API call — may take "
-                                     "a couple minutes for a full reading)..."):
-                        try:
-                            client = anthropic.Anthropic(api_key=api_key)
-                            # Streaming is required here rather than a plain
-                            # blocking call: with max_tokens this high, the
-                            # SDK estimates generation could exceed its
-                            # 10-minute non-streaming timeout and refuses to
-                            # run without it. get_final_message() waits for
-                            # the stream to finish and hands back a normal
-                            # Message object — same .content/.stop_reason
-                            # shape as the non-streaming response, so nothing
-                            # downstream needs to change.
-                            with client.messages.stream(
-                                model="claude-sonnet-5",
-                                max_tokens=32000,
-                                messages=[{"role": "user", "content": prompt}],
-                            ) as stream:
-                                response = stream.get_final_message()
-                            text_parts = [
-                                block.text for block in response.content
-                                if getattr(block, "type", None) == "text"
-                            ]
-                            result_text = "".join(text_parts)
-                            stop_reason = getattr(response, "stop_reason", "unknown")
-
-                            if result_text and stop_reason == "max_tokens":
-                                # There IS text, but the response was cut
-                                # off mid-generation before finishing — show
-                                # it with a clear warning rather than
-                                # silently presenting partial content as if
-                                # it were the complete reading.
-                                interpretation_text = (
-                                    result_text +
-                                    "\n\n---\n\n⚠️ **This response was cut off before finishing** "
-                                    "(hit the token limit). What's above may be incomplete — "
-                                    "increase max_tokens in app.py if this keeps happening."
-                                )
-                            elif result_text:
-                                interpretation_text = result_text
-                            else:
-                                # The call succeeded but returned no usable
-                                # text — surface this as an error rather
-                                # than silently falling back to the generic
-                                # "check the box" message, which would hide
-                                # a real problem. Summarize block types/sizes
-                                # instead of dumping raw content, since a
-                                # thinking block's signature can be tens of
-                                # thousands of characters of base64 — useless
-                                # for debugging and unreadable in the UI.
-                                stop_reason = getattr(response, "stop_reason", "unknown")
-                                block_summary = ", ".join(
-                                    f"{getattr(b, 'type', 'unknown')} "
-                                    f"({len(getattr(b, 'thinking', '') or getattr(b, 'text', '') or '')} chars)"
-                                    for b in response.content
-                                )
-                                interpretation_error = (
-                                    f"Claude ran out of room before writing the answer "
-                                    f"(stop_reason: {stop_reason}). This model spent its "
-                                    f"whole token budget on internal reasoning first. "
-                                    f"Content blocks received: {block_summary}. "
-                                    f"Try increasing max_tokens further in app.py if this "
-                                    f"keeps happening."
-                                )
-                        except Exception as e:
-                            import traceback
-                            interpretation_error = (
-                                f"Claude API call failed: {type(e).__name__}: {e}\n\n"
-                                f"Full traceback:\n{traceback.format_exc()}"
-                            )
-
-        # Persist everything needed for display in st.session_state.
-        # Streamlit reruns the ENTIRE script on every widget interaction —
-        # including clicking a download button — and `submitted` is only
-        # True on the exact run where "Compute Chart" was clicked. Without
-        # this, clicking any download button would make all the results
-        # disappear on the next rerun, since the display code below would
-        # no longer be reachable.
-        st.session_state.results = {
-            "datetime_str": datetime_str,
-            "location_str": location_str,
-            "house_system_label": house_system_label,
-            "reading_type": reading_type,
-            "birth_date": birth_date,
-            "transit_date": transit_date,
-            "chart": chart,
-            "aspects": aspects,
-            "patterns": patterns,
-            "dignities": dignities,
-            "house_readings": house_readings,
-            "prompt": prompt,
-            "interpretation_text": interpretation_text,
-            "interpretation_error": interpretation_error,
-        }
-
-    except ValueError as e:
-        st.error(f"Couldn't resolve birth data: {e}")
-    except Exception as e:
-        st.error(f"Something went wrong: {e}")
-        st.exception(e)
-
-
-# --- Display results ---
-# Runs on every script rerun where results exist in session_state — not
-# just the run where the form was submitted — so the tabs (and their
-# download/copy buttons) stay visible across reruns instead of vanishing.
-if st.session_state.get("results"):
-    r = st.session_state.results
-
-    if r["reading_type"] == "Transits":
-        st.success(
-            f"Natal chart: {r['datetime_str']} in {r['location_str']} "
-            f"({r['house_system_label']} houses) — Transits for {r['transit_date'].isoformat()}"
-        )
-    else:
-        st.success(
-            f"Chart computed for {r['datetime_str']} in {r['location_str']} "
-            f"({r['house_system_label']} houses, {r['reading_type']} reading)"
-        )
-
-    tabs = st.tabs(["Interpretation", "Prompt", "Points", "Aspects", "Patterns", "Dignity", "Houses"])
-
-    with tabs[0]:
-        if r["interpretation_text"]:
-            render_interpretation(r["interpretation_text"])
-            st.divider()
-
-            pdf_title = f"{r['reading_type']} Reading — {r['datetime_str']}"
-            pdf_bytes = markdown_to_pdf_bytes(r["interpretation_text"], pdf_title)
-
-            dl_col1, dl_col2 = st.columns(2)
-            with dl_col1:
-                st.download_button(
-                    "📄 Download as .pdf",
-                    data=pdf_bytes,
-                    file_name=f"reading_{r['birth_date'].isoformat()}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                )
-            with dl_col2:
-                st.download_button(
-                    "Download as .txt",
-                    data=r["interpretation_text"],
-                    file_name=f"reading_{r['birth_date'].isoformat()}.txt",
-                    mime="text/plain",
-                    use_container_width=True,
-                )
-            with st.expander("Copy as plain text"):
-                st.text_area(
-                    "Reading (tap inside, select all, copy)",
-                    value=r["interpretation_text"],
-                    height=400,
-                    label_visibility="collapsed",
-                )
-        elif r["interpretation_error"]:
-            st.warning("Something went wrong generating the live interpretation:")
-            st.code(r["interpretation_error"])
-        else:
-            st.info("Check the \"Generate written interpretation\" box above "
-                     "and recompute to get a live reading here — or use the "
-                     "Prompt tab to copy it into Claude yourself for free.")
-
-    with tabs[1]:
-        st.write("Copy this into Claude.ai (or send it via the API yourself) "
-                 "to get the full written reading — free, no API call from this app.")
-        st.text_area("Full prompt", value=r["prompt"], height=500, label_visibility="collapsed")
-        st.download_button(
-            "Download prompt as .txt",
-            data=r["prompt"],
-            file_name="interpretation_prompt.txt",
-            mime="text/plain",
-            use_container_width=True,
-        )
-
-    with tabs[2]:
-        points_df = points_to_dataframe(r["chart"])
-        st.dataframe(points_df, use_container_width=True, hide_index=True)
-        dataframe_download_and_copy(points_df, f"points_{r['birth_date'].isoformat()}.csv", "points")
-
-    with tabs[3]:
-        aspects_df = aspects_to_dataframe(r["aspects"])
-        st.dataframe(aspects_df, use_container_width=True, hide_index=True)
-        dataframe_download_and_copy(aspects_df, f"aspects_{r['birth_date'].isoformat()}.csv", "aspects")
-
-    with tabs[4]:
-        any_patterns = False
-        pattern_lines = []
-        for kind, plist in r["patterns"].items():
-            if not plist:
-                continue
-            any_patterns = True
+def format_patterns_section(patterns: dict[str, list[AspectPattern]]) -> str:
+    lines = ["ASPECT PATTERNS (multi-point configurations — read these as "
+             "integrated units, not just their individual aspects):"]
+    any_found = False
+    for kind, plist in patterns.items():
+        for p in plist:
+            any_found = True
             label = kind.replace("_", " ").title()
-            st.subheader(label)
-            pattern_lines.append(f"{label}:")
-            for p in plist:
-                line = ", ".join(p.points)
-                st.write(f"- {line}")
-                pattern_lines.append(f"  - {line}")
-        if not any_patterns:
-            st.info("No aspect patterns detected within the configured orbs.")
-        else:
-            text_download_and_copy(
-                "\n".join(pattern_lines),
-                f"patterns_{r['birth_date'].isoformat()}.txt",
-                "patterns",
-            )
+            lines.append(f"  - {label}: {', '.join(p.points)}")
+    if not any_found:
+        lines.append("  - None detected within the configured orbs.")
+    return "\n".join(lines)
 
-    with tabs[5]:
-        dignity_df = dignities_to_dataframe(r["dignities"])
-        st.dataframe(dignity_df, use_container_width=True, hide_index=True)
-        dataframe_download_and_copy(dignity_df, f"dignity_{r['birth_date'].isoformat()}.csv", "dignity")
 
-    with tabs[6]:
-        house_lines = []
-        for num, reading in r["house_readings"].items():
-            with st.expander(f"House {num} ({reading.sign_on_cusp})"):
-                st.write(reading.interpretation)
-            house_lines.append(f"House {num} ({reading.sign_on_cusp}):\n{reading.interpretation}\n")
-        text_download_and_copy(
-            "\n".join(house_lines),
-            f"houses_{r['birth_date'].isoformat()}.txt",
-            "houses",
+def format_dignity_section(dignities: dict[str, DignityResult]) -> str:
+    lines = ["PLANETARY DIGNITY (how comfortable/strong each planet is in "
+             "its sign — weight interpretations accordingly, don't treat "
+             "every placement as equally strong):"]
+    for planet, d in dignities.items():
+        lines.append(f"  - {planet} in {d.sign}: {d.status} ({d.score:+d})")
+    return "\n".join(lines)
+
+
+def format_houses_section(house_readings: dict[int, HouseReading]) -> str:
+    lines = ["HOUSES (occupied houses are directly activated; empty houses "
+             "are read through their ruling planet's condition — this is "
+             "already worked out below, use it rather than treating empty "
+             "houses as blank):"]
+    for num, reading in house_readings.items():
+        lines.append(f"\n  House {num} ({reading.sign_on_cusp}):")
+        lines.append(f"  {reading.interpretation}")
+    return "\n".join(lines)
+
+
+def build_data_block(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    house_readings: dict[int, HouseReading],
+    min_tightness: float = 1.0,
+) -> str:
+    """Combines every section into one data block, ready to slot into a prompt."""
+    return "\n\n".join([
+        format_points_section(chart),
+        format_aspects_section(aspects, min_tightness=min_tightness),
+        format_patterns_section(patterns),
+        format_dignity_section(dignities),
+        format_houses_section(house_readings),
+    ])
+
+
+# ---------------------------------------------------------------------------
+# Full prompt assembly
+# ---------------------------------------------------------------------------
+
+INTERPRETATION_INSTRUCTIONS = """\
+You are an experienced astrologer giving a natal chart reading to \
+someone who is not very well versed in astrology. You have access to \
+the exact computed placements, aspects, patterns, dignities, and house \
+conditions below — all mathematically precise, not approximated.
+
+First, provide a general and summarized overview of the chart and what \
+the reading uncovered — a short, plain-language orientation before the \
+detailed themes, written as a few flowing paragraphs (not chunked or \
+bulleted — see formatting guidelines below). Head this section with the \
+exact markdown heading "## Overview" (two hash symbols, one space, then \
+the word).
+
+Then, identify the 2-4 biggest THEMES that emerge when you look at the \
+whole chart together — which placements reinforce each other, which \
+create tension, and why. Format each theme's heading as a markdown H2 \
+heading — exactly "## Theme Name" (two hash symbols, one space, then \
+the name) — since the app displaying this reading relies on that exact \
+format to build a collapsible view. Then follow the two-part chunked \
+format described below for each one.
+
+End with a conclusion and summary of key points, but try not to repeat \
+the intro summary — the intro orients the reader before the detail, the \
+conclusion should distill what actually matters most after reading it. \
+Write the conclusion as flowing prose too, matching the Overview's \
+style — not chunked or bulleted. Head this section with the exact \
+markdown heading "## Conclusion" — this is REQUIRED, not optional: \
+without its own heading, the app's display logic will incorrectly \
+attach this text to the previous section instead of showing it as its \
+own block.
+
+Guidelines for the reading:
+1. THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
+PROSE — no chunked split, no bolded sub-labels, no bullet chunking. \
+Just a few well-written paragraphs in accessible, jargon-light language.
+2. FOR EACH THEME, OPEN with 1-2 sentences of brief plain-language prose \
+summarizing the main takeaway — no bolding, no chunking, just a short \
+lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
+    **What This Means:** Written FIRST. Break it into 2-4 short, \
+    scannable chunks with bolded sub-labels (e.g. "**Core identity:** \
+    ...", "**Where the friction shows up:** ..."). You MAY reference \
+    the 10 standard planets (Sun, Moon, Mercury, Venus, Mars, Jupiter, \
+    Saturn, Uranus, Neptune, Pluto) and zodiac signs by name in simple, \
+    natural sentences like "your Mars is in Libra" — these are common \
+    enough that most readers have some baseline familiarity with them. \
+    However, do NOT use more complex or lesser-known astrological \
+    terminology here: no aspect names or aspect verbs (trine, square, \
+    sextile, conjunct, conjunction, opposition, quincunx, etc.), no \
+    angle names (Midheaven, Ascendant, Descendant, Imum Coeli), no \
+    dignity/technical status terms (Exaltation, Detriment, Rulership, \
+    Peregrine, etc.), no house numbers, no pattern names (Grand Trine, \
+    T-Square, Yod, Stellium, etc.), and don't name the lesser-used \
+    points directly (Chiron, the Nodes, the Vertex, Part of \
+    Fortune/Spirit) — describe their effects in plain language instead \
+    of naming them. A phrase like "conjunct your Midheaven" should \
+    NEVER appear here. All of that \
+    more technical/niche vocabulary belongs in the Astrological Basis \
+    section below, where it's fully explained. This is where the \
+    actual interpretation and meaning for the person's life lives — \
+    lead with this so the reader gets the point immediately.
+    **Astrological Basis:** Written SECOND, also in 2-4 short chunks \
+    grouped by placement or pattern, with brief plain-language glosses \
+    of technical terms woven in as needed (e.g. "...Exaltation, its \
+    strongest condition..." or "...square, a tense angle..."). All the \
+    complex/lesser-known vocabulary excluded from "What This Means" \
+    above belongs here — this is the supporting evidence for the reader \
+    who wants to know why, presented after the takeaway rather than \
+    before it.
+  Do NOT alternate line-by-line between meaning and astrological facts \
+  — group all the plain-language interpretation together first, then \
+  all the supporting astrology together, once per theme.
+3. USE DIGNITY AS REAL WEIGHTING. A planet in Rulership or Exaltation \
+should be discussed as operating strongly and directly; a planet in \
+Detriment or Fall should be discussed as needing more conscious effort \
+or expressing in a roundabout way. Don't treat all placements as equally \
+strong.
+4. TREAT PATTERNS AS UNITS. A Grand Trine, T-Square, or Yod is not just \
+"three aspects" — explain what the pattern as a whole represents (ease vs. \
+tension vs. a specific pressure point demanding resolution), and name \
+which planet is the focal/apex point where relevant.
+5. DON'T SKIP EMPTY HOUSES. Where a house has no direct occupants, use \
+the ruler-based interpretation already provided rather than saying \
+"nothing to note here."
+6. GIVE WEIGHT TO THE LESSER-USED POINTS. Part of Fortune, Part of \
+Spirit, the Nodes, Chiron, and the Vertex all carry real interpretive \
+meaning — don't relegate them to a footnote after covering the 10 \
+planets. This person specifically wants these included, not treated as \
+an afterthought.
+7. BE HONEST ABOUT TENSION. Squares, oppositions, and detriment/fall \
+placements are not weaknesses to soften into false positivity — describe \
+what the friction actually is and how it might show up, alongside what's \
+constructive about it.
+8. AVOID A MYSTICAL OR ESOTERIC TONE. Even with astrology terminology \
+removed from "What This Means," the writing can still feel esoteric \
+through word choice and phrasing — avoid language like "your soul's \
+journey," "the universe is calling you toward...," "cosmic energy," \
+"your higher self," or similar mystical framing. Write the way a sharp, \
+grounded psychologist or coach would describe a personality pattern or \
+life tendency — concrete, specific, relatable to everyday situations \
+(work, relationships, decision-making, daily habits) — not the way a \
+fortune teller would. This matters as much as removing jargon for making \
+the reading genuinely accessible to a broad, non-astrology audience.
+9. Avoid generic, could-apply-to-anyone language. Ground every claim in \
+the SPECIFIC combination of placements you're given, not stock keyword \
+associations.
+
+Here is the full computed chart data:
+
+{data_block}
+
+Now write the reading: opening overview, 2-4 themes each in the \
+two-part chunked format above, then a closing conclusion. You don't \
+need to follow a rigid template of "personality, then love, then \
+career" — let the chart's own emphases (strong patterns, dignified \
+planets, activated houses) determine which themes emerge and what gets \
+the most attention.\
+"""
+
+
+def build_interpretation_prompt(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    house_readings: dict[int, HouseReading],
+    min_tightness: float = 1.0,
+) -> str:
+    """
+    Builds the complete, ready-to-send prompt: instructions + full data
+    block. Pass the resulting string straight to an LLM (paste into
+    Claude.ai, or send via the Anthropic API).
+    """
+    data_block = build_data_block(
+        chart, aspects, patterns, dignities, house_readings,
+        min_tightness=min_tightness,
+    )
+    return INTERPRETATION_INSTRUCTIONS.format(data_block=data_block)
+
+
+# ---------------------------------------------------------------------------
+# General reading — unknown birth time variant
+# ---------------------------------------------------------------------------
+# Same rationale as the career no-time variant: the Ascendant, Midheaven,
+# houses, Vertex, and both Arabic Parts are all unreliable without an
+# exact birth time, so this strips them out entirely rather than
+# silently interpreting a noon-guess chart as if it were accurate.
+
+GENERAL_NO_TIME_INSTRUCTIONS = """\
+You are an experienced astrologer giving a natal chart reading to \
+someone who is not very well versed in astrology. This person's exact \
+birth TIME is unknown, so you only have access to their planets, \
+Chiron, the Lunar Nodes, the signs they fall in, their essential \
+dignity, and aspects between them — all mathematically precise. You do \
+NOT have their Ascendant, Midheaven, house placements, Vertex, or \
+either Arabic Part (Part of Fortune/Spirit), because all of those \
+require an exact birth time to calculate correctly and would be \
+unreliable guesses otherwise. Do not speculate about houses, rising \
+sign, or any of the excluded points — work entirely with what's given.
+
+First, provide a general and summarized overview of the chart and what \
+the reading uncovered — a short, plain-language orientation before the \
+detailed themes, written as a few flowing paragraphs (not chunked or \
+bulleted — see formatting guidelines below). Briefly and matter-of-\
+factly note in this overview that the reading is based on planets \
+only, without birth-time-dependent points like the rising sign or \
+houses (not as an apology, just an accurate framing of scope). Head \
+this section with the exact markdown heading "## Overview".
+
+Then, identify the 2-4 biggest THEMES that emerge when you look at the \
+whole chart together. Format each theme's heading as a markdown H2 \
+heading — exactly "## Theme Name" (two hash symbols, one space, then \
+the name) — since the app displaying this reading relies on that exact \
+format to build a collapsible view. Then follow the two-part chunked \
+format described below for each one.
+
+End with a conclusion and summary of key points, but try not to repeat \
+the intro summary. Write the conclusion as flowing prose too, matching \
+the Overview's style — not chunked or bulleted. Head this section with \
+the exact markdown heading "## Conclusion" — this is REQUIRED, not \
+optional: without its own heading, the app's display logic will \
+incorrectly attach this text to the previous section instead of \
+showing it as its own block.
+
+Guidelines for the reading:
+1. THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
+PROSE — no chunked split, no bolded sub-labels, no bullet chunking.
+2. FOR EACH THEME, OPEN with 1-2 sentences of brief plain-language prose \
+summarizing the main takeaway. THEN follow with a two-part chunked \
+structure, IN THIS ORDER:
+    **What This Means:** Written FIRST, broken into 2-4 short, \
+    scannable chunks with bolded sub-labels. You MAY reference the \
+    planets (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, \
+    Neptune, Pluto) and zodiac signs by name in simple, natural \
+    sentences like "your Mars is in Libra" — these are common enough \
+    that most readers have some baseline familiarity with them. \
+    However, do NOT use more complex or lesser-known astrological \
+    terminology here: no aspect names or aspect verbs (trine, square, \
+    sextile, conjunct, conjunction, opposition, quincunx, etc.), no \
+    dignity/technical status terms (Exaltation, Detriment, Rulership, \
+    Peregrine, etc.), no pattern names (Grand Trine, T-Square, Yod, \
+    Stellium, etc.), and don't name Chiron or the Nodes directly — \
+    describe their effects in plain language instead of naming them. \
+    A phrase like "square your Sun" should NEVER appear here. All of \
+    that more technical/niche vocabulary belongs in the Astrological \
+    Basis section below, where it's fully explained.
+    **Astrological Basis:** Written SECOND, also in 2-4 short chunks \
+    grouped by planet or aspect, with brief plain-language glosses of \
+    technical terms woven in (e.g. "...Exaltation, its strongest \
+    condition..." or "...square, a tense angle..."). All the complex/ \
+    lesser-known vocabulary excluded from "What This Means" above \
+    belongs here.
+  Group all the plain-language interpretation together first, then all \
+  the supporting astrology together, once per theme — don't alternate \
+  line-by-line between the two.
+3. USE DIGNITY AS REAL WEIGHTING. A planet in Rulership or Exaltation \
+should be discussed as operating strongly and directly; a planet in \
+Detriment or Fall should be discussed as needing more conscious effort \
+or expressing in a roundabout way. Dignity carries extra weight in this \
+format, since fewer other signals (no houses) are available.
+4. TREAT PATTERNS AS UNITS. A Grand Trine, T-Square, or Yod is not just \
+"three aspects" — explain what the pattern as a whole represents (ease vs. \
+tension vs. a specific pressure point demanding resolution), and name \
+which planet is the focal/apex point where relevant. Only planet-to-\
+planet patterns are available here (no patterns involving angles or \
+houses, since those aren't part of this chart).
+5. GIVE WEIGHT TO THE LESSER-USED POINTS THAT ARE STILL AVAILABLE. \
+Chiron and the Lunar Nodes both carry real interpretive meaning even \
+without a birth time — don't relegate them to a footnote after covering \
+the 10 planets. (Part of Fortune, Part of Spirit, and the Vertex are NOT \
+available in this format, since all three require an exact birth time.)
+6. BE HONEST ABOUT TENSION. Squares, oppositions, and detriment/fall \
+placements are not weaknesses to soften into false positivity — describe \
+what the friction actually is and how it might show up, alongside what's \
+constructive about it.
+7. AVOID A MYSTICAL OR ESOTERIC TONE. Even with astrology terminology \
+removed from "What This Means," the writing can still feel esoteric \
+through word choice and phrasing — avoid language like "your soul's \
+journey," "the universe is calling you toward...," "cosmic energy," \
+"your higher self," or similar mystical framing. Write the way a sharp, \
+grounded psychologist or coach would describe a personality pattern or \
+life tendency — concrete, specific, relatable to everyday situations — \
+not the way a fortune teller would.
+8. Avoid generic, could-apply-to-anyone language. Ground every claim in \
+the SPECIFIC combination of placements you're given, not stock keyword \
+associations.
+
+Here is the full computed chart data — planets, Chiron, and the Lunar \
+Nodes only (no Ascendant, houses, Vertex, or Arabic Parts, since none \
+of those are reliable without an exact birth time):
+
+{data_block}
+
+Now write the reading: opening overview, 2-4 themes each in the \
+two-part chunked format above, then a closing conclusion. Let the \
+chart's own emphases (strong patterns, dignified planets) determine \
+which themes emerge.\
+"""
+
+
+def build_interpretation_prompt_no_time(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+) -> str:
+    """
+    General reading prompt for when birth time is unknown or approximate.
+    Filters out every birth-time-dependent point (Ascendant, Midheaven,
+    houses, Vertex, both Arabic Parts) rather than silently including
+    unreliable data.
+    """
+    data_block = build_data_block_no_time(
+        chart, aspects, patterns, dignities, min_tightness=min_tightness,
+    )
+    return GENERAL_NO_TIME_INSTRUCTIONS.format(data_block=data_block)
+
+
+# ---------------------------------------------------------------------------
+# Career/work-focused variant
+# ---------------------------------------------------------------------------
+# Same underlying chart data, but the instruction wrapper steers the LLM
+# toward four specific work-related questions rather than a general
+# personality reading. Traditionally, career-relevant signal concentrates
+# in the 10th house (career/public role) and its ruler, the 6th house
+# (daily work, routines, colleagues at the peer/task level), the 2nd
+# house (what you're compensated for, self-worth), the Midheaven itself,
+# and the classic "how you act" planets — Sun, Saturn, Mars, Mercury,
+# Venus. The instructions point the LLM at these without discarding the
+# rest of the chart, since real synthesis sometimes pulls in placements
+# outside that traditional list (a Grand Trine touching the MC, a Yod
+# apex sitting in the 6th house, etc.).
+
+CAREER_INTERPRETATION_INSTRUCTIONS = """\
+You are an experienced astrologer giving a chart reading to someone who \
+is not very well versed in astrology, focused specifically on work and \
+career. You have access to the exact computed placements, aspects, \
+patterns, dignities, and house conditions below — all mathematically \
+precise, not approximated.
+
+Traditionally, work-relevant signal concentrates in a few specific \
+places — the 10th house and its ruler (career, public role, authority), \
+the 6th house (daily work, routines, service, peer-level colleagues), \
+the 2nd house (what you're compensated for, material self-worth), the \
+Midheaven itself, and the planets Sun, Saturn, Mars, Mercury, and Venus \
+(identity, discipline/structure, drive and assertion, communication and \
+thinking style, and relational/diplomatic style, respectively). Weight \
+these more heavily than you would in a general reading — but don't \
+ignore other placements if they genuinely bear on work (a Grand Trine \
+touching the Midheaven, a Yod apex sitting in the 6th house, Chiron in \
+a career-relevant house, etc. all still matter here). That being said, \
+take a look at the entire chart and look for areas that may not be in \
+the traditional work-relevant signals.
+
+Structure your answer as follows:
+
+First, provide a general and summarized overview of the chart and what \
+the reading uncovered — a short, plain-language orientation before the \
+detailed sections, written as a few flowing paragraphs (not chunked or \
+bulleted — see formatting guidelines below). Head this section with \
+the exact markdown heading "## Overview".
+
+Then, go into the following sections. Format each one as a markdown H2 \
+heading — exactly "## Section Name" (two hash symbols, one space, then \
+the name) — since the app displaying this reading relies on that exact \
+format to build a collapsible view. Use them as your section headers:
+
+PROFESSIONAL STRENGTHS: what are the genuine strengths of the \
+individual? Where does this individual operate with professional ease? \
+Include any supportive aspects (trines, sextiles, conjuncts, etc.) as \
+leverage points.
+
+PROFESSIONAL WATCH AREAS: These are traditionally thought of as \
+weaknesses, but they don't have to be an actual weakness; they can be \
+opportunities for growth or areas that the person should be aware of as \
+potential pitfalls or difficulties. Be honest about real weaknesses \
+rather than reframing everything as secretly a strength.
+
+PROFESSIONAL COMMUNICATION STYLE: special focus on mercury, mars, \
+rising, third house, 11th house, 6th house. Based on what you see in \
+the chart, what are the strengths and weaknesses of this individual, \
+particularly as it relates to communication. Some questions you may \
+answer here: Do they like public speaking? Do they prefer written \
+communication? Are they quick-witted and responsive, or do they take \
+time to think things through before responding? Are they passive \
+aggressive or straightforward? Do they like communications after \
+hours, or do they prefer to keep their work and home life separate?
+
+HAPPINESS AT WORK — What genuinely brings this person fulfillment or \
+satisfaction in a work context, and what's likely to frustrate or drain \
+them? Ground this in specific chart placements (but provide a \
+description with limited astrological jargon) rather than generic "you \
+like variety" statements. Include a focus on the houses that deal with \
+career, even if they are empty. Include any other positive aspects that \
+would contribute to a happy work environment. Also include details \
+about the type of workplace that a person would be most interested in \
+(do they like to be on their feet all day, on the move, stationary, do \
+they prefer a solitary environment or something more social)? Ground \
+this in helping the person identify what makes them truly happy in a \
+professional context. Include the 5th house, as this can indicate what \
+makes a person truly happy or where their creativity would be best \
+focused.
+
+WORK CULTURE AND STYLE: How does this person show up for work? Do they \
+prefer remote work or in-office interaction? Draw on the 6th house \
+(daily work relationships), Mercury (communication style), Venus \
+(relational/diplomatic approach), Mars (how they handle disagreement or \
+assertion), and the Moon (emotional needs in a working relationship) as \
+relevant. Do they leave things to the last minute or do they structure \
+their delivery over time? Include anything else about what type of \
+environment they prefer and what they do not prefer. Include a special \
+focus on the 3rd, 6th, 10th and 11th houses. How does this person \
+actually approach getting things done — pace, structure, flexibility, \
+independent, collaborative? Are they likely to follow through or are \
+they more scattered? Also consider: Mars, Saturn, Mercury, 6th house.
+
+PROFESSIONAL GROWTH TRAJECTORY: what does this person's chart say about \
+where their career might be going? Are they going to struggle through a \
+career path, or are they going to be promoted with ease? What are \
+suggested jobs and career paths that this person should consider, given \
+the readings and outputs of the other sections?
+
+End with a conclusion and summary of key points, but try not to repeat \
+the intro summary — the intro orients the reader before the detail, the \
+conclusion should distill what actually matters most after reading it. \
+Write the conclusion as flowing prose too, matching the Overview's \
+style — not chunked or bulleted. Head this section with the exact \
+markdown heading "## Conclusion" — this is REQUIRED, not optional: \
+without its own heading, the app's display logic will incorrectly \
+attach this text to the previous section instead of showing it as its \
+own block.
+
+General guidelines that still apply:
+- THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
+PROSE — no "Career Implications" / "Astrological Basis" split, no \
+bolded sub-labels, no bullet chunking. Just a few well-written \
+paragraphs in accessible, jargon-light language. These two are meant \
+to read as a narrative frame around the detailed sections, not another \
+structured breakdown — the structure below is specifically for the six \
+section headers, not for these bookending pieces.
+- FOR THE SIX SECTION HEADERS ONLY (Professional Strengths through \
+Professional Growth Trajectory), OPEN EACH SECTION with 1-2 sentences \
+of brief plain-language prose summarizing the main takeaway of that \
+section — no bolding, no chunking, just a short lead-in sentence or \
+two, similar in style to the Overview. THEN, after that brief summary, \
+follow with the two-part chunked structure below. Every one of the six \
+sections should have this same shape: short prose summary first, then \
+chunked detail.
+- FOR THE SIX SECTION HEADERS ONLY (Professional Strengths through \
+Professional Growth Trajectory), USE A TWO-PART FORMAT AT THE SECTION \
+LEVEL, not per individual claim. Structure the detail AFTER the brief \
+summary above as exactly two consolidated parts, IN THIS ORDER:
+    **Career Implications:** Written FIRST. Do NOT write this as one \
+    dense paragraph — break it into 2-4 short, scannable chunks, each \
+    just 1-3 sentences, using either short bullet points or brief bolded \
+    sub-labels (e.g. "**Daily reliability:** ...", "**Building your \
+    network:** ..."). You MAY reference the 10 standard planets (Sun, \
+    Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto) \
+    and zodiac signs by name in simple, natural sentences like "your \
+    Mars is in Libra" — these are common enough that most readers have \
+    some baseline familiarity with them. However, do NOT use any more \
+    complex or lesser-known astrological terminology here — this \
+    includes but is not limited to: no aspect names or aspect verbs \
+    (trine, square, sextile, conjunct, conjunction, opposition, \
+    quincunx, etc.), no angle names (Midheaven, Ascendant, Descendant, \
+    Imum Coeli), no dignity/technical status terms (Exaltation, \
+    Detriment, Rulership, Peregrine, etc.), no house numbers, no \
+    pattern names (Grand Trine, T-Square, Yod, Stellium, etc.), and \
+    don't name the lesser-used points directly (Chiron, the Nodes, the \
+    Vertex, Part of Fortune/Spirit) — describe their effects in plain \
+    language instead. Every one of these belongs in the Astrological \
+    Basis section below, not here — a phrase like "conjunct your \
+    Midheaven" or "square your natal Sun" should NEVER appear in this \
+    section. Cover what this part of the chart actually means for this \
+    person professionally, in plain business/career language. This is \
+    where the actual interpretation, advice, and takeaways for the \
+    reader live — lead with this so the reader gets the point \
+    immediately.
+    **Astrological Basis:** Written SECOND. Also break this into 2-4 \
+    short, scannable chunks rather than one dense paragraph — group by \
+    placement or pattern (e.g. "**Saturn:** ...", "**Supporting \
+    aspects:** ...", "**Part of Fortune:** ..."), each chunk just 1-3 \
+    sentences, with brief plain-language glosses of technical terms \
+    woven in as needed (e.g. "...Exaltation, its strongest \
+    condition..." or "...square, a tense angle..."). Cover all the \
+    relevant placements, aspects, dignity, and patterns that support \
+    the interpretation above. This is the supporting evidence for the \
+    reader who wants to know why, presented after the takeaway rather \
+    than before it — use the same short-chunk, scannable style as \
+    Career Implications, not flowing prose.
+  Do NOT alternate line-by-line between career interpretation and \
+  astrological facts — group all the career interpretation together \
+  first, then all the supporting astrology together. This chunked \
+  two-part structure applies ONLY to the six section headers — the \
+  Overview and Conclusion stay in prose, per the note above.
+- SYNTHESIZE within each section — don't just list placements one by \
+one, identify how 2-3 placements combine to create each point you make. \
+Focus on the most important items, not the entire list. Where possible, \
+avoid repeating across sections — pick the section where each piece of \
+information makes the most sense to include, rather than restating it \
+everywhere it could theoretically apply.
+- USE DIGNITY AS REAL WEIGHTING throughout.
+- TREAT PATTERNS AS UNITS where they touch career-relevant points.
+- DON'T SKIP EMPTY HOUSES — if the 6th, 10th, or 2nd house has no \
+occupants, use the ruler-based interpretation already provided.
+- INCLUDE general astrological components, such as Sun, Moon, Mars, \
+Venus, Mercury, Jupiter, Saturn, Uranus, Neptune, Pluto, the houses, \
+the aspects, the signs. Do not include everything you come up with; \
+synthesize the information and choose the highest priority items for \
+personal career understanding, development, and growth.
+- GIVE WEIGHT TO LESSER-USED POINTS where relevant to work (Part of \
+Fortune for what brings ease, Saturn's condition for discipline, Chiron \
+if it touches a career house, north/south node).
+- Avoid generic, could-apply-to-anyone language. Ground every claim in \
+the SPECIFIC combination of placements you're given.
+
+Here is the full computed chart data — placements (sign, house, \
+retrograde status), aspects (orb = how exact; applying = still \
+building, separating = past exact and fading), aspect patterns, \
+planetary dignity, and houses (occupied houses are directly activated; \
+empty houses are read through their ruling planet's condition):
+
+{data_block}
+
+Now write the reading, organized under the headers above.\
+"""
+
+
+def build_career_interpretation_prompt(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    house_readings: dict[int, HouseReading],
+    min_tightness: float = 1.0,
+) -> str:
+    """
+    Same data, different lens: builds a prompt focused specifically on
+    work/career — happiness at work, colleague interaction style, work
+    style, and strengths/weaknesses from a professional standpoint.
+    """
+    data_block = build_data_block(
+        chart, aspects, patterns, dignities, house_readings,
+        min_tightness=min_tightness,
+    )
+    return CAREER_INTERPRETATION_INSTRUCTIONS.format(data_block=data_block)
+
+# ---------------------------------------------------------------------------
+# Unknown birth time variant
+# ---------------------------------------------------------------------------
+# Several chart elements depend directly on the precise birth time and
+# location: the Ascendant, Midheaven, all house cusps, the Vertex, and
+# both Arabic Parts (Fortune and Spirit, since both are calculated from
+# the Ascendant). Using a noon default when the real time is unknown
+# doesn't approximate these — it effectively randomizes them, since the
+# Ascendant alone moves roughly 1° every 4 minutes. Rather than silently
+# feed the LLM wrong data, this variant filters those points out
+# entirely and works only with what's actually reliable without an
+# exact time: the planets, Chiron, the Nodes, their signs, their
+# dignity, and aspects between them.
+
+TIME_DEPENDENT_POINTS = {
+    "Ascendant", "Descendant", "Midheaven", "Imum Coeli",
+    "Vertex", "Anti-Vertex", "Part of Fortune", "Part of Spirit",
+}
+
+
+def _is_time_dependent(name: str) -> bool:
+    return name in TIME_DEPENDENT_POINTS or name.startswith("House ")
+
+
+def filter_time_independent(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+) -> tuple[dict[str, ChartPoint], list[Aspect], dict[str, list[AspectPattern]]]:
+    """
+    Strips out every point (and every aspect/pattern touching one) that
+    depends on exact birth time/location, leaving only what's reliable
+    when the birth time is unknown or approximate.
+    """
+    filtered_chart = {
+        name: point for name, point in chart.items()
+        if not _is_time_dependent(name)
+    }
+    filtered_aspects = [
+        a for a in aspects
+        if not _is_time_dependent(a.point1) and not _is_time_dependent(a.point2)
+    ]
+    filtered_patterns = {
+        kind: [p for p in plist if not any(_is_time_dependent(pt) for pt in p.points)]
+        for kind, plist in patterns.items()
+    }
+    return filtered_chart, filtered_aspects, filtered_patterns
+
+
+def build_data_block_no_time(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+) -> str:
+    """Same as build_data_block, but with no Houses section (there are no
+    reliable houses without a birth time) and a note about the Moon's
+    lighter reliability."""
+    filtered_chart, filtered_aspects, filtered_patterns = filter_time_independent(
+        chart, aspects, patterns
+    )
+    moon_note = (
+        "NOTE ON THE MOON: unlike the other planets, the Moon moves about "
+        "13° per day, so if the birth time is genuinely unknown, there's a "
+        "small chance its sign shown here is slightly off (only relevant if "
+        "the true birth time was far from when this chart was generated and "
+        "the Moon was near a sign boundary that day). Treat the Moon's "
+        "placement as slightly less certain than the other planets, but "
+        "still worth including."
+    )
+    return "\n\n".join([
+        moon_note,
+        format_points_section(filtered_chart),
+        format_aspects_section(filtered_aspects, min_tightness=min_tightness),
+        format_patterns_section(filtered_patterns),
+        format_dignity_section(dignities),
+    ])
+
+
+CAREER_NO_TIME_INSTRUCTIONS = """\
+You are an experienced astrologer giving a chart reading to someone who \
+is not very well versed in astrology, focused specifically on work and \
+career. This person's exact birth TIME is unknown, so you only have \
+access to their planets, Chiron, the Lunar Nodes, the signs they fall \
+in, their essential dignity, and aspects between them — all \
+mathematically precise. You do NOT have their Ascendant, Midheaven, \
+house placements, Vertex, or either Arabic Part, because all of those \
+require an exact birth time to calculate correctly and would be \
+unreliable guesses otherwise. Do not speculate about houses, rising \
+sign, or any of the excluded points — work entirely with what's given.
+
+Without house placements, work-relevant signal instead concentrates in \
+the planets themselves and their conditions: the Sun (core identity and \
+vitality), Saturn (discipline, structure, and long-term follow-through), \
+Mars (drive, initiative, and how conflict is handled), Mercury \
+(communication and thinking style), Venus (values and relational \
+style), Jupiter (growth, opportunity, and expansiveness), and the Lunar \
+Nodes (the comfort zone vs. the real growth direction). Essential \
+dignity — whether a planet is comfortably or uncomfortably placed in \
+its sign — matters more here than usual, since it's one of the few \
+reliable weighting signals available without house data.
+
+Structure your answer as follows:
+
+First, provide a general and summarized overview of the chart and what \
+the reading uncovered — a short, plain-language orientation before the \
+detailed sections, written as a few flowing paragraphs (not chunked or \
+bulleted — see formatting guidelines below). Briefly and matter-of-factly \
+note that this reading is based on planets only, without birth-time-\
+dependent points like the rising sign or houses, so it won't cover things \
+like "what house your career planets fall in" the way a full reading \
+would — this isn't a limitation to apologize for, just an accurate \
+scope-setting note. Head this section with the exact markdown heading \
+"## Overview".
+
+Then, go into the following sections. Format each one as a markdown H2 \
+heading — exactly "## Section Name" (two hash symbols, one space, then \
+the name) — since the app displaying this reading relies on that exact \
+format to build a collapsible view. Use them as your section headers:
+
+PROFESSIONAL STRENGTHS: what are the genuine strengths of the \
+individual, based on well-dignified planets and supportive aspects \
+(trines, sextiles, conjuncts) between career-relevant planets? Where \
+does this individual operate with professional ease?
+
+PROFESSIONAL WATCH AREAS: These are traditionally thought of as \
+weaknesses, but they don't have to be an actual weakness; they can be \
+opportunities for growth. Using poorly-dignified planets, hard aspects \
+(squares, oppositions) between career-relevant planets, and the \
+Nodes, what are the areas that require more conscious effort? Be \
+honest about real weaknesses rather than reframing everything as \
+secretly a strength.
+
+PROFESSIONAL COMMUNICATION STYLE: special focus on Mercury and Mars — \
+their signs, dignity, and aspects to other planets. Do they like public \
+speaking? Do they prefer written communication? Are they quick-witted \
+and responsive, or do they take time to think things through? Are they \
+passive aggressive or straightforward?
+
+HAPPINESS AT WORK — What genuinely brings this person fulfillment or \
+satisfaction in a work context, and what's likely to frustrate or drain \
+them? Ground this in the Sun's sign and condition, Jupiter's placement, \
+and any other positive aspects — with limited astrological jargon — \
+rather than generic "you like variety" statements.
+
+WORK CULTURE AND STYLE: How does this person show up for work? Draw on \
+Mercury (communication), Venus (relational/diplomatic approach), Mars \
+(how they handle disagreement or assertion), and Saturn (structure and \
+follow-through) as relevant. Do they leave things to the last minute or \
+structure their delivery over time? How does this person actually \
+approach getting things done — pace, structure, flexibility, \
+independent, collaborative?
+
+PROFESSIONAL GROWTH TRAJECTORY: what does this person's chart say about \
+where their career might be going, based on dignity, supportive vs. \
+challenging aspects among career-relevant planets, and the Nodes? What \
+are suggested jobs and career paths that this person should consider?
+
+End with a conclusion and summary of key points, but try not to repeat \
+the intro summary. Write the conclusion as flowing prose too, matching \
+the Overview's style — not chunked or bulleted. Head this section with \
+the exact markdown heading "## Conclusion" — this is REQUIRED, not \
+optional: without its own heading, the app's display logic will \
+incorrectly attach this text to the previous section instead of \
+showing it as its own block.
+
+General guidelines that still apply:
+- THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
+PROSE — no "Career Implications" / "Astrological Basis" split, no \
+bolded sub-labels, no bullet chunking.
+- FOR THE SIX SECTION HEADERS ONLY, OPEN EACH SECTION with 1-2 \
+sentences of brief plain-language prose summarizing the main takeaway \
+of that section. THEN follow with a two-part chunked structure, IN \
+THIS ORDER:
+    **Career Implications:** Written FIRST, broken into 2-4 short, \
+    scannable chunks with bolded sub-labels. You MAY reference the \
+    planets (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, \
+    Neptune, Pluto) and zodiac signs by name in simple, natural \
+    sentences like "your Mars is in Libra" — these are common enough \
+    that most readers have some baseline familiarity with them. \
+    However, do NOT use any more complex or lesser-known astrological \
+    terminology here: no aspect names or aspect verbs (trine, square, \
+    sextile, conjunct, conjunction, opposition, quincunx, etc.), no \
+    dignity/technical status terms (Exaltation, Detriment, Rulership, \
+    Peregrine, etc.), no pattern names (Grand Trine, T-Square, Yod, \
+    Stellium, etc.), and don't name Chiron or the Nodes directly — \
+    describe their effects in plain language instead. Every one of \
+    these belongs in the Astrological Basis section below, not here — \
+    a phrase like "square your natal Sun" should NEVER appear in this \
+    section.
+    **Astrological Basis:** Written SECOND, also broken into 2-4 short \
+    chunks grouped by planet or aspect, with brief plain-language \
+    glosses of technical terms woven in (e.g. "...Exaltation, its \
+    strongest condition..." or "...square, a tense angle...").
+- SYNTHESIZE within each section — identify how 2-3 placements combine \
+to create each point, rather than listing them one by one. Avoid \
+repeating the same point across multiple sections.
+- USE DIGNITY AS REAL WEIGHTING throughout — it carries extra weight in \
+this time-unknown format since fewer other signals are available.
+- TREAT PATTERNS AS UNITS where they touch career-relevant planets.
+- Avoid generic, could-apply-to-anyone language. Ground every claim in \
+the SPECIFIC combination of placements you're given.
+
+Here is the full computed chart data — planets, Chiron, and the Lunar \
+Nodes only (no Ascendant, houses, Vertex, or Arabic Parts, since none \
+of those are reliable without an exact birth time):
+
+{data_block}
+
+Now write the reading, organized under the headers above.\
+"""
+
+
+def build_career_interpretation_prompt_no_time(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+) -> str:
+    """
+    Career-focused prompt for when birth time is unknown or approximate.
+    Filters out every birth-time-dependent point (Ascendant, Midheaven,
+    houses, Vertex, both Arabic Parts) rather than silently including
+    unreliable data, and reframes the instructions around what's still
+    solid: planets, dignity, and planet-to-planet aspects.
+    """
+    data_block = build_data_block_no_time(
+        chart, aspects, patterns, dignities, min_tightness=min_tightness,
+    )
+    return CAREER_NO_TIME_INSTRUCTIONS.format(data_block=data_block)
+
+
+# ---------------------------------------------------------------------------
+# Transit reading — "what's currently activated" prompt
+# ---------------------------------------------------------------------------
+# Distinct from every other prompt in this file: those all interpret a
+# single natal chart. This one interprets the relationship between a
+# fixed natal chart and the CURRENT sky (transiting planets), which is
+# the standard technique for "what's happening in my life right now"
+# questions — the single most common thing people ask an astrologer
+# that a natal-only reading can't answer.
+
+def format_transiting_points_section(
+    transiting_points: dict,
+    natal_house_labels: dict[int, str] | None = None,
+) -> str:
+    """Formats the current sky positions, with each transiting planet's
+    natal house noted if houses were assigned via
+    transit_engine.assign_transit_houses()."""
+    lines = ["CURRENT SKY (transiting planets, sign, and which of YOUR "
+             "natal houses each currently falls in):"]
+    for name, point in sorted(transiting_points.items(), key=lambda x: x[1].longitude):
+        house_str = f", in your natal House {point.house}" if point.house else ""
+        retro_str = " (retrograde)" if point.retrograde else ""
+        lines.append(f"  - Transiting {name}: {point.sign_degree:.1f}° {point.sign}{house_str}{retro_str}")
+    return "\n".join(lines)
+
+
+def format_transit_aspects_section(transit_aspects: list, min_tightness: float = 1.0) -> str:
+    """Formats transit-to-natal aspects, tightest (most exact/significant) first."""
+    lines = ["TRANSIT ASPECTS (transiting planet to natal point; orb = how "
+             "exact — transit orbs are intentionally tight, since transits "
+             "matter most when close to exact; applying = still building "
+             "toward exact, separating = past exact and fading):"]
+    filtered = [a for a in transit_aspects if a.tightness <= min_tightness]
+    if not filtered:
+        lines.append("  - No significant transits within the configured orbs right now.")
+    for a in filtered:
+        app_str = ""
+        if a.applying is True:
+            app_str = ", applying"
+        elif a.applying is False:
+            app_str = ", separating"
+        lines.append(
+            f"  - Transiting {a.transiting_point} {a.aspect_name} natal "
+            f"{a.natal_point} (orb {a.orb:.2f}°{app_str}, nature: {a.nature})"
         )
+    return "\n".join(lines)
+
+
+def build_transit_data_block(
+    transiting_points: dict,
+    transit_aspects: list,
+    natal_dignities: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+) -> str:
+    return "\n\n".join([
+        format_transiting_points_section(transiting_points),
+        format_transit_aspects_section(transit_aspects, min_tightness=min_tightness),
+        format_dignity_section(natal_dignities),
+    ])
+
+
+TRANSIT_INSTRUCTIONS = """\
+You are an experienced astrologer giving a reading to someone who is \
+not very well versed in astrology, focused specifically on what's \
+currently happening in their life right now, based on how today's sky \
+(the "transits") is interacting with their unchanging natal chart.
+
+First, a quick note on terminology, since this reading works \
+differently from a standard natal reading: "transiting" planets are \
+where the planets are positioned RIGHT NOW, in the actual sky today — \
+these move and change day by day. Your "natal" placements are fixed, \
+permanent, from the moment of birth. This reading is about how today's \
+moving sky is currently activating specific parts of the person's \
+unchanging natal chart — it is not a repeat of their general \
+personality reading, it's about the current window of time only.
+
+You have access to the exact computed transiting planetary positions, \
+which of the person's natal houses each transiting planet currently \
+falls in, the aspects between transiting planets and natal points (with \
+tight, transit-appropriate orbs — only genuinely close, currently \
+active connections are included), and the person's natal essential \
+dignity for context. All mathematically precise, not approximated.
+
+Structure your answer as follows:
+
+First, provide a general and summarized overview of what this current \
+period is broadly about for this person — a short, plain-language \
+orientation before the detailed points, written as a few flowing \
+paragraphs (not chunked or bulleted — see formatting guidelines below). \
+Head this section with the exact markdown heading "## Overview". If \
+there are no significant transits at all right now, say so plainly \
+rather than manufacturing significance — a quiet period is a real and \
+valid finding.
+
+Then, identify the 2-4 most significant currently-active transits or \
+transit-driven themes (prioritize tighter orbs and applying transits, \
+which are more currently relevant than wide or separating ones — and \
+weight transits involving slower planets like Jupiter/Saturn/Uranus/ \
+Neptune/Pluto as generally longer-lasting and more significant than \
+fast-moving ones like the Moon, unless a fast transit is unusually \
+exact). Format each theme's heading as a markdown H2 heading — exactly \
+"## Theme Name" — since the app displaying this reading relies on that \
+exact format to build a collapsible view. Then follow the two-part \
+chunked format described below for each one.
+
+End with a conclusion distilling what actually matters most about this \
+current period, but try not to repeat the intro summary. Write it as \
+flowing prose too, matching the Overview's style — not chunked or \
+bulleted. Head this section with the exact markdown heading \
+"## Conclusion" — this is REQUIRED, not optional: without its own \
+heading, the app's display logic will incorrectly attach this text to \
+the previous section instead of showing it as its own block.
+
+General guidelines that still apply:
+- THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
+PROSE — no chunked split, no bolded sub-labels, no bullet chunking.
+- FOR EACH THEME, OPEN with 1-2 sentences of brief plain-language prose \
+summarizing the main takeaway. THEN follow with a two-part chunked \
+structure, IN THIS ORDER:
+    **What This Means:** Written FIRST, broken into 2-4 short, \
+    scannable chunks with bolded sub-labels. You MAY reference the \
+    planets and zodiac signs by name in simple, natural sentences like \
+    "transiting Saturn is currently in Libra" — these are common enough \
+    that most readers have some baseline familiarity with them. However, \
+    do NOT use more complex or lesser-known astrological terminology \
+    here: no aspect names or aspect verbs (trine, square, sextile, \
+    conjunct, conjunction, opposition, quincunx, etc.), no angle names \
+    (Midheaven, Ascendant, Descendant, Imum Coeli), no dignity/technical \
+    status terms (Exaltation, Detriment, Rulership, Peregrine, etc.), no \
+    house numbers, and don't name Chiron or the Nodes directly — \
+    describe their effects in plain language instead. A phrase like \
+    "transiting Saturn is conjunct your Midheaven" should NEVER appear \
+    here — say something like "this is putting real focus on your \
+    public reputation and career direction" instead. All of that more \
+    technical vocabulary belongs in the Astrological Basis section below.
+    **Astrological Basis:** Written SECOND, also in 2-4 short chunks \
+    grouped by transit, with brief plain-language glosses of technical \
+    terms woven in as needed. All the complex/lesser-known vocabulary \
+    excluded from "What This Means" above belongs here.
+  Group all the plain-language interpretation together first, then all \
+  the supporting astrology together, once per theme — don't alternate \
+  line-by-line between the two.
+- USE DIGNITY AS CONTEXT. If a transiting planet is aspecting a natal \
+planet that's well-dignified (Rulership/Exaltation), that natal planet \
+can generally handle the activation more directly; if poorly dignified \
+(Detriment/Fall), the transit may bring the underlying difficulty more \
+sharply into focus.
+- PRIORITIZE TIGHT AND APPLYING TRANSITS. A transit that's applying \
+(still building toward exact) and has a small orb is far more currently \
+relevant than one that's wide or separating — lead with what matters \
+most right now.
+- AVOID A MYSTICAL OR ESOTERIC TONE. Write the way a sharp, grounded \
+psychologist or coach would describe what's currently going on for \
+someone — concrete, specific, relatable — not the way a fortune teller \
+would. Avoid language like "the universe is calling you toward..." or \
+"cosmic energy."
+- Avoid generic, could-apply-to-anyone language. Ground every claim in \
+the SPECIFIC transits you're given, not stock keyword associations.
+- Don't manufacture drama. If the current transits are genuinely mild, \
+say so — a quiet, low-key period is a legitimate and useful finding, \
+not a failure to find something interesting.
+
+Here is the full computed transit data:
+
+{data_block}
+
+Now write the reading: opening overview, 2-4 themes each in the \
+two-part chunked format above, then a closing conclusion.\
+"""
+
+
+def build_transit_prompt(
+    transiting_points: dict,
+    transit_aspects: list,
+    natal_dignities: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+) -> str:
+    """
+    Builds a complete transit reading prompt: current sky positions,
+    transit-to-natal aspects (tight, transit-appropriate orbs), and
+    natal dignity for context. Distinct from every other prompt builder
+    in this file since it interprets the CURRENT sky against a fixed
+    natal chart, rather than the natal chart alone.
+    """
+    data_block = build_transit_data_block(
+        transiting_points, transit_aspects, natal_dignities,
+        min_tightness=min_tightness,
+    )
+    return TRANSIT_INSTRUCTIONS.format(data_block=data_block)
+
+
+# ---------------------------------------------------------------------------
+# NOTES for extension
+# ---------------------------------------------------------------------------
+# - If the full prompt gets too long for your LLM's context comfort, lower
+#     min_tightness (e.g. 0.5) to drop looser/weaker aspects and keep only
+#     the tightest, most significant ones.
+# - For synastry later, this same pattern (format each data type, combine
+#     into one instructed prompt) will extend naturally — you'd just add
+#     a second chart's data block and adjust the instructions to focus on
+#     inter-chart aspects rather than a single natal reading.
+# - Additional lens variants (relationship-focused, financial-focused,
+#     etc.) can follow the exact same pattern as
+#     build_career_interpretation_prompt(): a new INSTRUCTIONS template
+#     plus a thin wrapper function reusing build_data_block().
+# - A career-focused transit variant (build_transit_career_prompt) would
+#     follow the same pattern as this one, but restrict
+#     natal_points_to_check in transit_engine.compute_transit_aspects()
+#     to career-relevant natal points (Midheaven, natal Saturn, the
+#     natal 10th/6th/2nd house rulers) — the "daily professional
+#     outlook" idea from earlier design discussions.
+
