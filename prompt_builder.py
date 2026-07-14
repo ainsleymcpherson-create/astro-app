@@ -152,16 +152,31 @@ summarizing the main takeaway — no bolding, no chunking, just a short \
 lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
     **What This Means:** Written FIRST. Break it into 2-4 short, \
     scannable chunks with bolded sub-labels (e.g. "**Core identity:** \
-    ...", "**Where the friction shows up:** ..."), in plain, jargon-\
-    light language a beginner can follow. This is where the actual \
-    interpretation and meaning for the person's life lives — lead with \
-    this so the reader gets the point immediately.
+    ...", "**Where the friction shows up:** ..."). You MAY reference \
+    the 10 standard planets (Sun, Moon, Mercury, Venus, Mars, Jupiter, \
+    Saturn, Uranus, Neptune, Pluto) and zodiac signs by name in simple, \
+    natural sentences like "your Mars is in Libra" — these are common \
+    enough that most readers have some baseline familiarity with them. \
+    However, do NOT use more complex or lesser-known astrological \
+    terminology here: no aspect names (trine, square, sextile, \
+    conjunction, opposition, quincunx, etc.), no dignity/technical \
+    status terms (Exaltation, Detriment, Rulership, Peregrine, etc.), \
+    no house numbers, no pattern names (Grand Trine, T-Square, Yod, \
+    Stellium, etc.), and don't name the lesser-used points directly \
+    (Chiron, the Nodes, the Vertex, Part of Fortune/Spirit) — describe \
+    their effects in plain language instead of naming them. All of that \
+    more technical/niche vocabulary belongs in the Astrological Basis \
+    section below, where it's fully explained. This is where the \
+    actual interpretation and meaning for the person's life lives — \
+    lead with this so the reader gets the point immediately.
     **Astrological Basis:** Written SECOND, also in 2-4 short chunks \
     grouped by placement or pattern, with brief plain-language glosses \
     of technical terms woven in as needed (e.g. "...Exaltation, its \
-    strongest condition..." or "...square, a tense angle..."). This is \
-    the supporting evidence for the reader who wants to know why, \
-    presented after the takeaway rather than before it.
+    strongest condition..." or "...square, a tense angle..."). All the \
+    complex/lesser-known vocabulary excluded from "What This Means" \
+    above belongs here — this is the supporting evidence for the reader \
+    who wants to know why, presented after the takeaway rather than \
+    before it.
   Do NOT alternate line-by-line between meaning and astrological facts \
   — group all the plain-language interpretation together first, then \
   all the supporting astrology together, once per theme.
@@ -266,12 +281,26 @@ PROSE — no chunked split, no bolded sub-labels, no bullet chunking.
 summarizing the main takeaway. THEN follow with a two-part chunked \
 structure, IN THIS ORDER:
     **What This Means:** Written FIRST, broken into 2-4 short, \
-    scannable chunks with bolded sub-labels, in plain, jargon-light \
-    language a beginner can follow.
+    scannable chunks with bolded sub-labels. You MAY reference the \
+    planets (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, \
+    Neptune, Pluto) and zodiac signs by name in simple, natural \
+    sentences like "your Mars is in Libra" — these are common enough \
+    that most readers have some baseline familiarity with them. \
+    However, do NOT use more complex or lesser-known astrological \
+    terminology here: no aspect names (trine, square, sextile, \
+    conjunction, opposition, quincunx, etc.), no dignity/technical \
+    status terms (Exaltation, Detriment, Rulership, Peregrine, etc.), \
+    no pattern names (Grand Trine, T-Square, Yod, Stellium, etc.), and \
+    don't name Chiron or the Nodes directly — describe their effects \
+    in plain language instead of naming them. All of that more \
+    technical/niche vocabulary belongs in the Astrological Basis \
+    section below, where it's fully explained.
     **Astrological Basis:** Written SECOND, also in 2-4 short chunks \
     grouped by planet or aspect, with brief plain-language glosses of \
     technical terms woven in (e.g. "...Exaltation, its strongest \
-    condition..." or "...square, a tense angle...").
+    condition..." or "...square, a tense angle..."). All the complex/ \
+    lesser-known vocabulary excluded from "What This Means" above \
+    belongs here.
   Group all the plain-language interpretation together first, then all \
   the supporting astrology together, once per theme — don't alternate \
   line-by-line between the two.
