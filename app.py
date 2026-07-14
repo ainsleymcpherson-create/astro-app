@@ -18,7 +18,7 @@ GitHub and point Streamlit Cloud at it.
 
 import os
 import re
-from datetime import date as date_type
+from datetime import date as date_type, datetime, timezone
 import streamlit as st
 import pandas as pd
 import swisseph as swe
@@ -34,11 +34,13 @@ from chart_points import compute_full_chart, extract_speeds
 from aspect_engine import compute_aspects, find_all_patterns
 from dignity import compute_chart_dignities
 from house_interpretation import build_house_readings
+from transit_engine import compute_transiting_points, assign_transit_houses, compute_transit_aspects
 from prompt_builder import (
     build_interpretation_prompt,
     build_interpretation_prompt_no_time,
     build_career_interpretation_prompt,
     build_career_interpretation_prompt_no_time,
+    build_transit_prompt,
 )
 from birth_input import resolve_birth_data
 
@@ -58,12 +60,20 @@ except ImportError:
 
 
 def get_api_key():
-    """Try Colab secrets first, then fall back to environment variable."""
+    """Try Colab secrets first, then Streamlit Cloud's secrets manager,
+    then fall back to a plain environment variable — so the same code
+    works unchanged across Colab, Streamlit Community Cloud, and local
+    runs."""
     try:
         from google.colab import userdata
         key = userdata.get("ANTHROPIC_API_KEY")
         if key:
             return key
+    except Exception:
+        pass
+    try:
+        if "ANTHROPIC_API_KEY" in st.secrets:
+            return st.secrets["ANTHROPIC_API_KEY"]
     except Exception:
         pass
     return os.environ.get("ANTHROPIC_API_KEY")
@@ -123,11 +133,20 @@ with st.form("birth_form"):
 
     reading_type = st.selectbox(
         "Reading focus",
-        options=["General", "Career / Work"],
+        options=["General", "Career / Work", "Transits"],
         index=0,
         help="General covers the whole chart. Career/Work focuses "
              "specifically on workplace happiness, colleague dynamics, "
-             "work style, and professional strengths/weaknesses.",
+             "work style, and professional strengths/weaknesses. Transits "
+             "answers 'what's happening right now' — how today's sky is "
+             "currently interacting with this natal chart.",
+    )
+
+    transit_date = st.date_input(
+        "Transit date (only used for Transits reading)",
+        value=date_type.today(),
+        help="The date to check transits for — defaults to today. Ignored "
+             "for General and Career/Work readings.",
     )
 
     unknown_time = st.checkbox(
@@ -140,7 +159,9 @@ with st.form("birth_form"):
              "about 1° every 4 minutes). Checking this excludes all of "
              "those and works only with what's reliable regardless of "
              "time: the planets, Chiron, the Nodes, and aspects between "
-             "them. Works for both General and Career/Work readings.",
+             "them. Works for General and Career/Work readings (not "
+             "applicable to Transits, which always needs a real natal "
+             "chart to compare against).",
     )
 
     generate_live = st.checkbox(
@@ -313,7 +334,33 @@ if submitted:
             dignities = compute_chart_dignities(chart)
             house_readings = build_house_readings(chart)
 
-            if reading_type == "Career / Work" and unknown_time:
+            if reading_type == "Transits":
+                with st.spinner("Computing current transits..."):
+                    # Transits are read for a specific moment; noon UTC on
+                    # the chosen date is a reasonable default (matches
+                    # standard daily-ephemeris convention). Faster points
+                    # like the Moon can shift within a day, but this is
+                    # fine for a "what's the current climate" reading.
+                    transit_dt_utc = datetime(
+                        transit_date.year, transit_date.month, transit_date.day,
+                        12, 0, 0, tzinfo=timezone.utc,
+                    )
+                    transiting_points = compute_transiting_points(transit_dt_utc)
+
+                    # Map transiting planets onto this person's NATAL
+                    # houses (transits are read against natal houses, not
+                    # a fresh chart for the transit moment).
+                    natal_house_cusps = [
+                        chart[f"House {i}"] for i in range(1, 13)
+                    ]
+                    assign_transit_houses(transiting_points, natal_house_cusps)
+
+                    transit_aspects = compute_transit_aspects(
+                        chart, transiting_points,
+                        transiting_speeds=extract_speeds(transiting_points),
+                    )
+                    prompt = build_transit_prompt(transiting_points, transit_aspects, dignities)
+            elif reading_type == "Career / Work" and unknown_time:
                 prompt = build_career_interpretation_prompt_no_time(
                     chart, aspects, patterns, dignities
                 )
@@ -427,6 +474,7 @@ if submitted:
             "house_system_label": house_system_label,
             "reading_type": reading_type,
             "birth_date": birth_date,
+            "transit_date": transit_date,
             "chart": chart,
             "aspects": aspects,
             "patterns": patterns,
@@ -451,10 +499,16 @@ if submitted:
 if st.session_state.get("results"):
     r = st.session_state.results
 
-    st.success(
-        f"Chart computed for {r['datetime_str']} in {r['location_str']} "
-        f"({r['house_system_label']} houses, {r['reading_type']} reading)"
-    )
+    if r["reading_type"] == "Transits":
+        st.success(
+            f"Natal chart: {r['datetime_str']} in {r['location_str']} "
+            f"({r['house_system_label']} houses) — Transits for {r['transit_date'].isoformat()}"
+        )
+    else:
+        st.success(
+            f"Chart computed for {r['datetime_str']} in {r['location_str']} "
+            f"({r['house_system_label']} houses, {r['reading_type']} reading)"
+        )
 
     tabs = st.tabs(["Interpretation", "Prompt", "Points", "Aspects", "Patterns", "Dignity", "Houses"])
 
