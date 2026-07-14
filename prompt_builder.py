@@ -130,18 +130,27 @@ conditions below — all mathematically precise, not approximated.
 First, provide a general and summarized overview of the chart and what \
 the reading uncovered — a short, plain-language orientation before the \
 detailed themes, written as a few flowing paragraphs (not chunked or \
-bulleted — see formatting guidelines below).
+bulleted — see formatting guidelines below). Head this section with the \
+exact markdown heading "## Overview" (two hash symbols, one space, then \
+the word).
 
 Then, identify the 2-4 biggest THEMES that emerge when you look at the \
 whole chart together — which placements reinforce each other, which \
-create tension, and why. Give each theme its own short heading and \
-follow the two-part chunked format described below for each one.
+create tension, and why. Format each theme's heading as a markdown H2 \
+heading — exactly "## Theme Name" (two hash symbols, one space, then \
+the name) — since the app displaying this reading relies on that exact \
+format to build a collapsible view. Then follow the two-part chunked \
+format described below for each one.
 
 End with a conclusion and summary of key points, but try not to repeat \
 the intro summary — the intro orients the reader before the detail, the \
 conclusion should distill what actually matters most after reading it. \
 Write the conclusion as flowing prose too, matching the Overview's \
-style — not chunked or bulleted.
+style — not chunked or bulleted. Head this section with the exact \
+markdown heading "## Conclusion" — this is REQUIRED, not optional: \
+without its own heading, the app's display logic will incorrectly \
+attach this text to the previous section instead of showing it as its \
+own block.
 
 Guidelines for the reading:
 1. THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
@@ -274,15 +283,23 @@ detailed themes, written as a few flowing paragraphs (not chunked or \
 bulleted — see formatting guidelines below). Briefly and matter-of-\
 factly note in this overview that the reading is based on planets \
 only, without birth-time-dependent points like the rising sign or \
-houses (not as an apology, just an accurate framing of scope).
+houses (not as an apology, just an accurate framing of scope). Head \
+this section with the exact markdown heading "## Overview".
 
 Then, identify the 2-4 biggest THEMES that emerge when you look at the \
-whole chart together. Give each theme its own short heading and follow \
-the two-part chunked format described below for each one.
+whole chart together. Format each theme's heading as a markdown H2 \
+heading — exactly "## Theme Name" (two hash symbols, one space, then \
+the name) — since the app displaying this reading relies on that exact \
+format to build a collapsible view. Then follow the two-part chunked \
+format described below for each one.
 
 End with a conclusion and summary of key points, but try not to repeat \
 the intro summary. Write the conclusion as flowing prose too, matching \
-the Overview's style — not chunked or bulleted.
+the Overview's style — not chunked or bulleted. Head this section with \
+the exact markdown heading "## Conclusion" — this is REQUIRED, not \
+optional: without its own heading, the app's display logic will \
+incorrectly attach this text to the previous section instead of \
+showing it as its own block.
 
 Guidelines for the reading:
 1. THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
@@ -419,9 +436,13 @@ Structure your answer as follows:
 First, provide a general and summarized overview of the chart and what \
 the reading uncovered — a short, plain-language orientation before the \
 detailed sections, written as a few flowing paragraphs (not chunked or \
-bulleted — see formatting guidelines below).
+bulleted — see formatting guidelines below). Head this section with \
+the exact markdown heading "## Overview".
 
-Then, go into the following sections. Use them as your section headers:
+Then, go into the following sections. Format each one as a markdown H2 \
+heading — exactly "## Section Name" (two hash symbols, one space, then \
+the name) — since the app displaying this reading relies on that exact \
+format to build a collapsible view. Use them as your section headers:
 
 PROFESSIONAL STRENGTHS: what are the genuine strengths of the \
 individual? Where does this individual operate with professional ease? \
@@ -482,7 +503,11 @@ End with a conclusion and summary of key points, but try not to repeat \
 the intro summary — the intro orients the reader before the detail, the \
 conclusion should distill what actually matters most after reading it. \
 Write the conclusion as flowing prose too, matching the Overview's \
-style — not chunked or bulleted.
+style — not chunked or bulleted. Head this section with the exact \
+markdown heading "## Conclusion" — this is REQUIRED, not optional: \
+without its own heading, the app's display logic will incorrectly \
+attach this text to the previous section instead of showing it as its \
+own block.
 
 General guidelines that still apply:
 - THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
@@ -696,9 +721,13 @@ note that this reading is based on planets only, without birth-time-\
 dependent points like the rising sign or houses, so it won't cover things \
 like "what house your career planets fall in" the way a full reading \
 would — this isn't a limitation to apologize for, just an accurate \
-scope-setting note.
+scope-setting note. Head this section with the exact markdown heading \
+"## Overview".
 
-Then, go into the following sections. Use them as your section headers:
+Then, go into the following sections. Format each one as a markdown H2 \
+heading — exactly "## Section Name" (two hash symbols, one space, then \
+the name) — since the app displaying this reading relies on that exact \
+format to build a collapsible view. Use them as your section headers:
 
 PROFESSIONAL STRENGTHS: what are the genuine strengths of the \
 individual, based on well-dignified planets and supportive aspects \
@@ -740,7 +769,11 @@ are suggested jobs and career paths that this person should consider?
 
 End with a conclusion and summary of key points, but try not to repeat \
 the intro summary. Write the conclusion as flowing prose too, matching \
-the Overview's style — not chunked or bulleted.
+the Overview's style — not chunked or bulleted. Head this section with \
+the exact markdown heading "## Conclusion" — this is REQUIRED, not \
+optional: without its own heading, the app's display logic will \
+incorrectly attach this text to the previous section instead of \
+showing it as its own block.
 
 General guidelines that still apply:
 - THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
@@ -797,6 +830,193 @@ def build_career_interpretation_prompt_no_time(
 
 
 # ---------------------------------------------------------------------------
+# Transit reading — "what's currently activated" prompt
+# ---------------------------------------------------------------------------
+# Distinct from every other prompt in this file: those all interpret a
+# single natal chart. This one interprets the relationship between a
+# fixed natal chart and the CURRENT sky (transiting planets), which is
+# the standard technique for "what's happening in my life right now"
+# questions — the single most common thing people ask an astrologer
+# that a natal-only reading can't answer.
+
+def format_transiting_points_section(
+    transiting_points: dict,
+    natal_house_labels: dict[int, str] | None = None,
+) -> str:
+    """Formats the current sky positions, with each transiting planet's
+    natal house noted if houses were assigned via
+    transit_engine.assign_transit_houses()."""
+    lines = ["CURRENT SKY (transiting planets, sign, and which of YOUR "
+             "natal houses each currently falls in):"]
+    for name, point in sorted(transiting_points.items(), key=lambda x: x[1].longitude):
+        house_str = f", in your natal House {point.house}" if point.house else ""
+        retro_str = " (retrograde)" if point.retrograde else ""
+        lines.append(f"  - Transiting {name}: {point.sign_degree:.1f}° {point.sign}{house_str}{retro_str}")
+    return "\n".join(lines)
+
+
+def format_transit_aspects_section(transit_aspects: list, min_tightness: float = 1.0) -> str:
+    """Formats transit-to-natal aspects, tightest (most exact/significant) first."""
+    lines = ["TRANSIT ASPECTS (transiting planet to natal point; orb = how "
+             "exact — transit orbs are intentionally tight, since transits "
+             "matter most when close to exact; applying = still building "
+             "toward exact, separating = past exact and fading):"]
+    filtered = [a for a in transit_aspects if a.tightness <= min_tightness]
+    if not filtered:
+        lines.append("  - No significant transits within the configured orbs right now.")
+    for a in filtered:
+        app_str = ""
+        if a.applying is True:
+            app_str = ", applying"
+        elif a.applying is False:
+            app_str = ", separating"
+        lines.append(
+            f"  - Transiting {a.transiting_point} {a.aspect_name} natal "
+            f"{a.natal_point} (orb {a.orb:.2f}°{app_str}, nature: {a.nature})"
+        )
+    return "\n".join(lines)
+
+
+def build_transit_data_block(
+    transiting_points: dict,
+    transit_aspects: list,
+    natal_dignities: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+) -> str:
+    return "\n\n".join([
+        format_transiting_points_section(transiting_points),
+        format_transit_aspects_section(transit_aspects, min_tightness=min_tightness),
+        format_dignity_section(natal_dignities),
+    ])
+
+
+TRANSIT_INSTRUCTIONS = """\
+You are an experienced astrologer giving a reading to someone who is \
+not very well versed in astrology, focused specifically on what's \
+currently happening in their life right now, based on how today's sky \
+(the "transits") is interacting with their unchanging natal chart.
+
+First, a quick note on terminology, since this reading works \
+differently from a standard natal reading: "transiting" planets are \
+where the planets are positioned RIGHT NOW, in the actual sky today — \
+these move and change day by day. Your "natal" placements are fixed, \
+permanent, from the moment of birth. This reading is about how today's \
+moving sky is currently activating specific parts of the person's \
+unchanging natal chart — it is not a repeat of their general \
+personality reading, it's about the current window of time only.
+
+You have access to the exact computed transiting planetary positions, \
+which of the person's natal houses each transiting planet currently \
+falls in, the aspects between transiting planets and natal points (with \
+tight, transit-appropriate orbs — only genuinely close, currently \
+active connections are included), and the person's natal essential \
+dignity for context. All mathematically precise, not approximated.
+
+Structure your answer as follows:
+
+First, provide a general and summarized overview of what this current \
+period is broadly about for this person — a short, plain-language \
+orientation before the detailed points, written as a few flowing \
+paragraphs (not chunked or bulleted — see formatting guidelines below). \
+Head this section with the exact markdown heading "## Overview". If \
+there are no significant transits at all right now, say so plainly \
+rather than manufacturing significance — a quiet period is a real and \
+valid finding.
+
+Then, identify the 2-4 most significant currently-active transits or \
+transit-driven themes (prioritize tighter orbs and applying transits, \
+which are more currently relevant than wide or separating ones — and \
+weight transits involving slower planets like Jupiter/Saturn/Uranus/ \
+Neptune/Pluto as generally longer-lasting and more significant than \
+fast-moving ones like the Moon, unless a fast transit is unusually \
+exact). Format each theme's heading as a markdown H2 heading — exactly \
+"## Theme Name" — since the app displaying this reading relies on that \
+exact format to build a collapsible view. Then follow the two-part \
+chunked format described below for each one.
+
+End with a conclusion distilling what actually matters most about this \
+current period, but try not to repeat the intro summary. Write it as \
+flowing prose too, matching the Overview's style — not chunked or \
+bulleted. Head this section with the exact markdown heading \
+"## Conclusion" — this is REQUIRED, not optional: without its own \
+heading, the app's display logic will incorrectly attach this text to \
+the previous section instead of showing it as its own block.
+
+General guidelines that still apply:
+- THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
+PROSE — no chunked split, no bolded sub-labels, no bullet chunking.
+- FOR EACH THEME, OPEN with 1-2 sentences of brief plain-language prose \
+summarizing the main takeaway. THEN follow with a two-part chunked \
+structure, IN THIS ORDER:
+    **What This Means:** Written FIRST, broken into 2-4 short, \
+    scannable chunks with bolded sub-labels. You MAY reference the \
+    planets and zodiac signs by name in simple, natural sentences like \
+    "transiting Saturn is currently in Libra" — these are common enough \
+    that most readers have some baseline familiarity with them. However, \
+    do NOT use more complex or lesser-known astrological terminology \
+    here: no aspect names (trine, square, sextile, conjunction, \
+    opposition, quincunx, etc.), no dignity/technical status terms \
+    (Exaltation, Detriment, Rulership, Peregrine, etc.), no house \
+    numbers, and don't name Chiron or the Nodes directly — describe \
+    their effects in plain language instead. All of that more technical \
+    vocabulary belongs in the Astrological Basis section below.
+    **Astrological Basis:** Written SECOND, also in 2-4 short chunks \
+    grouped by transit, with brief plain-language glosses of technical \
+    terms woven in as needed. All the complex/lesser-known vocabulary \
+    excluded from "What This Means" above belongs here.
+  Group all the plain-language interpretation together first, then all \
+  the supporting astrology together, once per theme — don't alternate \
+  line-by-line between the two.
+- USE DIGNITY AS CONTEXT. If a transiting planet is aspecting a natal \
+planet that's well-dignified (Rulership/Exaltation), that natal planet \
+can generally handle the activation more directly; if poorly dignified \
+(Detriment/Fall), the transit may bring the underlying difficulty more \
+sharply into focus.
+- PRIORITIZE TIGHT AND APPLYING TRANSITS. A transit that's applying \
+(still building toward exact) and has a small orb is far more currently \
+relevant than one that's wide or separating — lead with what matters \
+most right now.
+- AVOID A MYSTICAL OR ESOTERIC TONE. Write the way a sharp, grounded \
+psychologist or coach would describe what's currently going on for \
+someone — concrete, specific, relatable — not the way a fortune teller \
+would. Avoid language like "the universe is calling you toward..." or \
+"cosmic energy."
+- Avoid generic, could-apply-to-anyone language. Ground every claim in \
+the SPECIFIC transits you're given, not stock keyword associations.
+- Don't manufacture drama. If the current transits are genuinely mild, \
+say so — a quiet, low-key period is a legitimate and useful finding, \
+not a failure to find something interesting.
+
+Here is the full computed transit data:
+
+{data_block}
+
+Now write the reading: opening overview, 2-4 themes each in the \
+two-part chunked format above, then a closing conclusion.\
+"""
+
+
+def build_transit_prompt(
+    transiting_points: dict,
+    transit_aspects: list,
+    natal_dignities: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+) -> str:
+    """
+    Builds a complete transit reading prompt: current sky positions,
+    transit-to-natal aspects (tight, transit-appropriate orbs), and
+    natal dignity for context. Distinct from every other prompt builder
+    in this file since it interprets the CURRENT sky against a fixed
+    natal chart, rather than the natal chart alone.
+    """
+    data_block = build_transit_data_block(
+        transiting_points, transit_aspects, natal_dignities,
+        min_tightness=min_tightness,
+    )
+    return TRANSIT_INSTRUCTIONS.format(data_block=data_block)
+
+
+# ---------------------------------------------------------------------------
 # NOTES for extension
 # ---------------------------------------------------------------------------
 # - If the full prompt gets too long for your LLM's context comfort, lower
@@ -810,3 +1030,10 @@ def build_career_interpretation_prompt_no_time(
 #     etc.) can follow the exact same pattern as
 #     build_career_interpretation_prompt(): a new INSTRUCTIONS template
 #     plus a thin wrapper function reusing build_data_block().
+# - A career-focused transit variant (build_transit_career_prompt) would
+#     follow the same pattern as this one, but restrict
+#     natal_points_to_check in transit_engine.compute_transit_aspects()
+#     to career-relevant natal points (Midheaven, natal Saturn, the
+#     natal 10th/6th/2nd house rulers) — the "daily professional
+#     outlook" idea from earlier design discussions.
+
