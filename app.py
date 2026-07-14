@@ -185,7 +185,7 @@ def points_to_dataframe(chart):
             "Point": name,
             "Sign": point.sign,
             "Degree": f"{point.sign_degree:.2f}°",
-            "House": point.house if point.house else "—",
+            "House": str(point.house) if point.house else "—",
             "Retrograde": "R" if point.retrograde else "",
         })
     return pd.DataFrame(rows)
