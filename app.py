@@ -17,6 +17,7 @@ GitHub and point Streamlit Cloud at it.
 """
 
 import os
+import re
 from datetime import date as date_type
 import streamlit as st
 import pandas as pd
@@ -200,6 +201,51 @@ def dignities_to_dataframe(dignities):
     return pd.DataFrame(rows)
 
 
+def render_interpretation(text: str):
+    """
+    Renders an AI-generated reading with each section's 'Astrological
+    Basis' part collapsed into an expander — the plain-language
+    interpretation stays visible by default, and the technical detail
+    (planet placements, aspect names, dignity terms) is available on
+    tap for readers who want it, without cluttering the main view for
+    readers who don't. Falls back to plain rendering if the text
+    doesn't match the expected section structure (e.g. if the LLM
+    didn't follow the formatting instructions exactly).
+    """
+    section_pattern = re.compile(r"(?m)^## (.+)$")
+    matches = list(section_pattern.finditer(text))
+
+    if not matches:
+        st.markdown(text)
+        return
+
+    if matches[0].start() > 0:
+        st.markdown(text[:matches[0].start()].strip())
+
+    basis_pattern = re.compile(r"\*\*Astrological Basis:?\*\*", re.IGNORECASE)
+
+    for i, match in enumerate(matches):
+        header = match.group(1).strip()
+        start = match.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        body = text[start:end].strip()
+
+        st.markdown(f"### {header}")
+
+        basis_match = basis_pattern.search(body)
+        if basis_match:
+            before_basis = body[:basis_match.start()].strip()
+            basis_content = body[basis_match.end():].strip()
+            if before_basis:
+                st.markdown(before_basis)
+            with st.expander("📐 Astrological Basis (tap to expand)"):
+                st.markdown(basis_content)
+        else:
+            # Overview, Conclusion, or any section that didn't include
+            # a basis split — just render the whole thing normally.
+            st.markdown(body)
+
+
 def dataframe_download_and_copy(df: pd.DataFrame, filename: str, key_prefix: str):
     """Adds a CSV download button and a copy-friendly text area below a
     dataframe. key_prefix keeps widget keys unique across tabs, since
@@ -368,103 +414,134 @@ if submitted:
                                 f"Full traceback:\n{traceback.format_exc()}"
                             )
 
-        st.success(
-            f"Chart computed for {datetime_str} in {location_str} "
-            f"({house_system_label} houses, {reading_type} reading)"
-        )
-
-        tabs = st.tabs(["Interpretation", "Prompt", "Points", "Aspects", "Patterns", "Dignity", "Houses"])
-
-        with tabs[0]:
-            if interpretation_text:
-                st.markdown(interpretation_text)
-                st.divider()
-                st.download_button(
-                    "Download reading as .txt",
-                    data=interpretation_text,
-                    file_name=f"reading_{birth_date.isoformat()}.txt",
-                    mime="text/plain",
-                    use_container_width=True,
-                )
-                with st.expander("Copy as plain text"):
-                    st.text_area(
-                        "Reading (tap inside, select all, copy)",
-                        value=interpretation_text,
-                        height=400,
-                        label_visibility="collapsed",
-                    )
-            elif interpretation_error:
-                st.warning("Something went wrong generating the live interpretation:")
-                st.code(interpretation_error)
-            else:
-                st.info("Check the \"Generate written interpretation\" box above "
-                         "and recompute to get a live reading here — or use the "
-                         "Prompt tab to copy it into Claude yourself for free.")
-
-        with tabs[1]:
-            st.write("Copy this into Claude.ai (or send it via the API yourself) "
-                     "to get the full written reading — free, no API call from this app.")
-            st.text_area("Full prompt", value=prompt, height=500, label_visibility="collapsed")
-            st.download_button(
-                "Download prompt as .txt",
-                data=prompt,
-                file_name="interpretation_prompt.txt",
-                mime="text/plain",
-                use_container_width=True,
-            )
-
-        with tabs[2]:
-            points_df = points_to_dataframe(chart)
-            st.dataframe(points_df, use_container_width=True, hide_index=True)
-            dataframe_download_and_copy(points_df, f"points_{birth_date.isoformat()}.csv", "points")
-
-        with tabs[3]:
-            aspects_df = aspects_to_dataframe(aspects)
-            st.dataframe(aspects_df, use_container_width=True, hide_index=True)
-            dataframe_download_and_copy(aspects_df, f"aspects_{birth_date.isoformat()}.csv", "aspects")
-
-        with tabs[4]:
-            any_patterns = False
-            pattern_lines = []
-            for kind, plist in patterns.items():
-                if not plist:
-                    continue
-                any_patterns = True
-                label = kind.replace("_", " ").title()
-                st.subheader(label)
-                pattern_lines.append(f"{label}:")
-                for p in plist:
-                    line = ", ".join(p.points)
-                    st.write(f"- {line}")
-                    pattern_lines.append(f"  - {line}")
-            if not any_patterns:
-                st.info("No aspect patterns detected within the configured orbs.")
-            else:
-                text_download_and_copy(
-                    "\n".join(pattern_lines),
-                    f"patterns_{birth_date.isoformat()}.txt",
-                    "patterns",
-                )
-
-        with tabs[5]:
-            dignity_df = dignities_to_dataframe(dignities)
-            st.dataframe(dignity_df, use_container_width=True, hide_index=True)
-            dataframe_download_and_copy(dignity_df, f"dignity_{birth_date.isoformat()}.csv", "dignity")
-
-        with tabs[6]:
-            house_lines = []
-            for num, reading in house_readings.items():
-                with st.expander(f"House {num} ({reading.sign_on_cusp})"):
-                    st.write(reading.interpretation)
-                house_lines.append(f"House {num} ({reading.sign_on_cusp}):\n{reading.interpretation}\n")
-            text_download_and_copy(
-                "\n".join(house_lines),
-                f"houses_{birth_date.isoformat()}.txt",
-                "houses",
-            )
+        # Persist everything needed for display in st.session_state.
+        # Streamlit reruns the ENTIRE script on every widget interaction —
+        # including clicking a download button — and `submitted` is only
+        # True on the exact run where "Compute Chart" was clicked. Without
+        # this, clicking any download button would make all the results
+        # disappear on the next rerun, since the display code below would
+        # no longer be reachable.
+        st.session_state.results = {
+            "datetime_str": datetime_str,
+            "location_str": location_str,
+            "house_system_label": house_system_label,
+            "reading_type": reading_type,
+            "birth_date": birth_date,
+            "chart": chart,
+            "aspects": aspects,
+            "patterns": patterns,
+            "dignities": dignities,
+            "house_readings": house_readings,
+            "prompt": prompt,
+            "interpretation_text": interpretation_text,
+            "interpretation_error": interpretation_error,
+        }
 
     except ValueError as e:
         st.error(f"Couldn't resolve birth data: {e}")
     except Exception as e:
         st.error(f"Something went wrong: {e}")
         st.exception(e)
+
+
+# --- Display results ---
+# Runs on every script rerun where results exist in session_state — not
+# just the run where the form was submitted — so the tabs (and their
+# download/copy buttons) stay visible across reruns instead of vanishing.
+if st.session_state.get("results"):
+    r = st.session_state.results
+
+    st.success(
+        f"Chart computed for {r['datetime_str']} in {r['location_str']} "
+        f"({r['house_system_label']} houses, {r['reading_type']} reading)"
+    )
+
+    tabs = st.tabs(["Interpretation", "Prompt", "Points", "Aspects", "Patterns", "Dignity", "Houses"])
+
+    with tabs[0]:
+        if r["interpretation_text"]:
+            render_interpretation(r["interpretation_text"])
+            st.divider()
+            st.download_button(
+                "Download reading as .txt",
+                data=r["interpretation_text"],
+                file_name=f"reading_{r['birth_date'].isoformat()}.txt",
+                mime="text/plain",
+                use_container_width=True,
+            )
+            with st.expander("Copy as plain text"):
+                st.text_area(
+                    "Reading (tap inside, select all, copy)",
+                    value=r["interpretation_text"],
+                    height=400,
+                    label_visibility="collapsed",
+                )
+        elif r["interpretation_error"]:
+            st.warning("Something went wrong generating the live interpretation:")
+            st.code(r["interpretation_error"])
+        else:
+            st.info("Check the \"Generate written interpretation\" box above "
+                     "and recompute to get a live reading here — or use the "
+                     "Prompt tab to copy it into Claude yourself for free.")
+
+    with tabs[1]:
+        st.write("Copy this into Claude.ai (or send it via the API yourself) "
+                 "to get the full written reading — free, no API call from this app.")
+        st.text_area("Full prompt", value=r["prompt"], height=500, label_visibility="collapsed")
+        st.download_button(
+            "Download prompt as .txt",
+            data=r["prompt"],
+            file_name="interpretation_prompt.txt",
+            mime="text/plain",
+            use_container_width=True,
+        )
+
+    with tabs[2]:
+        points_df = points_to_dataframe(r["chart"])
+        st.dataframe(points_df, use_container_width=True, hide_index=True)
+        dataframe_download_and_copy(points_df, f"points_{r['birth_date'].isoformat()}.csv", "points")
+
+    with tabs[3]:
+        aspects_df = aspects_to_dataframe(r["aspects"])
+        st.dataframe(aspects_df, use_container_width=True, hide_index=True)
+        dataframe_download_and_copy(aspects_df, f"aspects_{r['birth_date'].isoformat()}.csv", "aspects")
+
+    with tabs[4]:
+        any_patterns = False
+        pattern_lines = []
+        for kind, plist in r["patterns"].items():
+            if not plist:
+                continue
+            any_patterns = True
+            label = kind.replace("_", " ").title()
+            st.subheader(label)
+            pattern_lines.append(f"{label}:")
+            for p in plist:
+                line = ", ".join(p.points)
+                st.write(f"- {line}")
+                pattern_lines.append(f"  - {line}")
+        if not any_patterns:
+            st.info("No aspect patterns detected within the configured orbs.")
+        else:
+            text_download_and_copy(
+                "\n".join(pattern_lines),
+                f"patterns_{r['birth_date'].isoformat()}.txt",
+                "patterns",
+            )
+
+    with tabs[5]:
+        dignity_df = dignities_to_dataframe(r["dignities"])
+        st.dataframe(dignity_df, use_container_width=True, hide_index=True)
+        dataframe_download_and_copy(dignity_df, f"dignity_{r['birth_date'].isoformat()}.csv", "dignity")
+
+    with tabs[6]:
+        house_lines = []
+        for num, reading in r["house_readings"].items():
+            with st.expander(f"House {num} ({reading.sign_on_cusp})"):
+                st.write(reading.interpretation)
+            house_lines.append(f"House {num} ({reading.sign_on_cusp}):\n{reading.interpretation}\n")
+        text_download_and_copy(
+            "\n".join(house_lines),
+            f"houses_{r['birth_date'].isoformat()}.txt",
+            "houses",
+        )
