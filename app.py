@@ -17,6 +17,7 @@ GitHub and point Streamlit Cloud at it.
 """
 
 import os
+from datetime import date as date_type, time as time_type
 import streamlit as st
 import pandas as pd
 import swisseph as swe
@@ -75,15 +76,23 @@ st.caption("Computes birth charts with full support for Part of Fortune, "
 
 # --- Input form ---
 with st.form("birth_form"):
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
-        datetime_str = st.text_input(
-            "Birth date & time",
-            value="December 24, 1981 1:30pm",
-            help="Any reasonably natural format works, e.g. "
-                 "'July 5, 1989 11:54am' or '1989-07-05 11:54'",
+        birth_date = st.date_input(
+            "Birth date",
+            value=date_type(1981, 12, 24),
+            min_value=date_type(1900, 1, 1),
+            max_value=date_type.today(),
+            help="Tap to open the calendar picker.",
         )
     with col2:
+        birth_time = st.time_input(
+            "Birth time",
+            value=time_type(13, 30),
+            step=60,
+            help="Tap to open the time picker (1-minute increments).",
+        )
+    with col3:
         location_str = st.text_input(
             "Birth location",
             value="Brooklyn, New York, USA",
@@ -185,6 +194,11 @@ if submitted:
         st.caption(f"🐛 Debug: generate_live={generate_live}, "
                    f"ANTHROPIC_AVAILABLE={ANTHROPIC_AVAILABLE}, "
                    f"api_key_found={bool(get_api_key())}")
+
+        # Combine the two separate picker widgets into the plain-language
+        # string resolve_birth_data() expects (e.g. "December 24, 1981
+        # 01:30 PM") — keeps birth_input.py's parsing logic unchanged.
+        datetime_str = f"{birth_date.strftime('%B %d, %Y')} {birth_time.strftime('%I:%M %p')}"
 
         with st.spinner("Resolving location and timezone..."):
             birth = resolve_birth_data(datetime_str, location_str, verbose=False)
