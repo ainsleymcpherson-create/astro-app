@@ -40,7 +40,10 @@ def resolve_birth_data(datetime_str: str, location_str: str, verbose: bool = Tru
     Example:
         birth = resolve_birth_data("December 24, 1981 1:30pm", "Brooklyn, New York, USA")
     """
-    geolocator = Nominatim(user_agent="astro_chart_app")
+    # Explicit timeout: geopy defaults to just 1 second, which is fine on
+    # some networks (e.g. Colab) but too tight on others (e.g. Streamlit
+    # Community Cloud), causing spurious GeocoderUnavailable errors.
+    geolocator = Nominatim(user_agent="astro_chart_app", timeout=10)
     location = geolocator.geocode(location_str)
     if location is None:
         raise ValueError(
