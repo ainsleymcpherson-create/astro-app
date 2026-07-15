@@ -49,6 +49,7 @@ from prompt_builder import (
     build_transit_prompt,
 )
 from birth_input import resolve_birth_data
+from chart_wheel import draw_chart_wheel
 
 # --- Optional: live Claude interpretation ---
 # Requires: pip install anthropic (already in requirements.txt)
@@ -615,7 +616,7 @@ if st.session_state.get("results"):
             f"({r['house_system_label']} houses, {r['reading_type']} reading)"
         )
 
-    tabs = st.tabs(["Interpretation", "Prompt", "Points", "Aspects", "Patterns", "Dignity", "Houses"])
+    tabs = st.tabs(["Interpretation", "Prompt", "Points", "Aspects", "Patterns", "Dignity", "Houses", "Chart Wheel"])
 
     with tabs[0]:
         if r["interpretation_text"]:
@@ -717,4 +718,21 @@ if st.session_state.get("results"):
             "\n".join(house_lines),
             f"houses_{r['birth_date'].isoformat()}.txt",
             "houses",
+        )
+
+    with tabs[7]:
+        st.write("The classic circular chart wheel — zodiac ring, house divisions "
+                 "(drawn from the actual computed cusps, not evenly spaced), the "
+                 "four angles, planets, and the tightest aspects.")
+        fig = draw_chart_wheel(r["chart"], r["aspects"], min_aspect_tightness=0.6)
+        st.pyplot(fig, use_container_width=True)
+
+        wheel_buffer = io.BytesIO()
+        fig.savefig(wheel_buffer, format="png", dpi=150, facecolor="white", bbox_inches="tight")
+        st.download_button(
+            "Download chart wheel as .png",
+            data=wheel_buffer.getvalue(),
+            file_name=f"chart_wheel_{r['birth_date'].isoformat()}.png",
+            mime="image/png",
+            use_container_width=True,
         )
