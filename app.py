@@ -92,6 +92,8 @@ st.caption("Computes birth charts with full support for Part of Fortune, "
            "Nodes, Vertex, Chiron, dignity, and house-ruler interpretation "
            "of empty houses — not just the standard 10 planets.")
 
+COFFEE_URL = "https://buymeacoffee.com/tenthhousereadings"
+
 # --- Input form ---
 reading_type = st.selectbox(
     "Reading focus",
@@ -104,10 +106,57 @@ reading_type = st.selectbox(
          "currently interacting with this natal chart.",
 )
 
+# Read the checkbox's stored value BEFORE the checkbox widget itself is
+# defined further down (it's rendered after the birth time fields, to
+# match the requested layout). This works because Streamlit updates a
+# keyed widget's session_state value as soon as it changes, before the
+# script reruns from the top — so this early read always reflects the
+# current, live value despite reading it "ahead of" where the widget
+# actually appears on the page.
+unknown_time = (
+    st.session_state.get("unknown_time_cb", False)
+    if reading_type != "Transits" else False
+)
+
+col1, col2, col3 = st.columns([1, 1.3, 1])
+with col1:
+    birth_date = st.date_input(
+        "Birth date",
+        value=date_type(1981, 12, 24),
+        min_value=date_type(1900, 1, 1),
+        max_value=date_type.today(),
+        help="Tap to open the calendar picker.",
+    )
+with col2:
+    st.write("Birth time" + (" (disabled — unknown birth time selected)" if unknown_time else ""))
+    hour_col, minute_col, ampm_col = st.columns(3)
+    with hour_col:
+        birth_hour = st.selectbox(
+            "Hour", options=list(range(1, 13)), index=0,
+            label_visibility="collapsed", disabled=unknown_time,
+        )
+    with minute_col:
+        birth_minute = st.selectbox(
+            "Minute", options=[f"{m:02d}" for m in range(60)], index=30,
+            label_visibility="collapsed", disabled=unknown_time,
+        )
+    with ampm_col:
+        birth_ampm = st.selectbox(
+            "AM/PM", options=["AM", "PM"], index=1,
+            label_visibility="collapsed", disabled=unknown_time,
+        )
+with col3:
+    location_str = st.text_input(
+        "Birth location",
+        value="Brooklyn, New York, USA",
+        help="Be specific — add state/country if the place name is common",
+    )
+
 if reading_type != "Transits":
     unknown_time = st.checkbox(
         "🕐 I don't know my exact birth time",
         value=False,
+        key="unknown_time_cb",
         help="The Ascendant, Midheaven, house placements, Vertex, and Part "
              "of Fortune/Spirit all require an exact birth time to "
              "calculate correctly — a noon guess doesn't approximate them, "
@@ -116,79 +165,50 @@ if reading_type != "Transits":
              "those and works only with what's reliable regardless of "
              "time: the planets, Chiron, the Nodes, and aspects between "
              "them. Works for General and Career/Work readings. The birth "
-             "time fields below are disabled while this is checked, since "
+             "time fields above are disabled while this is checked, since "
              "they won't be used.",
     )
 else:
     unknown_time = False  # not applicable to Transits
 
-with st.form("birth_form"):
-    col1, col2, col3 = st.columns([1, 1.3, 1])
-    with col1:
-        birth_date = st.date_input(
-            "Birth date",
-            value=date_type(1981, 12, 24),
-            min_value=date_type(1900, 1, 1),
-            max_value=date_type.today(),
-            help="Tap to open the calendar picker.",
-        )
-    with col2:
-        st.write("Birth time" + (" (disabled — unknown birth time selected)" if unknown_time else ""))
-        hour_col, minute_col, ampm_col = st.columns(3)
-        with hour_col:
-            birth_hour = st.selectbox(
-                "Hour", options=list(range(1, 13)), index=0,
-                label_visibility="collapsed", disabled=unknown_time,
-            )
-        with minute_col:
-            birth_minute = st.selectbox(
-                "Minute", options=[f"{m:02d}" for m in range(60)], index=30,
-                label_visibility="collapsed", disabled=unknown_time,
-            )
-        with ampm_col:
-            birth_ampm = st.selectbox(
-                "AM/PM", options=["AM", "PM"], index=1,
-                label_visibility="collapsed", disabled=unknown_time,
-            )
-    with col3:
-        location_str = st.text_input(
-            "Birth location",
-            value="Brooklyn, New York, USA",
-            help="Be specific — add state/country if the place name is common",
-        )
+house_system_label = st.selectbox(
+    "House system",
+    options=["Placidus", "Whole Sign", "Equal", "Koch", "Campanus", "Regiomontanus", "Alcabitius"],
+    index=0,
+)
+house_system_map = {
+    "Placidus": b"P", "Whole Sign": b"W", "Equal": b"E", "Koch": b"K",
+    "Campanus": b"C", "Regiomontanus": b"R", "Alcabitius": b"B",
+}
 
-    house_system_label = st.selectbox(
-        "House system",
-        options=["Placidus", "Whole Sign", "Equal", "Koch", "Campanus", "Regiomontanus", "Alcabitius"],
-        index=0,
+if reading_type == "Transits":
+    transit_date = st.date_input(
+        "Transit date",
+        value=date_type.today(),
+        help="The date to check transits for — defaults to today.",
     )
-    house_system_map = {
-        "Placidus": b"P", "Whole Sign": b"W", "Equal": b"E", "Koch": b"K",
-        "Campanus": b"C", "Regiomontanus": b"R", "Alcabitius": b"B",
-    }
+else:
+    transit_date = date_type.today()  # unused placeholder for non-Transit readings
 
-    if reading_type == "Transits":
-        transit_date = st.date_input(
-            "Transit date",
-            value=date_type.today(),
-            help="The date to check transits for — defaults to today.",
-        )
-    else:
-        transit_date = date_type.today()  # unused placeholder for non-Transit readings
+generate_live = st.checkbox(
+    "🪙 Generate written interpretation with Claude (makes a real, billed API call)",
+    value=False,
+    help="Unchecked (default): you get the raw prompt to copy/paste into "
+         "Claude yourself, for free. Checked: this app calls the Claude "
+         "API directly and you're charged for that usage, every time "
+         "you click Compute Chart with this box checked.",
+)
 
-    generate_live = st.checkbox(
-        "🪙 Generate written interpretation with Claude (makes a real, billed API call)",
-        value=False,
-        help="Unchecked (default): you get the raw prompt to copy/paste into "
-             "Claude yourself, for free. Checked: this app calls the Claude "
-             "API directly and you're charged for that usage, every time "
-             "you click Compute Chart with this box checked.",
-    )
+submitted = st.button(
+    "Compute Chart", use_container_width=True,
+    disabled=st.session_state.get("processing", False),
+)
 
-    submitted = st.form_submit_button(
-        "Compute Chart", use_container_width=True,
-        disabled=st.session_state.get("processing", False),
-    )
+# Normal inline button, shown only until a chart has been computed —
+# once results exist, this is replaced by the floating bottom-right
+# version below, so the two never show at the same time.
+if not st.session_state.get("results"):
+    st.link_button("☕ Buy me a coffee", COFFEE_URL, use_container_width=True)
 
 
 def points_to_dataframe(chart):
@@ -627,6 +647,39 @@ if st.session_state.get("processing", False):
 # download/copy buttons) stay visible across reruns instead of vanishing.
 if st.session_state.get("results"):
     r = st.session_state.results
+
+    # Floating bottom-right coffee button — CSS position:fixed keeps it
+    # pinned to the same spot in the browser viewport regardless of
+    # scroll position or which tab is active, since tabs are just
+    # sections of the same page rather than separate page loads.
+    st.markdown(
+        f"""
+        <style>
+        .floating-coffee-btn {{
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            background-color: #FFDD00;
+            color: #000000 !important;
+            padding: 12px 22px;
+            border-radius: 8px;
+            text-decoration: none !important;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }}
+        .floating-coffee-btn:hover {{
+            background-color: #FFCC00;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+        }}
+        </style>
+        <a href="{COFFEE_URL}" target="_blank" class="floating-coffee-btn">☕ Buy me a coffee</a>
+        """,
+        unsafe_allow_html=True,
+    )
 
     if r["reading_type"] == "Transits":
         st.success(
