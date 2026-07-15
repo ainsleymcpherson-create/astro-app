@@ -103,7 +103,7 @@ st.markdown(
     <style>
     .floating-coffee-btn {{
         position: fixed;
-        top: 20px;
+        top: 65px;
         right: 20px;
         z-index: 9999;
         background-color: #FFDD00;
