@@ -94,7 +94,7 @@ st.caption("Computes birth charts with full support for Part of Fortune, "
 
 COFFEE_URL = "https://buymeacoffee.com/tenthhousereadings"
 
-# Small floating bottom-right coffee button — always present regardless
+# Small floating top-right coffee button — always present regardless
 # of page state (before or after a chart is computed). CSS position:fixed
 # keeps it pinned to the same spot in the browser viewport regardless of
 # scroll position or which tab is active.
@@ -103,7 +103,7 @@ st.markdown(
     <style>
     .floating-coffee-btn {{
         position: fixed;
-        bottom: 20px;
+        top: 20px;
         right: 20px;
         z-index: 9999;
         background-color: #FFDD00;
