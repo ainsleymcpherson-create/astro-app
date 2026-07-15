@@ -104,6 +104,24 @@ reading_type = st.selectbox(
          "currently interacting with this natal chart.",
 )
 
+if reading_type != "Transits":
+    unknown_time = st.checkbox(
+        "🕐 I don't know my exact birth time",
+        value=False,
+        help="The Ascendant, Midheaven, house placements, Vertex, and Part "
+             "of Fortune/Spirit all require an exact birth time to "
+             "calculate correctly — a noon guess doesn't approximate them, "
+             "it effectively randomizes them (the Ascendant alone shifts "
+             "about 1° every 4 minutes). Checking this excludes all of "
+             "those and works only with what's reliable regardless of "
+             "time: the planets, Chiron, the Nodes, and aspects between "
+             "them. Works for General and Career/Work readings. The birth "
+             "time fields below are disabled while this is checked, since "
+             "they won't be used.",
+    )
+else:
+    unknown_time = False  # not applicable to Transits
+
 with st.form("birth_form"):
     col1, col2, col3 = st.columns([1, 1.3, 1])
     with col1:
@@ -115,22 +133,22 @@ with st.form("birth_form"):
             help="Tap to open the calendar picker.",
         )
     with col2:
-        st.write("Birth time")
+        st.write("Birth time" + (" (disabled — unknown birth time selected)" if unknown_time else ""))
         hour_col, minute_col, ampm_col = st.columns(3)
         with hour_col:
             birth_hour = st.selectbox(
                 "Hour", options=list(range(1, 13)), index=0,
-                label_visibility="collapsed",
+                label_visibility="collapsed", disabled=unknown_time,
             )
         with minute_col:
             birth_minute = st.selectbox(
                 "Minute", options=[f"{m:02d}" for m in range(60)], index=30,
-                label_visibility="collapsed",
+                label_visibility="collapsed", disabled=unknown_time,
             )
         with ampm_col:
             birth_ampm = st.selectbox(
                 "AM/PM", options=["AM", "PM"], index=1,
-                label_visibility="collapsed",
+                label_visibility="collapsed", disabled=unknown_time,
             )
     with col3:
         location_str = st.text_input(
@@ -158,22 +176,6 @@ with st.form("birth_form"):
     else:
         transit_date = date_type.today()  # unused placeholder for non-Transit readings
 
-    if reading_type != "Transits":
-        unknown_time = st.checkbox(
-            "🕐 I don't know my exact birth time",
-            value=False,
-            help="The Ascendant, Midheaven, house placements, Vertex, and Part "
-                 "of Fortune/Spirit all require an exact birth time to "
-                 "calculate correctly — a noon guess doesn't approximate them, "
-                 "it effectively randomizes them (the Ascendant alone shifts "
-                 "about 1° every 4 minutes). Checking this excludes all of "
-                 "those and works only with what's reliable regardless of "
-                 "time: the planets, Chiron, the Nodes, and aspects between "
-                 "them. Works for General and Career/Work readings.",
-        )
-    else:
-        unknown_time = False  # not applicable to Transits
-
     generate_live = st.checkbox(
         "🪙 Generate written interpretation with Claude (makes a real, billed API call)",
         value=False,
@@ -183,7 +185,10 @@ with st.form("birth_form"):
              "you click Compute Chart with this box checked.",
     )
 
-    submitted = st.form_submit_button("Compute Chart", use_container_width=True)
+    submitted = st.form_submit_button(
+        "Compute Chart", use_container_width=True,
+        disabled=st.session_state.get("processing", False),
+    )
 
 
 def points_to_dataframe(chart):
@@ -379,6 +384,17 @@ def text_download_and_copy(text: str, filename: str, key_prefix: str):
 
 
 if submitted:
+    # Two-phase pattern: set processing=True and rerun IMMEDIATELY,
+    # before doing any actual work. This lets the "Compute Chart"
+    # button (which reads st.session_state.processing to decide its
+    # disabled state) actually render as grayed-out on the very next
+    # frame — a button can't disable itself retroactively within the
+    # same run it was clicked in, since Streamlit renders top-to-bottom
+    # in one pass per run.
+    st.session_state.processing = True
+    st.rerun()
+
+if st.session_state.get("processing", False):
     try:
         st.caption(f"🐛 Debug: generate_live={generate_live}, "
                    f"ANTHROPIC_AVAILABLE={ANTHROPIC_AVAILABLE}, "
@@ -597,6 +613,13 @@ if submitted:
         st.error(f"Something went wrong: {e}")
         st.exception(e)
 
+    # Processing is done (successfully or not) — reset the flag and do
+    # one final rerun so the "Compute Chart" button re-renders as
+    # enabled again, and the results display block below picks up
+    # whatever landed in st.session_state.results.
+    st.session_state.processing = False
+    st.rerun()
+
 
 # --- Display results ---
 # Runs on every script rerun where results exist in session_state — not
@@ -616,7 +639,7 @@ if st.session_state.get("results"):
             f"({r['house_system_label']} houses, {r['reading_type']} reading)"
         )
 
-    tabs = st.tabs(["Interpretation", "Prompt", "Points", "Aspects", "Patterns", "Dignity", "Houses", "Chart Wheel"])
+    tabs = st.tabs(["Interpretation", "Prompt", "Chart Wheel", "Points", "Aspects", "Patterns", "Dignity", "Houses"])
 
     with tabs[0]:
         if r["interpretation_text"]:
@@ -671,16 +694,33 @@ if st.session_state.get("results"):
         )
 
     with tabs[2]:
+        st.write("The classic circular chart wheel — zodiac ring, house divisions "
+                 "(drawn from the actual computed cusps, not evenly spaced), the "
+                 "four angles, planets, and the tightest aspects.")
+        fig = draw_chart_wheel(r["chart"], r["aspects"], min_aspect_tightness=0.6)
+        st.pyplot(fig, use_container_width=True)
+
+        wheel_buffer = io.BytesIO()
+        fig.savefig(wheel_buffer, format="png", dpi=150, facecolor="white", bbox_inches="tight")
+        st.download_button(
+            "Download chart wheel as .png",
+            data=wheel_buffer.getvalue(),
+            file_name=f"chart_wheel_{r['birth_date'].isoformat()}.png",
+            mime="image/png",
+            use_container_width=True,
+        )
+
+    with tabs[3]:
         points_df = points_to_dataframe(r["chart"])
         st.dataframe(points_df, use_container_width=True, hide_index=True)
         dataframe_download_and_copy(points_df, f"points_{r['birth_date'].isoformat()}.csv", "points")
 
-    with tabs[3]:
+    with tabs[4]:
         aspects_df = aspects_to_dataframe(r["aspects"])
         st.dataframe(aspects_df, use_container_width=True, hide_index=True)
         dataframe_download_and_copy(aspects_df, f"aspects_{r['birth_date'].isoformat()}.csv", "aspects")
 
-    with tabs[4]:
+    with tabs[5]:
         any_patterns = False
         pattern_lines = []
         for kind, plist in r["patterns"].items():
@@ -703,12 +743,12 @@ if st.session_state.get("results"):
                 "patterns",
             )
 
-    with tabs[5]:
+    with tabs[6]:
         dignity_df = dignities_to_dataframe(r["dignities"])
         st.dataframe(dignity_df, use_container_width=True, hide_index=True)
         dataframe_download_and_copy(dignity_df, f"dignity_{r['birth_date'].isoformat()}.csv", "dignity")
 
-    with tabs[6]:
+    with tabs[7]:
         house_lines = []
         for num, reading in r["house_readings"].items():
             with st.expander(f"House {num} ({reading.sign_on_cusp})"):
@@ -718,21 +758,4 @@ if st.session_state.get("results"):
             "\n".join(house_lines),
             f"houses_{r['birth_date'].isoformat()}.txt",
             "houses",
-        )
-
-    with tabs[7]:
-        st.write("The classic circular chart wheel — zodiac ring, house divisions "
-                 "(drawn from the actual computed cusps, not evenly spaced), the "
-                 "four angles, planets, and the tightest aspects.")
-        fig = draw_chart_wheel(r["chart"], r["aspects"], min_aspect_tightness=0.6)
-        st.pyplot(fig, use_container_width=True)
-
-        wheel_buffer = io.BytesIO()
-        fig.savefig(wheel_buffer, format="png", dpi=150, facecolor="white", bbox_inches="tight")
-        st.download_button(
-            "Download chart wheel as .png",
-            data=wheel_buffer.getvalue(),
-            file_name=f"chart_wheel_{r['birth_date'].isoformat()}.png",
-            mime="image/png",
-            use_container_width=True,
         )
