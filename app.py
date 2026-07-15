@@ -86,13 +86,46 @@ def get_api_key():
     return os.environ.get("ANTHROPIC_API_KEY")
 
 
-st.set_page_config(page_title="Astrology Chart Calculator", layout="wide")
-st.title("🔭 Astrology Chart Calculator")
+st.set_page_config(page_title="Tenth House Readings", layout="wide")
+st.title("🔭 Tenth House Readings")
 st.caption("Computes birth charts with full support for Part of Fortune, "
            "Nodes, Vertex, Chiron, dignity, and house-ruler interpretation "
            "of empty houses — not just the standard 10 planets.")
 
 COFFEE_URL = "https://buymeacoffee.com/tenthhousereadings"
+
+# Small floating bottom-right coffee button — always present regardless
+# of page state (before or after a chart is computed). CSS position:fixed
+# keeps it pinned to the same spot in the browser viewport regardless of
+# scroll position or which tab is active.
+st.markdown(
+    f"""
+    <style>
+    .floating-coffee-btn {{
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        background-color: #FFDD00;
+        color: #000000 !important;
+        padding: 6px 12px;
+        border-radius: 6px;
+        text-decoration: none !important;
+        font-weight: 600;
+        font-size: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }}
+    .floating-coffee-btn:hover {{
+        background-color: #FFCC00;
+        transform: translateY(-2px);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+    }}
+    </style>
+    <a href="{COFFEE_URL}" target="_blank" class="floating-coffee-btn">☕ Buy me a coffee</a>
+    """,
+    unsafe_allow_html=True,
+)
 
 # --- Input form ---
 reading_type = st.selectbox(
@@ -152,24 +185,26 @@ with col3:
         help="Be specific — add state/country if the place name is common",
     )
 
-if reading_type != "Transits":
-    unknown_time = st.checkbox(
-        "🕐 I don't know my exact birth time",
-        value=False,
-        key="unknown_time_cb",
-        help="The Ascendant, Midheaven, house placements, Vertex, and Part "
-             "of Fortune/Spirit all require an exact birth time to "
-             "calculate correctly — a noon guess doesn't approximate them, "
-             "it effectively randomizes them (the Ascendant alone shifts "
-             "about 1° every 4 minutes). Checking this excludes all of "
-             "those and works only with what's reliable regardless of "
-             "time: the planets, Chiron, the Nodes, and aspects between "
-             "them. Works for General and Career/Work readings. The birth "
-             "time fields above are disabled while this is checked, since "
-             "they won't be used.",
-    )
-else:
-    unknown_time = False  # not applicable to Transits
+align_col1, align_col2, align_col3 = st.columns([1, 1.3, 1])
+with align_col2:
+    if reading_type != "Transits":
+        unknown_time = st.checkbox(
+            "🕐 I don't know my exact birth time",
+            value=False,
+            key="unknown_time_cb",
+            help="The Ascendant, Midheaven, house placements, Vertex, and Part "
+                 "of Fortune/Spirit all require an exact birth time to "
+                 "calculate correctly — a noon guess doesn't approximate them, "
+                 "it effectively randomizes them (the Ascendant alone shifts "
+                 "about 1° every 4 minutes). Checking this excludes all of "
+                 "those and works only with what's reliable regardless of "
+                 "time: the planets, Chiron, the Nodes, and aspects between "
+                 "them. Works for General and Career/Work readings. The birth "
+                 "time fields above are disabled while this is checked, since "
+                 "they won't be used.",
+        )
+    else:
+        unknown_time = False  # not applicable to Transits
 
 house_system_label = st.selectbox(
     "House system",
@@ -203,12 +238,6 @@ submitted = st.button(
     "Compute Chart", use_container_width=True,
     disabled=st.session_state.get("processing", False),
 )
-
-# Normal inline button, shown only until a chart has been computed —
-# once results exist, this is replaced by the floating bottom-right
-# version below, so the two never show at the same time.
-if not st.session_state.get("results"):
-    st.link_button("☕ Buy me a coffee", COFFEE_URL, use_container_width=True)
 
 
 def points_to_dataframe(chart):
@@ -647,39 +676,6 @@ if st.session_state.get("processing", False):
 # download/copy buttons) stay visible across reruns instead of vanishing.
 if st.session_state.get("results"):
     r = st.session_state.results
-
-    # Floating bottom-right coffee button — CSS position:fixed keeps it
-    # pinned to the same spot in the browser viewport regardless of
-    # scroll position or which tab is active, since tabs are just
-    # sections of the same page rather than separate page loads.
-    st.markdown(
-        f"""
-        <style>
-        .floating-coffee-btn {{
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 9999;
-            background-color: #FFDD00;
-            color: #000000 !important;
-            padding: 12px 22px;
-            border-radius: 8px;
-            text-decoration: none !important;
-            font-weight: 600;
-            font-size: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.35);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }}
-        .floating-coffee-btn:hover {{
-            background-color: #FFCC00;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-        }}
-        </style>
-        <a href="{COFFEE_URL}" target="_blank" class="floating-coffee-btn">☕ Buy me a coffee</a>
-        """,
-        unsafe_allow_html=True,
-    )
 
     if r["reading_type"] == "Transits":
         st.success(
