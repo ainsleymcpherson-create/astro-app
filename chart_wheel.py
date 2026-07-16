@@ -70,9 +70,9 @@ def _order_points_from_ascendant(chart: dict, asc_lon: float) -> list:
 def build_chart_data_table_html(chart: dict) -> str:
     """
     Builds the vertical banded data table in the reference image's
-    style: SIGNS (left, banded — shown once per contiguous run), point
-    glyph + name (middle, ordered from the Ascendant), HOUSES (right,
-    banded — shown only where the house number changes).
+    style: SIGNS (left, ONE merged cell per contiguous run via HTML
+    rowspan — not repeated blank cells), point glyph + name (middle,
+    ordered from the Ascendant), HOUSES (right, shown on every row).
     """
     if "Ascendant" not in chart:
         return (
@@ -83,35 +83,47 @@ def build_chart_data_table_html(chart: dict) -> str:
     asc_lon = chart["Ascendant"].longitude
     ordered = _order_points_from_ascendant(chart, asc_lon)
 
-    rows = []
-    prev_sign = None
-    for name, point in ordered:
-        show_sign = point.sign != prev_sign
-        rows.append({
-            "sign": point.sign if show_sign else "",
-            "glyph": TABLE_GLYPHS.get(name, "?"),
-            "name": name.upper(),
-            "house": point.house if point.house is not None else "",
-        })
-        prev_sign = point.sign
+    # Group consecutive points sharing the same sign, so each group
+    # becomes ONE merged cell (rowspan) rather than N separate cells
+    # where only the first shows text and the rest look blank.
+    sign_group_sizes = []
+    for _, point in ordered:
+        if sign_group_sizes and sign_group_sizes[-1][0] == point.sign:
+            sign_group_sizes[-1][1] += 1
+        else:
+            sign_group_sizes.append([point.sign, 1])
 
     row_html = ""
-    for row in rows:
+    group_idx, row_in_group = 0, 0
+    for name, point in ordered:
+        rowspan = sign_group_sizes[group_idx][1]
+        if row_in_group == 0:
+            sign_td = (
+                f'<td rowspan="{rowspan}" style="background:#1c1c1c;color:#eee;'
+                f'padding:14px 20px;border:1px solid #333;font-size:15px;'
+                f'vertical-align:middle;">{point.sign}</td>'
+            )
+        else:
+            sign_td = ""  # covered by the rowspan cell above
+        house_val = point.house if point.house is not None else ""
         house_html = (
-            f'<span style="font-family:Georgia,serif;font-size:26px;">{row["house"]}</span>'
-            if row["house"] != "" else ""
+            f'<span style="font-family:Georgia,serif;font-size:26px;">{house_val}</span>'
+            if house_val != "" else ""
         )
         row_html += (
             '<tr>'
-            f'<td style="background:#1c1c1c;color:#eee;padding:14px 20px;'
-            f'border:1px solid #333;font-size:15px;">{row["sign"]}</td>'
+            f'{sign_td}'
             f'<td style="background:#0a0a0a;color:#eee;padding:14px 20px;'
             f'border:1px solid #333;font-size:14px;letter-spacing:1px;">'
-            f'{row["glyph"]} {row["name"]}</td>'
+            f'{TABLE_GLYPHS.get(name, "?")} {name.upper()}</td>'
             f'<td style="background:#1c1c1c;color:#eee;padding:14px 20px;'
             f'border:1px solid #333;text-align:center;width:70px;">{house_html}</td>'
             '</tr>'
         )
+        row_in_group += 1
+        if row_in_group >= rowspan:
+            group_idx += 1
+            row_in_group = 0
 
     return f"""
     <div style="display:flex;align-items:stretch;font-family:sans-serif;
@@ -155,42 +167,51 @@ def build_synastry_data_table_html(chart_a: dict, chart_b: dict) -> str:
     )
     combined.sort(key=lambda item: (item[1].longitude - asc_lon) % 360)
 
-    rows = []
-    prev_sign = None
+    # Group consecutive points sharing the same sign, so each group
+    # becomes ONE merged cell (rowspan) rather than repeated blank cells.
+    sign_group_sizes = []
+    for _, point, _ in combined:
+        if sign_group_sizes and sign_group_sizes[-1][0] == point.sign:
+            sign_group_sizes[-1][1] += 1
+        else:
+            sign_group_sizes.append([point.sign, 1])
+
+    row_html = ""
+    group_idx, row_in_group = 0, 0
     for name, point, who in combined:
         # Note: the house shown here is each person's OWN house
         # placement within their OWN chart (not the cross-chart
         # overlay — "Person A's planet in Person B's house" — which is
-        # already covered separately in the Houses tab). Houses are
-        # always shown per row (no banding), only signs are banded.
-        show_sign = point.sign != prev_sign
-        rows.append({
-            "sign": point.sign if show_sign else "",
-            "glyph": TABLE_GLYPHS.get(name, "?"),
-            "name": f"{name.upper()} ({who})",
-            "house": point.house if point.house is not None else "",
-            "who": who,
-        })
-        prev_sign = point.sign
-
-    row_html = ""
-    for row in rows:
+        # already covered separately in the Houses tab).
+        rowspan = sign_group_sizes[group_idx][1]
+        if row_in_group == 0:
+            sign_td = (
+                f'<td rowspan="{rowspan}" style="background:#1c1c1c;color:#eee;'
+                f'padding:14px 20px;border:1px solid #333;font-size:15px;'
+                f'vertical-align:middle;">{point.sign}</td>'
+            )
+        else:
+            sign_td = ""  # covered by the rowspan cell above
+        house_val = point.house if point.house is not None else ""
         house_html = (
-            f'<span style="font-family:Georgia,serif;font-size:26px;">{row["house"]}</span>'
-            if row["house"] != "" else ""
+            f'<span style="font-family:Georgia,serif;font-size:26px;">{house_val}</span>'
+            if house_val != "" else ""
         )
-        name_bg = "#0a0a0a" if row["who"] == "A" else "#0d1b2a"
+        name_bg = "#0a0a0a" if who == "A" else "#0d1b2a"
         row_html += (
             '<tr>'
-            f'<td style="background:#1c1c1c;color:#eee;padding:14px 20px;'
-            f'border:1px solid #333;font-size:15px;">{row["sign"]}</td>'
+            f'{sign_td}'
             f'<td style="background:{name_bg};color:#eee;padding:14px 20px;'
             f'border:1px solid #333;font-size:14px;letter-spacing:1px;">'
-            f'{row["glyph"]} {row["name"]}</td>'
+            f'{TABLE_GLYPHS.get(name, "?")} {name.upper()} ({who})</td>'
             f'<td style="background:#1c1c1c;color:#eee;padding:14px 20px;'
             f'border:1px solid #333;text-align:center;width:70px;">{house_html}</td>'
             '</tr>'
         )
+        row_in_group += 1
+        if row_in_group >= rowspan:
+            group_idx += 1
+            row_in_group = 0
 
     return f"""
     <div style="display:flex;align-items:stretch;font-family:sans-serif;
