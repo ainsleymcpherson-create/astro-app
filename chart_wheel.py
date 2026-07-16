@@ -44,6 +44,168 @@ ASPECT_COLORS = {
     "Opposition": "#e74c3c",
 }
 
+# Points shown in the linear data table (matching the reference format):
+# Ascendant plus the 10 standard planets only — no Chiron/Nodes/Parts/
+# Vertex, to match the reference exactly.
+TABLE_POINTS = ["Ascendant", "Sun", "Moon", "Mercury", "Venus", "Mars",
+                "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+TABLE_GLYPHS = {**PLANET_GLYPHS, "Ascendant": "↑"}
+
+
+def _order_points_from_ascendant(chart: dict, asc_lon: float) -> list:
+    """Returns [(name, point), ...] for the points in TABLE_POINTS that
+    exist in this chart, ordered by their position going around the
+    wheel starting from the Ascendant (matches the reference image's
+    ordering — not alphabetical, not the usual Sun-Moon-Mercury... order)."""
+    available = [(name, chart[name]) for name in TABLE_POINTS if name in chart]
+    available.sort(key=lambda item: (item[1].longitude - asc_lon) % 360)
+    return available
+
+
+def build_chart_data_table_html(chart: dict) -> str:
+    """
+    Builds the vertical banded data table in the reference image's
+    style: SIGNS (left, banded — shown once per contiguous run), point
+    glyph + name (middle, ordered from the Ascendant), HOUSES (right,
+    banded — shown only where the house number changes).
+    """
+    if "Ascendant" not in chart:
+        return (
+            '<div style="color:#999; padding:20px; font-family:sans-serif;">'
+            "This table requires a known birth time (Ascendant unavailable)."
+            "</div>"
+        )
+    asc_lon = chart["Ascendant"].longitude
+    ordered = _order_points_from_ascendant(chart, asc_lon)
+
+    rows = []
+    prev_sign, prev_house = None, object()  # object() so first row always shows house
+    for name, point in ordered:
+        show_sign = point.sign != prev_sign
+        show_house = point.house != prev_house
+        rows.append({
+            "sign": point.sign if show_sign else "",
+            "glyph": TABLE_GLYPHS.get(name, "?"),
+            "name": name.upper(),
+            "house": point.house if show_house and point.house is not None else "",
+        })
+        prev_sign, prev_house = point.sign, point.house
+
+    row_html = ""
+    for row in rows:
+        house_html = (
+            f'<span style="font-family:Georgia,serif;font-size:26px;">{row["house"]}</span>'
+            if row["house"] != "" else ""
+        )
+        row_html += (
+            '<tr>'
+            f'<td style="background:#1c1c1c;color:#eee;padding:14px 20px;'
+            f'border:1px solid #333;font-size:15px;">{row["sign"]}</td>'
+            f'<td style="background:#0a0a0a;color:#eee;padding:14px 20px;'
+            f'border:1px solid #333;font-size:14px;letter-spacing:1px;">'
+            f'{row["glyph"]} {row["name"]}</td>'
+            f'<td style="background:#1c1c1c;color:#eee;padding:14px 20px;'
+            f'border:1px solid #333;text-align:center;width:70px;">{house_html}</td>'
+            '</tr>'
+        )
+
+    return f"""
+    <div style="display:flex;align-items:stretch;font-family:sans-serif;
+                background:#141414;border:1px solid #333;">
+        <div style="writing-mode:vertical-rl;transform:rotate(180deg);
+                    color:#ccc;letter-spacing:5px;padding:14px 8px;
+                    font-size:13px;display:flex;align-items:center;
+                    justify-content:center;">SIGNS</div>
+        <table style="border-collapse:collapse;flex:1;">{row_html}</table>
+        <div style="writing-mode:vertical-rl;color:#ccc;letter-spacing:5px;
+                    padding:14px 8px;font-size:13px;display:flex;
+                    align-items:center;justify-content:center;">HOUSES</div>
+    </div>
+    """
+
+
+def build_synastry_data_table_html(chart_a: dict, chart_b: dict) -> str:
+    """
+    Merged two-person version of the same table: both people's points
+    combined into one list, ordered around the SAME shared reference
+    frame (whichever person's Ascendant is available, same anchor logic
+    as draw_bi_wheel), each row tagged with which person it belongs to.
+    Signs and houses shown are the anchor person's, since only one
+    house system can meaningfully be shown at once.
+    """
+    if "Ascendant" in chart_a:
+        anchor_chart, anchor_label = chart_a, "A"
+    elif "Ascendant" in chart_b:
+        anchor_chart, anchor_label = chart_b, "B"
+    else:
+        return (
+            '<div style="color:#999;padding:20px;font-family:sans-serif;">'
+            "This table requires at least one person's birth time to be known."
+            "</div>"
+        )
+    asc_lon = anchor_chart["Ascendant"].longitude
+
+    combined = (
+        [(name, point, "A") for name, point in _order_points_from_ascendant(chart_a, asc_lon)] +
+        [(name, point, "B") for name, point in _order_points_from_ascendant(chart_b, asc_lon)]
+    )
+    combined.sort(key=lambda item: (item[1].longitude - asc_lon) % 360)
+
+    rows = []
+    prev_sign, prev_house = None, object()
+    for name, point, who in combined:
+        # Houses only meaningfully belong to the anchor person's own
+        # points for banding purposes here — but house PLACEMENT of the
+        # visiting person's planets (which house of the anchor's chart
+        # they fall into) is exactly what synastry_engine's house
+        # overlay already computes, so this table just shows position
+        # ordering + which sign band each point falls in, consistently.
+        show_sign = point.sign != prev_sign
+        show_house = point.house != prev_house
+        rows.append({
+            "sign": point.sign if show_sign else "",
+            "glyph": TABLE_GLYPHS.get(name, "?"),
+            "name": f"{name.upper()} ({who})",
+            "house": point.house if show_house and point.house is not None else "",
+            "who": who,
+        })
+        prev_sign, prev_house = point.sign, point.house
+
+    row_html = ""
+    for row in rows:
+        house_html = (
+            f'<span style="font-family:Georgia,serif;font-size:26px;">{row["house"]}</span>'
+            if row["house"] != "" else ""
+        )
+        name_bg = "#0a0a0a" if row["who"] == "A" else "#0d1b2a"
+        row_html += (
+            '<tr>'
+            f'<td style="background:#1c1c1c;color:#eee;padding:14px 20px;'
+            f'border:1px solid #333;font-size:15px;">{row["sign"]}</td>'
+            f'<td style="background:{name_bg};color:#eee;padding:14px 20px;'
+            f'border:1px solid #333;font-size:14px;letter-spacing:1px;">'
+            f'{row["glyph"]} {row["name"]}</td>'
+            f'<td style="background:#1c1c1c;color:#eee;padding:14px 20px;'
+            f'border:1px solid #333;text-align:center;width:70px;">{house_html}</td>'
+            '</tr>'
+        )
+
+    return f"""
+    <div style="display:flex;align-items:stretch;font-family:sans-serif;
+                background:#141414;border:1px solid #333;">
+        <div style="writing-mode:vertical-rl;transform:rotate(180deg);
+                    color:#ccc;letter-spacing:5px;padding:14px 8px;
+                    font-size:13px;display:flex;align-items:center;
+                    justify-content:center;">SIGNS</div>
+        <table style="border-collapse:collapse;flex:1;">{row_html}</table>
+        <div style="writing-mode:vertical-rl;color:#ccc;letter-spacing:5px;
+                    padding:14px 8px;font-size:13px;display:flex;
+                    align-items:center;justify-content:center;">HOUSES
+                    (Person {anchor_label}'s)</div>
+    </div>
+    """
+
+
 
 def _lon_to_math_angle(longitude: float, ascendant_longitude: float) -> float:
     """The core angle formula, shared by point placement and wedge drawing."""
