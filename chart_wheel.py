@@ -44,12 +44,17 @@ ASPECT_COLORS = {
     "Opposition": "#e74c3c",
 }
 
-# Points shown in the linear data table (matching the reference format):
-# Ascendant plus the 10 standard planets only — no Chiron/Nodes/Parts/
-# Vertex, to match the reference exactly.
-TABLE_POINTS = ["Ascendant", "Sun", "Moon", "Mercury", "Venus", "Mars",
-                "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
-TABLE_GLYPHS = {**PLANET_GLYPHS, "Ascendant": "↑"}
+# Points shown in the linear data table — everything the wheel itself
+# plots (PLANET_GLYPHS + FALLBACK_LABELS), not just the 10 standard
+# planets, so the table stays consistent with what's actually on the
+# chart wheel image.
+TABLE_POINTS = [
+    "Ascendant", "Sun", "Moon", "Mercury", "Venus", "Mars",
+    "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto",
+    "Chiron", "North Node", "South Node",
+    "Part of Fortune", "Part of Spirit", "Vertex", "Anti-Vertex",
+]
+TABLE_GLYPHS = {**PLANET_GLYPHS, **FALLBACK_LABELS, "Ascendant": "↑"}
 
 
 def _order_points_from_ascendant(chart: dict, asc_lon: float) -> list:
