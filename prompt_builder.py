@@ -126,6 +126,7 @@ You are an experienced astrologer giving a natal chart reading to \
 someone who is not very well versed in astrology. You have access to \
 the exact computed placements, aspects, patterns, dignities, and house \
 conditions below — all mathematically precise, not approximated.
+{naming_note}
 
 First, provide a general and summarized overview of the chart and what \
 the reading uncovered — a short, plain-language orientation before the \
@@ -240,6 +241,22 @@ the most attention.\
 """
 
 
+def _single_person_naming_note(person_name: str | None) -> str:
+    """Shared helper for all single-person prompt builders (general,
+    career, transit — synastry has its own two-person version). Returns
+    an empty string if no name was given, so it disappears cleanly from
+    the final prompt rather than leaving an awkward blank instruction."""
+    if not person_name or not person_name.strip():
+        return ""
+    name = person_name.strip()
+    return (
+        f'This reading is for {name}. Feel free to address them by name '
+        f'occasionally (e.g. in the Overview or Conclusion) rather than '
+        f'relying only on "you" throughout, though "you" is still fine as '
+        f'the primary voice.'
+    )
+
+
 def build_interpretation_prompt(
     chart: dict[str, ChartPoint],
     aspects: list[Aspect],
@@ -247,17 +264,22 @@ def build_interpretation_prompt(
     dignities: dict[str, DignityResult],
     house_readings: dict[int, HouseReading],
     min_tightness: float = 1.0,
+    person_name: str | None = None,
 ) -> str:
     """
     Builds the complete, ready-to-send prompt: instructions + full data
     block. Pass the resulting string straight to an LLM (paste into
-    Claude.ai, or send via the Anthropic API).
+    Claude.ai, or send via the Anthropic API). If person_name is given,
+    the reading will address them by name occasionally.
     """
     data_block = build_data_block(
         chart, aspects, patterns, dignities, house_readings,
         min_tightness=min_tightness,
     )
-    return INTERPRETATION_INSTRUCTIONS.format(data_block=data_block)
+    return INTERPRETATION_INSTRUCTIONS.format(
+        data_block=data_block,
+        naming_note=_single_person_naming_note(person_name),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -279,6 +301,7 @@ either Arabic Part (Part of Fortune/Spirit), because all of those \
 require an exact birth time to calculate correctly and would be \
 unreliable guesses otherwise. Do not speculate about houses, rising \
 sign, or any of the excluded points — work entirely with what's given.
+{naming_note}
 
 First, provide a general and summarized overview of the chart and what \
 the reading uncovered — a short, plain-language orientation before the \
@@ -386,17 +409,22 @@ def build_interpretation_prompt_no_time(
     patterns: dict[str, list[AspectPattern]],
     dignities: dict[str, DignityResult],
     min_tightness: float = 1.0,
+    person_name: str | None = None,
 ) -> str:
     """
     General reading prompt for when birth time is unknown or approximate.
     Filters out every birth-time-dependent point (Ascendant, Midheaven,
     houses, Vertex, both Arabic Parts) rather than silently including
-    unreliable data.
+    unreliable data. If person_name is given, the reading will address
+    them by name occasionally.
     """
     data_block = build_data_block_no_time(
         chart, aspects, patterns, dignities, min_tightness=min_tightness,
     )
-    return GENERAL_NO_TIME_INSTRUCTIONS.format(data_block=data_block)
+    return GENERAL_NO_TIME_INSTRUCTIONS.format(
+        data_block=data_block,
+        naming_note=_single_person_naming_note(person_name),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -420,6 +448,7 @@ is not very well versed in astrology, focused specifically on work and \
 career. You have access to the exact computed placements, aspects, \
 patterns, dignities, and house conditions below — all mathematically \
 precise, not approximated.
+{naming_note}
 
 Traditionally, work-relevant signal concentrates in a few specific \
 places — the 10th house and its ruler (career, public role, authority), \
@@ -616,17 +645,23 @@ def build_career_interpretation_prompt(
     dignities: dict[str, DignityResult],
     house_readings: dict[int, HouseReading],
     min_tightness: float = 1.0,
+    person_name: str | None = None,
 ) -> str:
     """
     Same data, different lens: builds a prompt focused specifically on
     work/career — happiness at work, colleague interaction style, work
-    style, and strengths/weaknesses from a professional standpoint.
+    style, and strengths/weaknesses from a professional standpoint. If
+    person_name is given, the reading will address them by name
+    occasionally.
     """
     data_block = build_data_block(
         chart, aspects, patterns, dignities, house_readings,
         min_tightness=min_tightness,
     )
-    return CAREER_INTERPRETATION_INSTRUCTIONS.format(data_block=data_block)
+    return CAREER_INTERPRETATION_INSTRUCTIONS.format(
+        data_block=data_block,
+        naming_note=_single_person_naming_note(person_name),
+    )
 
 # ---------------------------------------------------------------------------
 # Unknown birth time variant
@@ -719,6 +754,7 @@ house placements, Vertex, or either Arabic Part, because all of those \
 require an exact birth time to calculate correctly and would be \
 unreliable guesses otherwise. Do not speculate about houses, rising \
 sign, or any of the excluded points — work entirely with what's given.
+{naming_note}
 
 Without house placements, work-relevant signal instead concentrates in \
 the planets themselves and their conditions: the Sun (core identity and \
@@ -848,18 +884,23 @@ def build_career_interpretation_prompt_no_time(
     patterns: dict[str, list[AspectPattern]],
     dignities: dict[str, DignityResult],
     min_tightness: float = 1.0,
+    person_name: str | None = None,
 ) -> str:
     """
     Career-focused prompt for when birth time is unknown or approximate.
     Filters out every birth-time-dependent point (Ascendant, Midheaven,
     houses, Vertex, both Arabic Parts) rather than silently including
     unreliable data, and reframes the instructions around what's still
-    solid: planets, dignity, and planet-to-planet aspects.
+    solid: planets, dignity, and planet-to-planet aspects. If person_name
+    is given, the reading will address them by name occasionally.
     """
     data_block = build_data_block_no_time(
         chart, aspects, patterns, dignities, min_tightness=min_tightness,
     )
-    return CAREER_NO_TIME_INSTRUCTIONS.format(data_block=data_block)
+    return CAREER_NO_TIME_INSTRUCTIONS.format(
+        data_block=data_block,
+        naming_note=_single_person_naming_note(person_name),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -944,6 +985,7 @@ falls in, the aspects between transiting planets and natal points (with \
 tight, transit-appropriate orbs — only genuinely close, currently \
 active connections are included), and the person's natal essential \
 dignity for context. All mathematically precise, not approximated.
+{naming_note}
 
 Structure your answer as follows:
 
@@ -1038,19 +1080,24 @@ def build_transit_prompt(
     transit_aspects: list,
     natal_dignities: dict[str, DignityResult],
     min_tightness: float = 1.0,
+    person_name: str | None = None,
 ) -> str:
     """
     Builds a complete transit reading prompt: current sky positions,
     transit-to-natal aspects (tight, transit-appropriate orbs), and
     natal dignity for context. Distinct from every other prompt builder
     in this file since it interprets the CURRENT sky against a fixed
-    natal chart, rather than the natal chart alone.
+    natal chart, rather than the natal chart alone. If person_name is
+    given, the reading will address them by name occasionally.
     """
     data_block = build_transit_data_block(
         transiting_points, transit_aspects, natal_dignities,
         min_tightness=min_tightness,
     )
-    return TRANSIT_INSTRUCTIONS.format(data_block=data_block)
+    return TRANSIT_INSTRUCTIONS.format(
+        data_block=data_block,
+        naming_note=_single_person_naming_note(person_name),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1177,7 +1224,7 @@ reliable in this reading:
   in both directions.
 - If any of this scope limitation applies, briefly and matter-of-factly
   note it in the Overview — not as an apology, just accurate framing.
-
+{naming_note}
 Traditionally, professional synastry signal concentrates in: Sun-Saturn
 contacts (respect, authority, and whether one person feels supported or
 constrained by the other), Mercury-Mercury and Mercury-Mars contacts
@@ -1338,12 +1385,16 @@ def build_professional_synastry_prompt(
     dignities_a: dict[str, DignityResult],
     dignities_b: dict[str, DignityResult],
     min_tightness: float = 1.0,
+    person_a_name: str | None = None,
+    person_b_name: str | None = None,
 ) -> str:
     """
     Builds the complete professional synastry prompt from a
     synastry_engine.compute_full_synastry() result plus each person's
     dignity. Handles the birth-time-status framing automatically based
-    on what's actually in synastry_result.
+    on what's actually in synastry_result. If either name is provided,
+    instructs the model to use it instead of the generic "Person A"/
+    "Person B" labels throughout the reading.
     """
     def _status(known: bool) -> str:
         return "known" if known else "unknown"
@@ -1353,11 +1404,24 @@ def build_professional_synastry_prompt(
         f"and Person B's exact birth time is {_status(synastry_result['person_b_time_known'])}."
     )
 
+    naming_note = ""
+    if person_a_name or person_b_name:
+        label_a = person_a_name.strip() if person_a_name and person_a_name.strip() else "Person A"
+        label_b = person_b_name.strip() if person_b_name and person_b_name.strip() else "Person B"
+        naming_note = (
+            f'Throughout this reading, refer to Person A as "{label_a}" and '
+            f'Person B as "{label_b}" instead of the generic "Person A"/'
+            f'"Person B" labels — these are their actual names, and using '
+            f'them makes the reading feel personal rather than clinical.'
+        )
+
     data_block = build_synastry_data_block(
         synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
     )
     return PROFESSIONAL_SYNASTRY_INSTRUCTIONS.format(
-        birth_time_status=birth_time_status, data_block=data_block,
+        birth_time_status=birth_time_status,
+        naming_note=naming_note,
+        data_block=data_block,
     )
 
 
