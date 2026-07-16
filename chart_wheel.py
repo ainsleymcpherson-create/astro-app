@@ -84,17 +84,16 @@ def build_chart_data_table_html(chart: dict) -> str:
     ordered = _order_points_from_ascendant(chart, asc_lon)
 
     rows = []
-    prev_sign, prev_house = None, object()  # object() so first row always shows house
+    prev_sign = None
     for name, point in ordered:
         show_sign = point.sign != prev_sign
-        show_house = point.house != prev_house
         rows.append({
             "sign": point.sign if show_sign else "",
             "glyph": TABLE_GLYPHS.get(name, "?"),
             "name": name.upper(),
-            "house": point.house if show_house and point.house is not None else "",
+            "house": point.house if point.house is not None else "",
         })
-        prev_sign, prev_house = point.sign, point.house
+        prev_sign = point.sign
 
     row_html = ""
     for row in rows:
@@ -157,24 +156,22 @@ def build_synastry_data_table_html(chart_a: dict, chart_b: dict) -> str:
     combined.sort(key=lambda item: (item[1].longitude - asc_lon) % 360)
 
     rows = []
-    prev_sign, prev_house = None, object()
+    prev_sign = None
     for name, point, who in combined:
-        # Houses only meaningfully belong to the anchor person's own
-        # points for banding purposes here — but house PLACEMENT of the
-        # visiting person's planets (which house of the anchor's chart
-        # they fall into) is exactly what synastry_engine's house
-        # overlay already computes, so this table just shows position
-        # ordering + which sign band each point falls in, consistently.
+        # Note: the house shown here is each person's OWN house
+        # placement within their OWN chart (not the cross-chart
+        # overlay — "Person A's planet in Person B's house" — which is
+        # already covered separately in the Houses tab). Houses are
+        # always shown per row (no banding), only signs are banded.
         show_sign = point.sign != prev_sign
-        show_house = point.house != prev_house
         rows.append({
             "sign": point.sign if show_sign else "",
             "glyph": TABLE_GLYPHS.get(name, "?"),
             "name": f"{name.upper()} ({who})",
-            "house": point.house if show_house and point.house is not None else "",
+            "house": point.house if point.house is not None else "",
             "who": who,
         })
-        prev_sign, prev_house = point.sign, point.house
+        prev_sign = point.sign
 
     row_html = ""
     for row in rows:
