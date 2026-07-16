@@ -51,7 +51,7 @@ from prompt_builder import (
     build_professional_synastry_prompt,
 )
 from birth_input import resolve_birth_data
-from chart_wheel import draw_chart_wheel
+from chart_wheel import draw_chart_wheel, draw_bi_wheel
 
 # --- Optional: live Claude interpretation ---
 # Requires: pip install anthropic (already in requirements.txt)
@@ -158,6 +158,14 @@ unknown_time = (
 if reading_type == "Professional Synastry":
     st.subheader("Person A")
 
+person_name = st.text_input(
+    "Name (optional)",
+    value="",
+    help="If provided, the reading will address this person by name "
+         "occasionally instead of only using \"you\" throughout.",
+    key="person_name_a",
+)
+
 col1, col2, col3 = st.columns([1, 1.3, 1])
 with col1:
     birth_date = st.date_input(
@@ -217,6 +225,14 @@ with align_col2:
 if reading_type == "Professional Synastry":
     st.divider()
     st.subheader("Person B")
+
+    person_name_b = st.text_input(
+        "Name (optional)",
+        value="",
+        help="If provided, the reading will use this name instead of "
+             "\"Person B\" throughout.",
+        key="person_name_b",
+    )
 
     unknown_time_b = st.session_state.get("unknown_time_cb_b", False)
 
@@ -278,6 +294,7 @@ else:
     # types that don't use a second person.
     birth_date_b = birth_hour_b = birth_minute_b = birth_ampm_b = None
     location_str_b = None
+    person_name_b = None
     unknown_time_b = False
 
 house_system_label = st.selectbox(
@@ -343,6 +360,19 @@ def aspects_to_dataframe(aspects):
             "Point 2": a.point2,
             "Orb": f"{a.orb:.2f}°",
             "Motion": motion,
+            "Nature": a.nature,
+        })
+    return pd.DataFrame(rows)
+
+
+def synastry_aspects_to_dataframe(synastry_aspects):
+    rows = []
+    for a in synastry_aspects:
+        rows.append({
+            "Person A's Point": a.person_a_point,
+            "Aspect": a.aspect_name,
+            "Person B's Point": a.person_b_point,
+            "Orb": f"{a.orb:.2f}°",
             "Nature": a.nature,
         })
     return pd.DataFrame(rows)
@@ -540,6 +570,11 @@ if st.session_state.get("processing", False):
             dignities = compute_chart_dignities(chart)
             house_readings = build_house_readings(chart)
 
+            # Placeholders so these always exist, even for reading types
+            # that don't use a second person.
+            chart_b = aspects_b = patterns_b = dignities_b = house_readings_b = None
+            synastry_result = None
+
             if reading_type == "Transits":
                 with st.spinner("Computing current transits..."):
                     # Transits are read for a specific moment; noon UTC on
@@ -565,13 +600,16 @@ if st.session_state.get("processing", False):
                         chart, transiting_points,
                         transiting_speeds=extract_speeds(transiting_points),
                     )
-                    prompt = build_transit_prompt(transiting_points, transit_aspects, dignities)
+                    prompt = build_transit_prompt(transiting_points, transit_aspects, dignities, person_name=person_name)
             elif reading_type == "Professional Synastry":
                 with st.spinner("Resolving Person B's location and computing their chart..."):
                     datetime_str_b = f"{birth_date_b.strftime('%B %d, %Y')} {birth_hour_b:02d}:{birth_minute_b} {birth_ampm_b}"
                     birth_b = resolve_birth_data(datetime_str_b, location_str_b, verbose=False)
                     chart_b = compute_full_chart(birth_b, house_system=house_system)
+                    aspects_b = compute_aspects(chart_b, speeds=extract_speeds(chart_b))
+                    patterns_b = find_all_patterns(chart_b, aspects_b)
                     dignities_b = compute_chart_dignities(chart_b)
+                    house_readings_b = build_house_readings(chart_b)
 
                 with st.spinner("Computing synastry between the two charts..."):
                     synastry_result = compute_full_synastry(
@@ -579,17 +617,20 @@ if st.session_state.get("processing", False):
                         person_a_time_known=not unknown_time,
                         person_b_time_known=not unknown_time_b,
                     )
-                    prompt = build_professional_synastry_prompt(synastry_result, dignities, dignities_b)
+                    prompt = build_professional_synastry_prompt(
+                        synastry_result, dignities, dignities_b,
+                        person_a_name=person_name, person_b_name=person_name_b,
+                    )
             elif reading_type == "Career / Work" and unknown_time:
                 prompt = build_career_interpretation_prompt_no_time(
-                    chart, aspects, patterns, dignities
+                    chart, aspects, patterns, dignities, person_name=person_name,
                 )
             elif reading_type == "Career / Work":
-                prompt = build_career_interpretation_prompt(chart, aspects, patterns, dignities, house_readings)
+                prompt = build_career_interpretation_prompt(chart, aspects, patterns, dignities, house_readings, person_name=person_name)
             elif unknown_time:
-                prompt = build_interpretation_prompt_no_time(chart, aspects, patterns, dignities)
+                prompt = build_interpretation_prompt_no_time(chart, aspects, patterns, dignities, person_name=person_name)
             else:
-                prompt = build_interpretation_prompt(chart, aspects, patterns, dignities, house_readings)
+                prompt = build_interpretation_prompt(chart, aspects, patterns, dignities, house_readings, person_name=person_name)
 
         interpretation_text = None
         interpretation_error = None
@@ -734,6 +775,8 @@ if st.session_state.get("processing", False):
             "reading_type": reading_type,
             "birth_date": birth_date,
             "transit_date": transit_date,
+            "person_name": person_name,
+            "person_name_b": person_name_b if reading_type == "Professional Synastry" else None,
             "datetime_str_b": datetime_str_b if reading_type == "Professional Synastry" else None,
             "location_str_b": location_str_b if reading_type == "Professional Synastry" else None,
             "chart": chart,
@@ -741,6 +784,12 @@ if st.session_state.get("processing", False):
             "patterns": patterns,
             "dignities": dignities,
             "house_readings": house_readings,
+            "chart_b": chart_b,
+            "aspects_b": aspects_b,
+            "patterns_b": patterns_b,
+            "dignities_b": dignities_b,
+            "house_readings_b": house_readings_b,
+            "synastry_result": synastry_result,
             "prompt": prompt,
             "interpretation_text": interpretation_text,
             "interpretation_error": interpretation_error,
@@ -767,20 +816,27 @@ if st.session_state.get("processing", False):
 if st.session_state.get("results"):
     r = st.session_state.results
 
+    label_a = r["person_name"].strip() if r["person_name"] and r["person_name"].strip() else None
+    label_b = r["person_name_b"].strip() if r.get("person_name_b") and r["person_name_b"].strip() else None
+
     if r["reading_type"] == "Transits":
+        who = label_a if label_a else r['datetime_str']
         st.success(
-            f"Natal chart: {r['datetime_str']} in {r['location_str']} "
+            f"Natal chart: {who} in {r['location_str']} "
             f"({r['house_system_label']} houses) — Transits for {r['transit_date'].isoformat()}"
         )
     elif r["reading_type"] == "Professional Synastry":
+        who_a = label_a if label_a else f"Person A ({r['datetime_str']})"
+        who_b = label_b if label_b else f"Person B ({r['datetime_str_b']})"
         st.success(
-            f"Person A: {r['datetime_str']} in {r['location_str']} — "
-            f"Person B: {r['datetime_str_b']} in {r['location_str_b']} "
+            f"{who_a} in {r['location_str']} — "
+            f"{who_b} in {r['location_str_b']} "
             f"({r['house_system_label']} houses)"
         )
     else:
+        who = label_a if label_a else r['datetime_str']
         st.success(
-            f"Chart computed for {r['datetime_str']} in {r['location_str']} "
+            f"Chart computed for {who} in {r['location_str']} "
             f"({r['house_system_label']} houses, {r['reading_type']} reading)"
         )
 
@@ -791,7 +847,11 @@ if st.session_state.get("results"):
             render_interpretation(r["interpretation_text"])
             st.divider()
 
-            pdf_title = f"{r['reading_type']} Reading — {r['datetime_str']}"
+            if r["reading_type"] == "Professional Synastry":
+                title_who = f"{label_a or 'Person A'} & {label_b or 'Person B'}"
+            else:
+                title_who = label_a if label_a else r['datetime_str']
+            pdf_title = f"{r['reading_type']} Reading — {title_who}"
             pdf_bytes = markdown_to_pdf_bytes(r["interpretation_text"], pdf_title)
 
             dl_col1, dl_col2 = st.columns(2)
@@ -839,10 +899,22 @@ if st.session_state.get("results"):
         )
 
     with tabs[2]:
-        st.write("The classic circular chart wheel — zodiac ring, house divisions "
-                 "(drawn from the actual computed cusps, not evenly spaced), the "
-                 "four angles, planets, and the tightest aspects.")
-        fig = draw_chart_wheel(r["chart"], r["aspects"], min_aspect_tightness=0.6)
+        if r["reading_type"] == "Professional Synastry":
+            st.write("A synastry bi-wheel: Person A's planets on the inner "
+                     "ring, Person B's planets on the outer ring (shaded "
+                     "background), both measured against the same house "
+                     "reference frame so their positions are directly "
+                     "comparable. Lines connect the tightest cross-chart "
+                     "aspects between the two.")
+            fig = draw_bi_wheel(
+                r["chart"], r["chart_b"], r["synastry_result"]["aspects"],
+                min_aspect_tightness=0.6,
+            )
+        else:
+            st.write("The classic circular chart wheel — zodiac ring, house divisions "
+                     "(drawn from the actual computed cusps, not evenly spaced), the "
+                     "four angles, planets, and the tightest aspects.")
+            fig = draw_chart_wheel(r["chart"], r["aspects"], min_aspect_tightness=0.6)
         st.pyplot(fig, use_container_width=True)
 
         wheel_buffer = io.BytesIO()
@@ -856,51 +928,138 @@ if st.session_state.get("results"):
         )
 
     with tabs[3]:
-        points_df = points_to_dataframe(r["chart"])
-        st.dataframe(points_df, use_container_width=True, hide_index=True)
-        dataframe_download_and_copy(points_df, f"points_{r['birth_date'].isoformat()}.csv", "points")
+        if r["reading_type"] == "Professional Synastry":
+            st.subheader("Person A")
+            points_df_a = points_to_dataframe(r["chart"])
+            st.dataframe(points_df_a, use_container_width=True, hide_index=True)
+            dataframe_download_and_copy(points_df_a, f"points_a_{r['birth_date'].isoformat()}.csv", "points_a")
+
+            st.subheader("Person B")
+            points_df_b = points_to_dataframe(r["chart_b"])
+            st.dataframe(points_df_b, use_container_width=True, hide_index=True)
+            dataframe_download_and_copy(points_df_b, f"points_b_{r['birth_date'].isoformat()}.csv", "points_b")
+        else:
+            points_df = points_to_dataframe(r["chart"])
+            st.dataframe(points_df, use_container_width=True, hide_index=True)
+            dataframe_download_and_copy(points_df, f"points_{r['birth_date'].isoformat()}.csv", "points")
 
     with tabs[4]:
-        aspects_df = aspects_to_dataframe(r["aspects"])
-        st.dataframe(aspects_df, use_container_width=True, hide_index=True)
-        dataframe_download_and_copy(aspects_df, f"aspects_{r['birth_date'].isoformat()}.csv", "aspects")
-
-    with tabs[5]:
-        any_patterns = False
-        pattern_lines = []
-        for kind, plist in r["patterns"].items():
-            if not plist:
-                continue
-            any_patterns = True
-            label = kind.replace("_", " ").title()
-            st.subheader(label)
-            pattern_lines.append(f"{label}:")
-            for p in plist:
-                line = ", ".join(p.points)
-                st.write(f"- {line}")
-                pattern_lines.append(f"  - {line}")
-        if not any_patterns:
-            st.info("No aspect patterns detected within the configured orbs.")
-        else:
-            text_download_and_copy(
-                "\n".join(pattern_lines),
-                f"patterns_{r['birth_date'].isoformat()}.txt",
-                "patterns",
+        if r["reading_type"] == "Professional Synastry":
+            st.write("**Cross-chart aspects** — Person A's point to Person B's point. "
+                     "This is the actual synastry data the reading is built from.")
+            synastry_aspects_df = synastry_aspects_to_dataframe(r["synastry_result"]["aspects"])
+            st.dataframe(synastry_aspects_df, use_container_width=True, hide_index=True)
+            dataframe_download_and_copy(
+                synastry_aspects_df, f"synastry_aspects_{r['birth_date'].isoformat()}.csv", "synastry_aspects"
             )
 
+            st.subheader("Person A's own aspects (within their own chart)")
+            aspects_df_a = aspects_to_dataframe(r["aspects"])
+            st.dataframe(aspects_df_a, use_container_width=True, hide_index=True)
+            dataframe_download_and_copy(aspects_df_a, f"aspects_a_{r['birth_date'].isoformat()}.csv", "aspects_a")
+
+            st.subheader("Person B's own aspects (within their own chart)")
+            aspects_df_b = aspects_to_dataframe(r["aspects_b"])
+            st.dataframe(aspects_df_b, use_container_width=True, hide_index=True)
+            dataframe_download_and_copy(aspects_df_b, f"aspects_b_{r['birth_date'].isoformat()}.csv", "aspects_b")
+        else:
+            aspects_df = aspects_to_dataframe(r["aspects"])
+            st.dataframe(aspects_df, use_container_width=True, hide_index=True)
+            dataframe_download_and_copy(aspects_df, f"aspects_{r['birth_date'].isoformat()}.csv", "aspects")
+
+    with tabs[5]:
+        def render_patterns_section(patterns, key_prefix, filename):
+            any_patterns = False
+            pattern_lines = []
+            for kind, plist in patterns.items():
+                if not plist:
+                    continue
+                any_patterns = True
+                label = kind.replace("_", " ").title()
+                st.subheader(label)
+                pattern_lines.append(f"{label}:")
+                for p in plist:
+                    line = ", ".join(p.points)
+                    st.write(f"- {line}")
+                    pattern_lines.append(f"  - {line}")
+            if not any_patterns:
+                st.info("No aspect patterns detected within the configured orbs.")
+            else:
+                text_download_and_copy("\n".join(pattern_lines), filename, key_prefix)
+
+        if r["reading_type"] == "Professional Synastry":
+            st.subheader("Person A's Patterns")
+            render_patterns_section(r["patterns"], "patterns_a", f"patterns_a_{r['birth_date'].isoformat()}.txt")
+            st.divider()
+            st.subheader("Person B's Patterns")
+            render_patterns_section(r["patterns_b"], "patterns_b", f"patterns_b_{r['birth_date'].isoformat()}.txt")
+        else:
+            render_patterns_section(r["patterns"], "patterns", f"patterns_{r['birth_date'].isoformat()}.txt")
+
     with tabs[6]:
-        dignity_df = dignities_to_dataframe(r["dignities"])
-        st.dataframe(dignity_df, use_container_width=True, hide_index=True)
-        dataframe_download_and_copy(dignity_df, f"dignity_{r['birth_date'].isoformat()}.csv", "dignity")
+        if r["reading_type"] == "Professional Synastry":
+            st.subheader("Person A")
+            dignity_df_a = dignities_to_dataframe(r["dignities"])
+            st.dataframe(dignity_df_a, use_container_width=True, hide_index=True)
+            dataframe_download_and_copy(dignity_df_a, f"dignity_a_{r['birth_date'].isoformat()}.csv", "dignity_a")
+
+            st.subheader("Person B")
+            dignity_df_b = dignities_to_dataframe(r["dignities_b"])
+            st.dataframe(dignity_df_b, use_container_width=True, hide_index=True)
+            dataframe_download_and_copy(dignity_df_b, f"dignity_b_{r['birth_date'].isoformat()}.csv", "dignity_b")
+        else:
+            dignity_df = dignities_to_dataframe(r["dignities"])
+            st.dataframe(dignity_df, use_container_width=True, hide_index=True)
+            dataframe_download_and_copy(dignity_df, f"dignity_{r['birth_date'].isoformat()}.csv", "dignity")
 
     with tabs[7]:
-        house_lines = []
-        for num, reading in r["house_readings"].items():
-            with st.expander(f"House {num} ({reading.sign_on_cusp})"):
-                st.write(reading.interpretation)
-            house_lines.append(f"House {num} ({reading.sign_on_cusp}):\n{reading.interpretation}\n")
-        text_download_and_copy(
-            "\n".join(house_lines),
-            f"houses_{r['birth_date'].isoformat()}.txt",
-            "houses",
-        )
+        def render_house_readings_section(house_readings, key_prefix, filename):
+            house_lines = []
+            for num, reading in house_readings.items():
+                with st.expander(f"House {num} ({reading.sign_on_cusp})"):
+                    st.write(reading.interpretation)
+                house_lines.append(f"House {num} ({reading.sign_on_cusp}):\n{reading.interpretation}\n")
+            text_download_and_copy("\n".join(house_lines), filename, key_prefix)
+
+        if r["reading_type"] == "Professional Synastry":
+            st.write("**House overlays** — whose planets fall in whose houses. "
+                     "Only available in a direction where the house-owning "
+                     "person's birth time is known.")
+
+            overlay_a_in_b = r["synastry_result"]["overlay_a_in_b"]
+            overlay_b_in_a = r["synastry_result"]["overlay_b_in_a"]
+
+            st.subheader("Person A's planets in Person B's houses")
+            if not overlay_a_in_b:
+                st.info("Not available — Person B's birth time is unknown.")
+            else:
+                for o in overlay_a_in_b:
+                    st.write(f"- {o}")
+
+            st.subheader("Person B's planets in Person A's houses")
+            if not overlay_b_in_a:
+                st.info("Not available — Person A's birth time is unknown.")
+            else:
+                for o in overlay_b_in_a:
+                    st.write(f"- {o}")
+
+            overlay_text = "PERSON A'S PLANETS IN PERSON B'S HOUSES:\n" + (
+                "\n".join(f"- {o}" for o in overlay_a_in_b) or "Not available."
+            ) + "\n\nPERSON B'S PLANETS IN PERSON A'S HOUSES:\n" + (
+                "\n".join(f"- {o}" for o in overlay_b_in_a) or "Not available."
+            )
+            text_download_and_copy(overlay_text, f"house_overlays_{r['birth_date'].isoformat()}.txt", "overlays")
+
+            st.divider()
+            st.subheader("Person A's own house readings")
+            render_house_readings_section(
+                r["house_readings"], "houses_a", f"houses_a_{r['birth_date'].isoformat()}.txt"
+            )
+            st.subheader("Person B's own house readings")
+            render_house_readings_section(
+                r["house_readings_b"], "houses_b", f"houses_b_{r['birth_date'].isoformat()}.txt"
+            )
+        else:
+            render_house_readings_section(
+                r["house_readings"], "houses", f"houses_{r['birth_date'].isoformat()}.txt"
+            )
