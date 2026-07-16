@@ -51,7 +51,10 @@ from prompt_builder import (
     build_professional_synastry_prompt,
 )
 from birth_input import resolve_birth_data
-from chart_wheel import draw_chart_wheel, draw_bi_wheel
+from chart_wheel import (
+    draw_chart_wheel, draw_bi_wheel,
+    build_chart_data_table_html, build_synastry_data_table_html,
+)
 
 # --- Optional: live Claude interpretation ---
 # Requires: pip install anthropic (already in requirements.txt)
@@ -899,33 +902,54 @@ if st.session_state.get("results"):
         )
 
     with tabs[2]:
+        def show_wheel_with_download(fig, filename_suffix):
+            st.pyplot(fig, use_container_width=True)
+            buf = io.BytesIO()
+            fig.savefig(buf, format="png", dpi=150, facecolor="white", bbox_inches="tight")
+            st.download_button(
+                "Download chart wheel as .png",
+                data=buf.getvalue(),
+                file_name=f"chart_wheel_{filename_suffix}_{r['birth_date'].isoformat()}.png",
+                mime="image/png",
+                use_container_width=True,
+                key=f"wheel_dl_{filename_suffix}",
+            )
+
         if r["reading_type"] == "Professional Synastry":
-            st.write("A synastry bi-wheel: Person A's planets on the inner "
-                     "ring, Person B's planets on the outer ring (shaded "
-                     "background), both measured against the same house "
-                     "reference frame so their positions are directly "
-                     "comparable. Lines connect the tightest cross-chart "
-                     "aspects between the two.")
-            fig = draw_bi_wheel(
+            label_a = r["person_name"] or "Person A"
+            label_b = r["person_name_b"] or "Person B"
+
+            st.subheader("Synastry Bi-Wheel")
+            st.write(f"{label_a}'s planets on the inner ring, {label_b}'s planets "
+                     "on the outer ring (shaded background), both measured "
+                     "against the same house reference frame so their positions "
+                     "are directly comparable. Lines connect the tightest "
+                     "cross-chart aspects between the two.")
+            fig_bi = draw_bi_wheel(
                 r["chart"], r["chart_b"], r["synastry_result"]["aspects"],
                 min_aspect_tightness=0.6,
             )
+            show_wheel_with_download(fig_bi, "synastry")
+            st.markdown(build_synastry_data_table_html(r["chart"], r["chart_b"]), unsafe_allow_html=True)
+
+            st.divider()
+            st.subheader(f"{label_a}'s Chart")
+            fig_a = draw_chart_wheel(r["chart"], r["aspects"], min_aspect_tightness=0.6)
+            show_wheel_with_download(fig_a, "person_a")
+            st.markdown(build_chart_data_table_html(r["chart"]), unsafe_allow_html=True)
+
+            st.divider()
+            st.subheader(f"{label_b}'s Chart")
+            fig_b = draw_chart_wheel(r["chart_b"], r["aspects_b"], min_aspect_tightness=0.6)
+            show_wheel_with_download(fig_b, "person_b")
+            st.markdown(build_chart_data_table_html(r["chart_b"]), unsafe_allow_html=True)
         else:
             st.write("The classic circular chart wheel — zodiac ring, house divisions "
                      "(drawn from the actual computed cusps, not evenly spaced), the "
                      "four angles, planets, and the tightest aspects.")
             fig = draw_chart_wheel(r["chart"], r["aspects"], min_aspect_tightness=0.6)
-        st.pyplot(fig, use_container_width=True)
-
-        wheel_buffer = io.BytesIO()
-        fig.savefig(wheel_buffer, format="png", dpi=150, facecolor="white", bbox_inches="tight")
-        st.download_button(
-            "Download chart wheel as .png",
-            data=wheel_buffer.getvalue(),
-            file_name=f"chart_wheel_{r['birth_date'].isoformat()}.png",
-            mime="image/png",
-            use_container_width=True,
-        )
+            show_wheel_with_download(fig, "chart")
+            st.markdown(build_chart_data_table_html(r["chart"]), unsafe_allow_html=True)
 
     with tabs[3]:
         if r["reading_type"] == "Professional Synastry":
