@@ -41,12 +41,14 @@ from aspect_engine import compute_aspects, find_all_patterns
 from dignity import compute_chart_dignities
 from house_interpretation import build_house_readings
 from transit_engine import compute_transiting_points, assign_transit_houses, compute_transit_aspects
+from synastry_engine import compute_full_synastry
 from prompt_builder import (
     build_interpretation_prompt,
     build_interpretation_prompt_no_time,
     build_career_interpretation_prompt,
     build_career_interpretation_prompt_no_time,
     build_transit_prompt,
+    build_professional_synastry_prompt,
 )
 from birth_input import resolve_birth_data
 from chart_wheel import draw_chart_wheel
@@ -130,13 +132,15 @@ st.markdown(
 # --- Input form ---
 reading_type = st.selectbox(
     "Reading focus",
-    options=["General", "Career / Work", "Transits"],
+    options=["General", "Career / Work", "Transits", "Professional Synastry"],
     index=0,
     help="General covers the whole chart. Career/Work focuses "
          "specifically on workplace happiness, colleague dynamics, "
          "work style, and professional strengths/weaknesses. Transits "
          "answers 'what's happening right now' — how today's sky is "
-         "currently interacting with this natal chart.",
+         "currently interacting with this natal chart. Professional "
+         "Synastry compares TWO people's charts to analyze their working "
+         "dynamic — not romantic compatibility.",
 )
 
 # Read the checkbox's stored value BEFORE the checkbox widget itself is
@@ -150,6 +154,9 @@ unknown_time = (
     st.session_state.get("unknown_time_cb", False)
     if reading_type != "Transits" else False
 )
+
+if reading_type == "Professional Synastry":
+    st.subheader("Person A")
 
 col1, col2, col3 = st.columns([1, 1.3, 1])
 with col1:
@@ -205,6 +212,73 @@ with align_col2:
         )
     else:
         unknown_time = False  # not applicable to Transits
+
+# --- Person B (Professional Synastry only) ---
+if reading_type == "Professional Synastry":
+    st.divider()
+    st.subheader("Person B")
+
+    unknown_time_b = st.session_state.get("unknown_time_cb_b", False)
+
+    colb1, colb2, colb3 = st.columns([1, 1.3, 1])
+    with colb1:
+        birth_date_b = st.date_input(
+            "Birth date",
+            value=date_type(1989, 7, 5),
+            min_value=date_type(1900, 1, 1),
+            max_value=date_type.today(),
+            help="Tap to open the calendar picker.",
+            key="birth_date_b",
+        )
+    with colb2:
+        st.write("Birth time" + (" (disabled — unknown birth time selected)" if unknown_time_b else ""))
+        hour_col_b, minute_col_b, ampm_col_b = st.columns(3)
+        with hour_col_b:
+            birth_hour_b = st.selectbox(
+                "Hour", options=list(range(1, 13)), index=0,
+                label_visibility="collapsed", disabled=unknown_time_b,
+                key="birth_hour_b",
+            )
+        with minute_col_b:
+            birth_minute_b = st.selectbox(
+                "Minute", options=[f"{m:02d}" for m in range(60)], index=30,
+                label_visibility="collapsed", disabled=unknown_time_b,
+                key="birth_minute_b",
+            )
+        with ampm_col_b:
+            birth_ampm_b = st.selectbox(
+                "AM/PM", options=["AM", "PM"], index=1,
+                label_visibility="collapsed", disabled=unknown_time_b,
+                key="birth_ampm_b",
+            )
+    with colb3:
+        location_str_b = st.text_input(
+            "Birth location",
+            value="Washington, D.C., USA",
+            help="Be specific — add state/country if the place name is common",
+            key="location_str_b",
+        )
+
+    align_colb1, align_colb2, align_colb3 = st.columns([1, 1.3, 1])
+    with align_colb2:
+        unknown_time_b = st.checkbox(
+            "🕐 I don't know Person B's exact birth time",
+            value=False,
+            key="unknown_time_cb_b",
+            help="Same effect as the Person A checkbox above — excludes "
+                 "Person B's Ascendant, houses, Vertex, and Arabic Parts, "
+                 "keeping only their planets, Chiron, Nodes, and aspects. "
+                 "Note: if Person B's time is unknown, house-overlay analysis "
+                 "involving Person B's houses isn't possible (Person A's "
+                 "planets in Person B's houses), but overlays in the other "
+                 "direction still work fine if Person A's time is known.",
+        )
+else:
+    # Placeholders so these variables always exist, even for reading
+    # types that don't use a second person.
+    birth_date_b = birth_hour_b = birth_minute_b = birth_ampm_b = None
+    location_str_b = None
+    unknown_time_b = False
 
 house_system_label = st.selectbox(
     "House system",
@@ -492,6 +566,20 @@ if st.session_state.get("processing", False):
                         transiting_speeds=extract_speeds(transiting_points),
                     )
                     prompt = build_transit_prompt(transiting_points, transit_aspects, dignities)
+            elif reading_type == "Professional Synastry":
+                with st.spinner("Resolving Person B's location and computing their chart..."):
+                    datetime_str_b = f"{birth_date_b.strftime('%B %d, %Y')} {birth_hour_b:02d}:{birth_minute_b} {birth_ampm_b}"
+                    birth_b = resolve_birth_data(datetime_str_b, location_str_b, verbose=False)
+                    chart_b = compute_full_chart(birth_b, house_system=house_system)
+                    dignities_b = compute_chart_dignities(chart_b)
+
+                with st.spinner("Computing synastry between the two charts..."):
+                    synastry_result = compute_full_synastry(
+                        chart, chart_b,
+                        person_a_time_known=not unknown_time,
+                        person_b_time_known=not unknown_time_b,
+                    )
+                    prompt = build_professional_synastry_prompt(synastry_result, dignities, dignities_b)
             elif reading_type == "Career / Work" and unknown_time:
                 prompt = build_career_interpretation_prompt_no_time(
                     chart, aspects, patterns, dignities
@@ -646,6 +734,8 @@ if st.session_state.get("processing", False):
             "reading_type": reading_type,
             "birth_date": birth_date,
             "transit_date": transit_date,
+            "datetime_str_b": datetime_str_b if reading_type == "Professional Synastry" else None,
+            "location_str_b": location_str_b if reading_type == "Professional Synastry" else None,
             "chart": chart,
             "aspects": aspects,
             "patterns": patterns,
@@ -681,6 +771,12 @@ if st.session_state.get("results"):
         st.success(
             f"Natal chart: {r['datetime_str']} in {r['location_str']} "
             f"({r['house_system_label']} houses) — Transits for {r['transit_date'].isoformat()}"
+        )
+    elif r["reading_type"] == "Professional Synastry":
+        st.success(
+            f"Person A: {r['datetime_str']} in {r['location_str']} — "
+            f"Person B: {r['datetime_str_b']} in {r['location_str_b']} "
+            f"({r['house_system_label']} houses)"
         )
     else:
         st.success(
