@@ -1074,3 +1074,290 @@ def build_transit_prompt(
 #     natal 10th/6th/2nd house rulers) — the "daily professional
 #     outlook" idea from earlier design discussions.
 
+
+# ---------------------------------------------------------------------------
+# Professional synastry — working-dynamic reading between two people
+# ---------------------------------------------------------------------------
+# Distinct from every other prompt in this file: those all interpret a
+# single chart (natal or transiting-vs-natal). This one compares two
+# FIXED natal charts against each other — the standard synastry
+# technique — but reframed entirely around professional/working
+# dynamics rather than romantic compatibility, including redirecting
+# Venus/Mars/Moon (traditionally romantic synastry signals) toward
+# their professional meanings instead.
+
+def format_synastry_points_section(chart: dict, person_label: str) -> str:
+    lines = [f"PERSON {person_label}'S PLACEMENTS (sign, house if available):"]
+    for name, point in sorted(chart.items(), key=lambda x: x[1].longitude):
+        if name.startswith("House "):
+            continue
+        house_str = f", House {point.house}" if point.house else ""
+        retro_str = " (retrograde)" if point.retrograde else ""
+        lines.append(f"  - {name}: {point.sign_degree:.1f}° {point.sign}{house_str}{retro_str}")
+    return "\n".join(lines)
+
+
+def format_synastry_aspects_section(aspects: list, min_tightness: float = 1.0) -> str:
+    lines = ["CROSS-CHART ASPECTS (Person A's point to Person B's point; "
+             "orb = how exact):"]
+    filtered = [a for a in aspects if a.tightness <= min_tightness]
+    if not filtered:
+        lines.append("  - No significant cross-chart aspects within the configured orbs.")
+    for a in filtered:
+        lines.append(
+            f"  - Person A's {a.person_a_point} {a.aspect_name} Person B's "
+            f"{a.person_b_point} (orb {a.orb:.2f}°, nature: {a.nature})"
+        )
+    return "\n".join(lines)
+
+
+def format_house_overlay_section(overlays: list, title: str) -> str:
+    lines = [f"{title}:"]
+    if not overlays:
+        lines.append("  - Not available (the house-owning person's birth "
+                      "time is unknown, so their houses can't be calculated).")
+    for o in overlays:
+        lines.append(f"  - {o}")
+    return "\n".join(lines)
+
+
+def build_synastry_data_block(
+    synastry_result: dict,
+    dignities_a: dict[str, DignityResult],
+    dignities_b: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+) -> str:
+    return "\n\n".join([
+        format_synastry_points_section(synastry_result["filtered_chart_a"], "A"),
+        format_synastry_points_section(synastry_result["filtered_chart_b"], "B"),
+        "PERSON A'S DIGNITY:\n" + format_dignity_section(dignities_a),
+        "PERSON B'S DIGNITY:\n" + format_dignity_section(dignities_b),
+        format_synastry_aspects_section(synastry_result["aspects"], min_tightness=min_tightness),
+        format_house_overlay_section(
+            synastry_result["overlay_a_in_b"],
+            "HOUSE OVERLAY: PERSON A'S PLANETS IN PERSON B'S HOUSES",
+        ),
+        format_house_overlay_section(
+            synastry_result["overlay_b_in_a"],
+            "HOUSE OVERLAY: PERSON B'S PLANETS IN PERSON A'S HOUSES",
+        ),
+    ])
+
+
+PROFESSIONAL_SYNASTRY_INSTRUCTIONS = """\
+You are an experienced astrologer analyzing the PROFESSIONAL working
+dynamic between two people, using synastry — the technique of comparing
+two natal charts against each other. This reading is explicitly NOT
+about romantic compatibility.
+
+You have access to both people's computed natal placements and dignity,
+along with the cross-chart aspects between them (Person A's planets to
+Person B's planets, and vice versa) — all mathematically precise, not
+approximated. Exactly which placements are available for each person
+depends on whether their birth time is known — see below.
+
+BIRTH TIME STATUS: {birth_time_status} This affects what's
+reliable in this reading:
+- If a person's birth time is unknown, their Ascendant, Midheaven,
+  Descendant, Imum Coeli, houses, Vertex, and Arabic Parts (Part of
+  Fortune/Spirit) are all excluded from their data below, since all of
+  these require an exact birth time to calculate correctly. Their
+  planets, Chiron, and the Lunar Nodes remain fully reliable regardless.
+- Cross-chart PLANET-to-PLANET aspects between the two people remain
+  fully reliable even if one or both birth times are unknown, since
+  these depend only on planetary positions, not time-of-day angles.
+- HOUSE OVERLAYS (whose planets fall in whose houses) are only possible
+  in a given direction if the HOUSE-OWNING person's birth time is known.
+  If Person A's time is unknown, skip any analysis of where Person B's
+  planets fall in Person A's houses — but Person A's planets falling in
+  Person B's houses (if Person B's time IS known) remains valid and
+  should still be covered. This is a one-directional limitation, not a
+  reason to drop overlay analysis entirely if only one side is affected.
+- If BOTH birth times are unknown, skip house overlay analysis entirely
+  in both directions.
+- If any of this scope limitation applies, briefly and matter-of-factly
+  note it in the Overview — not as an apology, just accurate framing.
+
+Traditionally, professional synastry signal concentrates in: Sun-Saturn
+contacts (respect, authority, and whether one person feels supported or
+constrained by the other), Mercury-Mercury and Mercury-Mars contacts
+(communication compatibility), Mars-Mars and Mars-Saturn contacts (how
+conflict and assertion get handled between them), Saturn-Saturn contacts
+(shared or clashing standards for discipline and structure), planets
+landing in the other's 10th house (career/authority activation) or 6th
+house (daily work activation), and Jupiter contacts (mutual growth and
+encouragement). Weight these more heavily than other contacts — but
+don't ignore anything else that genuinely bears on the working
+relationship.
+
+Structure your answer as follows:
+
+First, provide a general and summarized overview of the working dynamic
+between these two people — a short, plain-language orientation before
+the detailed sections, written as a few flowing paragraphs (not chunked
+or bulleted — see formatting guidelines below). Head this section with
+the exact markdown heading "## Overview".
+
+Then, go into the following sections. Format each one as a markdown H2
+heading — exactly "## Section Name" — since the app displaying this
+reading relies on that exact format to build a collapsible view.
+
+DAILY WORKING STYLE COMPATIBILITY: How do these two mesh on the
+day-to-day mechanics of working together — pace, structure, routine,
+follow-through? Focus on whose planets fall in whose 6th house, and
+Mars/Mercury/Saturn cross-contacts relevant to daily execution. If house
+overlay data isn't available for one or both people (see birth time
+status above), rely instead on Mars/Mercury/Saturn cross-contacts and
+dignity — don't skip this section, just shift its evidence base.
+
+WORKING COMMUNICATION DYNAMICS: How do these two actually communicate
+with each other? Are they quick and direct, or does one need more time
+to process while the other wants immediate answers? Is there a real risk
+of misunderstanding, or does communication tend to flow easily? Focus on
+Mercury-to-Mercury and Mercury-to-Mars/Sun contacts between the two
+charts.
+
+NATURAL STRENGTHS AS COLLABORATORS: Where do these two genuinely make
+each other better at work? Include supportive aspects (trines, sextiles,
+easy conjunctions) between career-relevant points, complementary
+dignity, and Jupiter contacts that expand opportunity for either person.
+
+FRICTION POINTS TO MANAGE: Where is real friction likely, and what does
+it actually look like in a working context? Include hard aspects
+(squares, oppositions, difficult conjunctions) between Mars, Saturn, and
+the Sun especially. Be honest about genuine difficulty rather than
+reframing everything as secretly fine — but frame it as something to
+manage consciously, not a verdict that the working relationship can't
+work.
+
+AUTHORITY, RESPECT & HIERARCHY DYNAMICS: How do these two relate to
+each other's authority, especially if one manages the other or they're
+peers navigating status? Focus on Saturn contacts (Saturn to the
+other's Sun, Moon, or Mercury especially) and whose planets fall in
+whose 10th house. Saturn contacts in particular can indicate either a
+stabilizing, respected dynamic or a restrictive, tension-inducing one —
+be specific about which this looks like here and why. If house overlay
+data isn't available for one or both people (see birth time status
+above), rely instead on Saturn contacts to the other's Sun/Moon/Mercury
+and dignity — don't skip this section, just shift its evidence base.
+
+GROWTH POTENTIAL TOGETHER: Does working with this person tend to expand
+the other's opportunities, confidence, or skills — or is the dynamic
+more neutral/static? Focus on Jupiter contacts and North Node contacts
+(does one person's presence activate the other's growth direction).
+
+PRACTICAL RECOMMENDATIONS: Given everything above, what should these two
+actually do to work together effectively? This should be concrete and
+actionable — e.g. how to structure communication, what to watch for,
+where to lean on each other's strengths — not a restatement of the
+sections above.
+
+End with a conclusion distilling what actually matters most about this
+working dynamic, but try not to repeat the intro summary. Write it as
+flowing prose too, matching the Overview's style — not chunked or
+bulleted. Head this section with the exact markdown heading
+"## Conclusion" — this is REQUIRED, not optional.
+
+General guidelines that still apply:
+- THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING
+PROSE — no chunked split, no bolded sub-labels, no bullet chunking.
+- FOR EACH SECTION HEADER, OPEN with 1-2 sentences of brief
+plain-language prose summarizing the main takeaway. THEN follow with a
+two-part chunked structure, IN THIS ORDER:
+    **Working Implications:** Written FIRST, broken into 2-4 short,
+    scannable chunks with bolded sub-labels. You MAY reference the 10
+    standard planets and zodiac signs by name in simple, natural
+    sentences (e.g. "Person A's Mars is in Libra") — these are common
+    enough that most readers have some baseline familiarity with them.
+    However, do NOT use more complex or lesser-known astrological
+    terminology here: no aspect names or aspect verbs (trine, square,
+    conjunct, opposition, etc.), no angle names (Midheaven, Ascendant,
+    Descendant, Imum Coeli), no dignity/technical status terms
+    (Exaltation, Detriment, Rulership, Peregrine, etc.), no house
+    numbers, no pattern names. Always specify WHICH person you mean
+    (e.g. "Person A" / "Person B", or use their names if provided) —
+    never leave it ambiguous whose placement you're discussing.
+    **Astrological Basis:** Written SECOND, also in 2-4 short chunks,
+    with brief plain-language glosses of technical terms woven in.
+    Clearly label which person each placement belongs to.
+  Group all the plain-language interpretation together first, then all
+  the supporting astrology together, once per section.
+- USE DIGNITY AS REAL WEIGHTING for both people's charts.
+- TREAT SYNASTRY CONTACTS AS MUTUAL, NOT ONE-DIRECTIONAL: a contact
+between Person A's Saturn and Person B's Sun affects both people, even
+if the specific experience differs for each (e.g. Person B may feel
+steadied or constrained by Person A, while Person A may feel a sense of
+responsibility toward Person B) — address both sides where relevant.
+- AVOID A MYSTICAL OR ESOTERIC TONE. Write the way a sharp, grounded
+workplace consultant or organizational psychologist would describe a
+working relationship — concrete, specific, actionable — not the way a
+fortune teller would.
+- Avoid generic, could-apply-to-anyone language. Ground every claim in
+the SPECIFIC combination of placements between these two actual charts.
+- Venus, Mars, and the Moon carry real professional meaning beyond
+their romantic associations — use these specific reframes, not just a
+vague avoidance of romantic language:
+    VENUS (professional lens): values and quality standards — what
+    each person considers "good work"; diplomacy and interpersonal
+    ease — how naturally they get along day to day; negotiation
+    style — do they seek win-win outcomes or concede easily;
+    likability and social capital — how each is perceived by
+    colleagues.
+    MARS (professional lens): drive and initiative — how each pursues
+    goals; assertiveness — do they speak up, push back, or hold back;
+    pace and urgency; conflict style — direct, indirect, or avoidant;
+    competitive instinct — do they compete or collaborate by default.
+    MOON (professional lens): emotional needs at work — what makes
+    each person feel secure or unsettled; instinctive reactions under
+    pressure; what kind of support or reassurance each person
+    actually needs from a colleague.
+  A Venus-Mars contact between the two charts specifically — which in a
+  romantic reading would often read as attraction — here indicates
+  energetic complementarity in how the two pursue and refine ideas
+  together: one person's drive meeting the other's sense of what's
+  valuable or well-crafted can produce a genuinely productive push-and-
+  pull between initiating action and ensuring quality or harmony. Do
+  not frame this as attraction; frame it as this specific professional
+  dynamic.
+  Never discuss romantic attraction, sexual chemistry, or relationship
+  potential, even briefly or as an aside — but DO give Venus, Mars, and
+  Moon contacts real, specific professional weight rather than avoiding
+  them or treating them as less important than Saturn/Mercury contacts
+  just because they're usually read romantically elsewhere.
+
+Here is the full computed synastry data for both people:
+
+{data_block}
+
+Now write the reading, organized under the headers above.\
+"""
+
+
+def build_professional_synastry_prompt(
+    synastry_result: dict,
+    dignities_a: dict[str, DignityResult],
+    dignities_b: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+) -> str:
+    """
+    Builds the complete professional synastry prompt from a
+    synastry_engine.compute_full_synastry() result plus each person's
+    dignity. Handles the birth-time-status framing automatically based
+    on what's actually in synastry_result.
+    """
+    def _status(known: bool) -> str:
+        return "known" if known else "unknown"
+
+    birth_time_status = (
+        f"Person A's exact birth time is {_status(synastry_result['person_a_time_known'])} "
+        f"and Person B's exact birth time is {_status(synastry_result['person_b_time_known'])}."
+    )
+
+    data_block = build_synastry_data_block(
+        synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
+    )
+    return PROFESSIONAL_SYNASTRY_INSTRUCTIONS.format(
+        birth_time_status=birth_time_status, data_block=data_block,
+    )
+
+
