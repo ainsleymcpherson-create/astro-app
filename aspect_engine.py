@@ -131,6 +131,50 @@ def _angular_separation(lon1: float, lon2: float) -> float:
     return min(diff, 360 - diff)
 
 
+def _build_tautological_pairs() -> set:
+    """
+    Pairs that are mathematically guaranteed by how angles/houses are
+    defined, not genuine findings from this specific chart's data —
+    e.g. the Ascendant IS the House 1 cusp (same point, two names), and
+    the Ascendant and Descendant are ALWAYS exactly 180° apart by
+    construction, regardless of birth data. These aren't meaningful
+    aspects; they're the same fact restated under a different label.
+    """
+    pairs = set()
+    # Conjunctions: an angle and its own house cusp are literally the
+    # same point.
+    same_point = [
+        ("Ascendant", "House 1"), ("Descendant", "House 7"),
+        ("Midheaven", "House 10"), ("Imum Coeli", "House 4"),
+    ]
+    for a, b in same_point:
+        pairs.add(("Conjunction", frozenset({a, b})))
+    # Oppositions: always exactly 180° apart by construction — the
+    # Asc/Dsc axis, the MC/IC axis (by name or by equivalent house
+    # cusp), the Vertex/Anti-Vertex axis, the Node axis, and every pair
+    # of houses 6 apart (opposite house cusps are always exactly 180°
+    # apart in any house system).
+    always_opposite = [
+        ("Ascendant", "Descendant"), ("Ascendant", "House 7"),
+        ("House 1", "Descendant"), ("House 1", "House 7"),
+        ("Midheaven", "Imum Coeli"), ("Midheaven", "House 4"),
+        ("House 10", "Imum Coeli"), ("House 10", "House 4"),
+        ("Vertex", "Anti-Vertex"), ("North Node", "South Node"),
+    ]
+    for a, b in always_opposite:
+        pairs.add(("Opposition", frozenset({a, b})))
+    for n in range(1, 7):
+        pairs.add(("Opposition", frozenset({f"House {n}", f"House {n + 6}"})))
+    return pairs
+
+
+TAUTOLOGICAL_ASPECT_PAIRS = _build_tautological_pairs()
+
+
+def _is_tautological(aspect_name: str, name1: str, name2: str) -> bool:
+    return (aspect_name, frozenset({name1, name2})) in TAUTOLOGICAL_ASPECT_PAIRS
+
+
 def compute_aspects(
     chart: dict[str, ChartPoint],
     include_points: list[str] | None = None,
@@ -151,6 +195,10 @@ def compute_aspects(
             separating. Without this, `applying` is left as None.
 
     Returns aspects sorted by tightness (strongest/most exact first).
+    Excludes mathematically tautological relationships (e.g. Ascendant
+    conjunct House 1, or Ascendant opposite Descendant) — these are
+    guaranteed by how angles and houses are defined, not genuine
+    findings from this chart's specific data.
     """
     categories = categories or ["major", "minor"]
     names = list(chart.keys())
@@ -171,6 +219,9 @@ def compute_aspects(
             max_orb = _effective_orb(aspect_def, name1, name2)
             orb = abs(sep - aspect_def.angle)
             if orb <= max_orb:
+                if _is_tautological(aspect_def.name, name1, name2):
+                    break  # skip — not a genuine finding, don't fall
+                           # through to a looser aspect definition either
                 applying = _determine_applying(
                     p1.longitude, p2.longitude, name1, name2, speeds
                 )
