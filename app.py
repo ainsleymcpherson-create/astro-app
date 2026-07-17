@@ -365,7 +365,10 @@ def aspects_to_dataframe(aspects):
             "Motion": motion,
             "Nature": a.nature,
         })
-    return pd.DataFrame(rows)
+    df = pd.DataFrame(rows)
+    if not df.empty:
+        df = df.sort_values("Point 1", kind="stable").reset_index(drop=True)
+    return df
 
 
 def synastry_aspects_to_dataframe(synastry_aspects):
@@ -378,7 +381,10 @@ def synastry_aspects_to_dataframe(synastry_aspects):
             "Orb": f"{a.orb:.2f}°",
             "Nature": a.nature,
         })
-    return pd.DataFrame(rows)
+    df = pd.DataFrame(rows)
+    if not df.empty:
+        df = df.sort_values("Person A's Point", kind="stable").reset_index(drop=True)
+    return df
 
 
 def dignities_to_dataframe(dignities):
