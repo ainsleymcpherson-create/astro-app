@@ -1174,20 +1174,18 @@ def build_synastry_data_block(
     dignities_b: dict[str, DignityResult],
     min_tightness: float = 1.0,
 ) -> str:
+    # Note: house overlay data (whose planets fall in whose houses) is
+    # intentionally NOT included here — it's exactly the kind of
+    # mechanical astrology detail ("Person A's Mars falls in Person B's
+    # 10th house") that reads as astrology-plumbing rather than business
+    # insight. The raw overlay data still exists and is shown separately
+    # in the app's Houses tab for anyone who wants to see it directly.
     return "\n\n".join([
         format_synastry_points_section(synastry_result["filtered_chart_a"], "A"),
         format_synastry_points_section(synastry_result["filtered_chart_b"], "B"),
         "PERSON A'S DIGNITY:\n" + format_dignity_section(dignities_a),
         "PERSON B'S DIGNITY:\n" + format_dignity_section(dignities_b),
         format_synastry_aspects_section(synastry_result["aspects"], min_tightness=min_tightness),
-        format_house_overlay_section(
-            synastry_result["overlay_a_in_b"],
-            "HOUSE OVERLAY: PERSON A'S PLANETS IN PERSON B'S HOUSES",
-        ),
-        format_house_overlay_section(
-            synastry_result["overlay_b_in_a"],
-            "HOUSE OVERLAY: PERSON B'S PLANETS IN PERSON A'S HOUSES",
-        ),
     ])
 
 
@@ -1213,15 +1211,9 @@ BIRTH TIME STATUS: {birth_time_status} This affects what's reliable:
   Descendant, Imum Coeli, houses, Vertex, and Arabic Parts (Part of
   Fortune/Spirit) — all require an exact time. Their planets, Chiron,
   and Lunar Nodes remain fully reliable regardless.
-- Cross-chart PLANET-to-PLANET aspects stay reliable even if one or
-  both times are unknown — these depend only on planetary position.
-- HOUSE OVERLAYS (whose planets fall in whose houses) only work in a
-  direction where the HOUSE-OWNING person's time is known. If Person
-  A's time is unknown, skip Person B's planets landing in Person A's
-  houses — but Person A's planets in Person B's houses (if Person B's
-  time IS known) still works fine. One-directional limits don't mean
-  dropping overlay analysis entirely.
-- If BOTH times are unknown, skip house overlays in both directions.
+- Cross-chart PLANET-to-PLANET aspects — the actual basis for this
+  reading — stay fully reliable even if one or both times are unknown,
+  since these depend only on planetary position, not time-of-day.
 - Note any of this briefly and matter-of-factly in the Overview — not
   as an apology, just accurate scope-setting.
 {naming_note}
@@ -1229,16 +1221,18 @@ Work-relevant signal concentrates in: Sun-Saturn contacts (respect,
 authority, whether one person feels supported or constrained by the
 other), Mercury contacts (communication), Mars-Mars and Mars-Saturn
 contacts (how conflict and assertion get handled), Saturn-Saturn
-contacts (shared or clashing standards), planets landing in the
-other's 10th house (authority) or 6th house (daily work), and Jupiter
-contacts (mutual growth). Weight these more heavily — but don't ignore
-anything else that genuinely bears on working together.
+contacts (shared or clashing standards), and Jupiter contacts (mutual
+growth). Weight these more heavily — but don't ignore anything else
+that genuinely bears on working together.
 
 Structure your answer as follows:
 
 First, a general overview of the working dynamic — a short,
 plain-language orientation before the detail, written as a few
-flowing paragraphs (not chunked or bulleted). Head it "## Overview".
+flowing paragraphs (not chunked or bulleted). Do not include anything
+related to astrology here — format it as an overview of these two
+people and a summary of what follows, purely from a professional and
+working perspective. Head it "## Overview".
 
 Then, exactly these three sections, each a markdown H2 heading exactly
 as written (the app relies on this exact format for a collapsible view):
@@ -1246,17 +1240,15 @@ as written (the app relies on this exact format for a collapsible view):
 ## How To Work Together Effectively
 The practical mechanics of collaborating: pace, structure, how
 decisions get made, how work gets divided, how deadlines get handled.
-Draw on 6th-house overlays where available, Mars/Mercury/Saturn
-cross-contacts, and dignity. This answers "how do I actually work with
-this person day to day?"
+Draw on Mars/Mercury/Saturn cross-contacts and dignity. This answers
+"how do I actually work with this person day to day?"
 
 ## Being an Effective Colleague to Each Other
 Mutual and bidirectional: what does Person A need from Person B to feel
 respected and supported, and what does Person B need from Person A?
-Cover communication style, authority/respect dynamics (Saturn contacts,
-10th-house overlays where available), and what genuinely brings out
-the best in each other (supportive aspects, Jupiter contacts). Answer
-this for BOTH directions, not just one.
+Cover communication style, authority/respect dynamics (Saturn contacts),
+and what genuinely brings out the best in each other (supportive
+aspects, Jupiter contacts). Answer this for BOTH directions, not just one.
 
 ## Professional Watch Areas
 Honest, concrete friction points — hard aspects (Mars/Saturn/Sun
@@ -1272,24 +1264,46 @@ Head it "## Conclusion" — REQUIRED, not optional.
 General guidelines:
 - OVERVIEW AND CONCLUSION: plain flowing prose only — no chunking, no
 bolded sub-labels, no bullets.
+- TONE AND LANGUAGE IN THE OVERVIEW, CONCLUSION, AND EVERY "WORKING
+IMPLICATIONS" BLOCK (this does NOT apply to "Astrological Basis"
+sections, which intentionally do contain astrology — see below): do
+not include astrological descriptions here at all. Keep this content
+to what you've determined from the reading, stated in plain business
+terms. Use the astrology to arrive at your interpretation, but don't
+surface the astrology itself anywhere outside the dedicated
+Astrological Basis sections.
 - EACH OF THE THREE SECTIONS: open with 1-2 plain-language sentences
 summarizing the takeaway. Then a two-part chunked structure, IN ORDER:
-    **Working Implications:** FIRST, 2-4 short chunks with bolded
-    sub-labels. You MAY name the 10 planets and zodiac signs plainly
-    (e.g. "Person A's Mars is in Libra"). You may NOT use: aspect
-    names/verbs (trine, square, conjunct, sextile, opposition), angle
-    names (Midheaven, Ascendant, Descendant, Imum Coeli), dignity terms
-    (Exaltation, Detriment, Rulership, Peregrine), house numbers, or
-    pattern names (Grand Trine, T-Square, Yod). A sentence like "Person
-    A's Mars is square Person B's Saturn" is WRONG here — write "Person
-    A tends to push forward quickly, which can rub against Person B's
-    need for structure" instead. Always name WHICH person — never leave
-    it ambiguous.
-    **Astrological Basis:** SECOND, 2-4 short chunks, technical terms
-    now allowed with brief plain glosses. Label which person each
-    placement belongs to.
+    **Working Implications:** FIRST, and this is the MAIN CONTENT of
+    the reading — 3-5 substantive chunks with bolded sub-labels. This
+    should read like a business consultant's actual analysis, not a
+    brief summary: give concrete workplace scenarios (how a specific
+    meeting might go, how a project handoff plays out, what a
+    disagreement actually looks like between these two), practical
+    advice either person could act on, and specific detail grounded in
+    what's actually different or notable about these two people. Go
+    deep here rather than moving quickly to the next section. You MAY
+    name the 10 planets and zodiac signs plainly (e.g. "Person A's Mars
+    is in Libra"). You may NOT use: aspect names/verbs (trine, square,
+    conjunct, sextile, opposition), angle names (Midheaven, Ascendant,
+    Descendant, Imum Coeli), dignity terms (Exaltation, Detriment,
+    Rulership, Peregrine), house numbers, or pattern names (Grand
+    Trine, T-Square, Yod). A sentence like "Person A's Mars is square
+    Person B's Saturn" is WRONG here — write "Person A tends to push
+    forward quickly, which can rub against Person B's need for
+    structure" instead. Always name WHICH person — never leave it
+    ambiguous.
+    **Astrological Basis:** SECOND, and this is supporting evidence
+    ONLY — keep it brief and minimal, 1-2 short chunks, just enough for
+    a curious reader to see where the claim came from. This is NOT the
+    place to elaborate further — all the actual depth and insight
+    belongs in Working Implications above. Technical terms are allowed
+    here with brief plain glosses. Label which person each placement
+    belongs to.
   Group all plain-language content first, then all supporting astrology
-  — never alternate line by line.
+  — never alternate line by line. The reading as a whole should feel
+  like a business document that happens to cite astrology as its
+  method, not an astrology reading that happens to mention business.
 - DIGNITY IS REAL WEIGHTING for both charts.
 - SYNASTRY CONTACTS ARE MUTUAL: a contact between Person A's Saturn and
 Person B's Sun affects both people, even if experienced differently —
