@@ -67,6 +67,57 @@ def _order_points_from_ascendant(chart: dict, asc_lon: float) -> list:
     return available
 
 
+def get_table_rows(chart: dict) -> list[dict]:
+    """
+    Plain-data companion to build_chart_data_table_html() — same point
+    ordering and content, but as a list of dicts (Sign, Point, House)
+    instead of HTML, for CSV export. Unlike the HTML table, this
+    doesn't merge repeated signs/houses into banded cells — each row
+    lists its own sign and house directly, which is the more useful
+    and natural shape for a spreadsheet.
+    """
+    if "Ascendant" not in chart:
+        return []
+    asc_lon = chart["Ascendant"].longitude
+    ordered = _order_points_from_ascendant(chart, asc_lon)
+    return [
+        {
+            "Sign": point.sign,
+            "Point": name,
+            "House": point.house if point.house is not None else "",
+        }
+        for name, point in ordered
+    ]
+
+
+def get_synastry_table_rows(chart_a: dict, chart_b: dict) -> list[dict]:
+    """Plain-data companion to build_synastry_data_table_html() — same
+    merged ordering, as a list of dicts for CSV export."""
+    if "Ascendant" in chart_a:
+        anchor_chart = chart_a
+    elif "Ascendant" in chart_b:
+        anchor_chart = chart_b
+    else:
+        return []
+    asc_lon = anchor_chart["Ascendant"].longitude
+
+    combined = (
+        [(name, point, "A") for name, point in _order_points_from_ascendant(chart_a, asc_lon)] +
+        [(name, point, "B") for name, point in _order_points_from_ascendant(chart_b, asc_lon)]
+    )
+    combined.sort(key=lambda item: (item[1].longitude - asc_lon) % 360)
+
+    return [
+        {
+            "Sign": point.sign,
+            "Person": who,
+            "Point": name,
+            "House (own chart)": point.house if point.house is not None else "",
+        }
+        for name, point, who in combined
+    ]
+
+
 def build_chart_data_table_html(chart: dict) -> str:
     """
     Builds the vertical banded data table in the reference image's
