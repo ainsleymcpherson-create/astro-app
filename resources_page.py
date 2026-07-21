@@ -11,6 +11,15 @@ Streamlit multi-page app).
 
 import streamlit as st
 
+# Same targeted, safe re-touch as readings_page.py — only the plain
+# application state keys ("results", "processing"), never a blanket
+# loop over all session state, which crashes on widget-owned keys.
+# Guarded with "if in session_state" so this is a harmless no-op if
+# no chart has been computed yet.
+for _safe_key in ("results", "processing"):
+    if _safe_key in st.session_state:
+        st.session_state[_safe_key] = st.session_state[_safe_key]
+
 SIGN_INFO = {
     "Aries": (
         "Fire, Cardinal, ruled by Mars",
@@ -561,12 +570,57 @@ ASPECT_INFO = [
      "rather than a general strength or tension."),
 ]
 
+PATTERN_INFO = [
+    ("Grand Trine",
+     "Three points, each trine (120°) the other two — a closed triangle "
+     "of flowing, harmonious connections. A Grand Trine represents real, "
+     "natural ease across three different areas of life at once, though "
+     "that same ease can mean the talent involved goes underused — with "
+     "nothing forcing friction, there's nothing forcing development "
+     "either. Often described as a gift that still benefits from "
+     "deliberate effort to actually put to work."),
+    ("T-Square",
+     "Two points in direct opposition, both square to a third 'apex' "
+     "point that catches the tension from both sides. The apex point "
+     "usually ends up as the pressure-release valve for the whole "
+     "pattern — the place where the underlying conflict actually gets "
+     "expressed or worked out. T-Squares are genuinely demanding "
+     "configurations, but the drive and motivation they produce is real "
+     "and often becomes a person's most defining trait once channeled "
+     "constructively."),
+    ("Grand Cross",
+     "Two full oppositions at right angles to each other, forming four "
+     "square 'legs' between four distinct points — effectively two "
+     "T-Squares locked together. This is one of the most demanding "
+     "patterns a chart can have: tension comes from every direction at "
+     "once, with no easy release point the way a single T-Square has "
+     "one apex. It tends to produce real resilience and an unusually "
+     "strong capacity to handle pressure, precisely because there's no "
+     "way to avoid it."),
+    ("Yod",
+     "Two points sextile each other, both quincunx (150°) a third apex "
+     "point — sometimes called the 'Finger of Fate' or 'Finger of God.' "
+     "The quincunx angle doesn't correspond to any clean geometric "
+     "division, which gives a Yod a distinctly awkward, hard-to-pin-down "
+     "quality — often experienced as a specific, unusual sense of "
+     "purpose or destiny that doesn't resolve through ordinary effort, "
+     "but through an ongoing, conscious adjustment between the two "
+     "base points and the apex."),
+    ("Stellium",
+     "Three or more points clustered closely together — in this app, "
+     "within about 8° of actual proximity, which usually but not always "
+     "means the same sign. A stellium concentrates a huge amount of "
+     "chart emphasis into one area, making that sign (and whichever "
+     "house it falls in) a genuinely dominant theme in the whole chart, "
+     "often to the point of overshadowing everything else."),
+]
+
 st.title("📚 Resources")
 st.caption("A reference glossary for the signs, planets/points, and "
            "houses used throughout your readings.")
 
-tab_signs, tab_points, tab_houses, tab_dignity, tab_aspects = st.tabs(
-    ["Signs", "Planets & Points", "Houses", "Dignity", "Aspects"]
+tab_signs, tab_points, tab_houses, tab_dignity, tab_aspects, tab_patterns = st.tabs(
+    ["Signs", "Planets & Points", "Houses", "Dignity", "Aspects", "Patterns"]
 )
 
 with tab_signs:
@@ -636,5 +690,22 @@ with tab_aspects:
         if category != "minor":
             continue
         st.markdown(f"**{name}** — {angle} apart, {orb} orb *({nature})*")
+        st.write(description)
+        st.divider()
+
+with tab_patterns:
+    st.write(
+        "A pattern is a specific, named shape formed when multiple "
+        "aspects connect three or more points at once — a structure "
+        "that carries its own meaning beyond just the individual "
+        "aspects that make it up. This app checks for five recognized "
+        "patterns; if a chart doesn't contain any of these exact "
+        "geometric shapes, that's genuinely common and not a gap in "
+        "the reading — most charts have zero or one, and having "
+        "several is comparatively rare."
+    )
+    st.divider()
+    for name, description in PATTERN_INFO:
+        st.subheader(name)
         st.write(description)
         st.divider()
