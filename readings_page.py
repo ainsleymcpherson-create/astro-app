@@ -93,9 +93,7 @@ def get_api_key():
 
 
 st.title("🔭 Tenth House Readings")
-st.caption("Computes birth charts with full support for Part of Fortune, "
-           "Nodes, Vertex, Chiron, dignity, and house-ruler interpretation "
-           "of empty houses — not just the standard 10 planets.")
+st.caption("Computes birth charts with full support for lesser-known chart influences and a focus on career and life path ")
 
 COFFEE_URL = "https://buymeacoffee.com/tenthhousereadings"
 
