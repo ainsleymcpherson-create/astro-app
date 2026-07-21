@@ -57,20 +57,6 @@ from chart_wheel import (
     get_table_rows, get_synastry_table_rows,
 )
 
-# --- Session state persistence safeguard ---
-# Streamlit's own docs say session state "persists across apps inside a
-# multipage app," but there are real, sometimes still-open reports of
-# state loss specifically during page switches via st.navigation/
-# st.switch_page (see streamlit/streamlit#5689 and #11115). Re-touching
-# every existing key on each run is the standard, low-risk workaround —
-# it forces Streamlit to resend the current value to the frontend rather
-# than risk it silently reverting on the next page visit. This is what
-# keeps a computed chart (st.session_state.results) intact when you
-# navigate to Resources and back, rather than losing it.
-for _k in list(st.session_state.keys()):
-    st.session_state[_k] = st.session_state[_k]
-
-
 # --- Optional: live Claude interpretation ---
 # Requires: pip install anthropic (already in requirements.txt)
 # Requires an ANTHROPIC_API_KEY available either as:
