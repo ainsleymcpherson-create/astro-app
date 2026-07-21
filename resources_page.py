@@ -449,11 +449,125 @@ HOUSE_INFO = {
     ),
 }
 
+DIGNITY_INFO = [
+    ("Rulership (Domicile)", "+5",
+     "A planet is in Rulership when it sits in the sign it governs — "
+     "Mars in Aries, Venus in Taurus, and so on. This is the strongest "
+     "essential dignity: the planet is most 'at home,' expressing its "
+     "core nature directly and without friction. Modern astrology "
+     "layers additional co-rulers onto three signs alongside their "
+     "traditional ruler — Pluto co-rules Scorpio (traditionally Mars), "
+     "Uranus co-rules Aquarius (traditionally Saturn), and Neptune "
+     "co-rules Pisces (traditionally Jupiter). This app checks both "
+     "the traditional and modern ruler for those three signs."),
+    ("Exaltation", "+4",
+     "A planet is Exalted in a sign where its qualities are especially "
+     "amplified or honored — a placement of distinction, even if it's "
+     "not the planet's own sign. The Sun is exalted in Aries, the Moon "
+     "in Taurus, Jupiter in Cancer, Mercury in Virgo, Saturn in Libra, "
+     "Mars in Capricorn, and Venus in Pisces. Not every planet has a "
+     "traditionally recognized exaltation sign — Uranus, Neptune, and "
+     "Pluto don't have one in this system, since exaltation is an "
+     "older technique that predates their discovery."),
+    ("Peregrine", "0",
+     "A planet is Peregrine when it has no essential dignity at all in "
+     "its current sign — not ruling, not exalted, not in detriment, "
+     "not in fall. This is genuinely neutral territory: the planet "
+     "isn't specially strengthened or weakened by sign placement, so "
+     "its expression depends more on aspects, house placement, and the "
+     "rest of the chart than on the sign itself."),
+    ("Fall", "-4",
+     "A planet is in Fall in the sign directly opposite its "
+     "exaltation — the most uncomfortable placement in this system, "
+     "even more awkward than Detriment in some traditions. The Sun "
+     "falls in Libra, the Moon in Scorpio, Jupiter in Capricorn, "
+     "Mercury in Pisces, Saturn in Aries, Mars in Cancer, and Venus in "
+     "Virgo. A planet in Fall doesn't lose its underlying meaning — it "
+     "just tends to express that meaning with real difficulty or "
+     "self-doubt until it's consciously worked with."),
+    ("Detriment", "-5",
+     "A planet is in Detriment in the sign directly opposite the one "
+     "it rules — real friction with its natural mode of expression. "
+     "Mars in Libra, Venus in Aries, and so on. This doesn't mean the "
+     "planet is 'bad' there, just that its usual way of operating "
+     "doesn't fit naturally with that sign's energy, so it often has "
+     "to work harder or find an unconventional approach to express "
+     "itself well."),
+]
+
+ASPECT_INFO = [
+    ("Conjunction", "0°", "8°", "major", "blended/intensified",
+     "The tightest possible aspect — two points sitting essentially on "
+     "top of each other. Their energies blend and intensify rather "
+     "than interact from a distance, which makes a conjunction feel "
+     "less like a 'relationship' between two planets and more like a "
+     "fusion of them. Whether that reads as a strength or a strain "
+     "depends heavily on which two points are involved and their "
+     "individual dignity."),
+    ("Sextile", "60°", "4°", "major", "easy/opportunity",
+     "A supportive, easygoing angle — the two points work well "
+     "together, but the aspect doesn't force anything to happen on its "
+     "own. A sextile represents a genuine opportunity or natural "
+     "talent that still needs to be actively used to matter; it's "
+     "helpful potential rather than automatic ease."),
+    ("Square", "90°", "7°", "major", "tension/friction",
+     "One of the two classic 'hard' aspects — real, active tension "
+     "between the two points that demands attention and resolution "
+     "rather than sitting quietly in the background. Squares are "
+     "often where the most genuine growth happens, precisely because "
+     "they can't easily be ignored the way an easier aspect can."),
+    ("Trine", "120°", "7°", "major", "flowing/harmonious",
+     "The most naturally harmonious major aspect — the two points "
+     "support each other with real ease, often to the point that the "
+     "talent or strength involved is taken for granted rather than "
+     "deliberately developed. Because a trine doesn't create friction, "
+     "it can sometimes represent an underused gift rather than an "
+     "active one."),
+    ("Opposition", "180°", "8°", "major", "polarity/awareness",
+     "Two points facing each other directly across the chart — real "
+     "tension, but of a different flavor than a square. Where a "
+     "square creates friction that demands action, an opposition "
+     "creates awareness of two competing needs that usually require "
+     "genuine balancing rather than a clean resolution."),
+    ("Semisextile", "30°", "2°", "minor", "mild friction",
+     "A subtle, minor connection between two points that are "
+     "adjacent but not directly related — a little awkward, a little "
+     "unfamiliar, but rarely a major factor on its own. Semisextiles "
+     "tend to matter more as part of a larger pattern than as a "
+     "standalone influence."),
+    ("Semisquare", "45°", "2°", "minor", "low-grade tension",
+     "A minor 'hard' aspect — a lower-intensity cousin of the square, "
+     "producing real but manageable friction rather than a major "
+     "demand for resolution. Often shows up as a persistent minor "
+     "irritant rather than a dramatic conflict."),
+    ("Sesquiquadrate", "135°", "2°", "minor", "low-grade tension",
+     "Another minor hard aspect, similar in flavor to the semisquare "
+     "but at a different angle. Represents a background source of "
+     "friction that tends to build up gradually rather than announce "
+     "itself all at once."),
+    ("Quincunx", "150°", "3°", "minor", "adjustment/awkward fit",
+     "A genuinely awkward angle — the two points involved have very "
+     "little natural relationship to each other, since 150° doesn't "
+     "correspond to any clean geometric division of the circle the "
+     "way the major aspects do. Quincunxes often require ongoing, "
+     "conscious adjustment rather than ever fully resolving, since "
+     "the two areas of life involved just don't naturally speak the "
+     "same language."),
+    ("Quintile", "72°", "2°", "minor", "creative/talent",
+     "A minor aspect tied to creativity and individual talent — based "
+     "on dividing the circle by five rather than the more common "
+     "divisions behind the major aspects. Quintiles are traditionally "
+     "read as a specific, sometimes unusual skill or creative gift "
+     "rather than a general strength or tension."),
+]
+
 st.title("📚 Resources")
 st.caption("A reference glossary for the signs, planets/points, and "
            "houses used throughout your readings.")
 
-tab_signs, tab_points, tab_houses = st.tabs(["Signs", "Planets & Points", "Houses"])
+tab_signs, tab_points, tab_houses, tab_dignity, tab_aspects = st.tabs(
+    ["Signs", "Planets & Points", "Houses", "Dignity", "Aspects"]
+)
 
 with tab_signs:
     for sign, (essentials, description) in SIGN_INFO.items():
@@ -471,5 +585,56 @@ with tab_points:
 with tab_houses:
     for house_num, (theme, description) in HOUSE_INFO.items():
         st.subheader(f"House {house_num} — {theme}")
+        st.write(description)
+        st.divider()
+
+with tab_dignity:
+    st.write(
+        "Essential dignity describes how 'at home' or 'out of place' a "
+        "planet is, based purely on which sign it occupies — one of the "
+        "oldest techniques in astrology, predating modern psychological "
+        "approaches by centuries. It's a natural companion to aspects: "
+        "a hard aspect from a well-dignified planet tends to play out "
+        "very differently than the same aspect from a debilitated one, "
+        "which is why every reading in this app weights dignity "
+        "alongside sign, house, and aspect data rather than treating "
+        "sign placement alone as the full picture."
+    )
+    st.divider()
+    for name, score, description in DIGNITY_INFO:
+        st.subheader(name)
+        st.caption(f"Score: {score}")
+        st.write(description)
+        st.divider()
+
+with tab_aspects:
+    st.write(
+        "An aspect is a meaningful angular relationship between two "
+        "points in a chart — how far apart they sit on the 360° "
+        "wheel. Each aspect type corresponds to a specific angle, and "
+        "each carries its own character, from the intensity of a "
+        "conjunction (0° apart) to the tension of a square (90° apart) "
+        "to the ease of a trine (120° apart). An 'orb' is the margin "
+        "of error allowed around that exact angle — a Sun-Moon square "
+        "doesn't need to be exactly 90.00° apart to count, just within "
+        "the configured orb. Major aspects use wider orbs and carry "
+        "more weight; minor aspects use tighter orbs and represent "
+        "more subtle, specific influences."
+    )
+    st.divider()
+    st.subheader("Major Aspects")
+    st.caption("Wider orbs, generally the most significant influences in a chart.")
+    for name, angle, orb, category, nature, description in ASPECT_INFO:
+        if category != "major":
+            continue
+        st.markdown(f"**{name}** — {angle} apart, {orb} orb *({nature})*")
+        st.write(description)
+        st.divider()
+    st.subheader("Minor Aspects")
+    st.caption("Tighter orbs, more subtle or specific than the major aspects.")
+    for name, angle, orb, category, nature, description in ASPECT_INFO:
+        if category != "minor":
+            continue
+        st.markdown(f"**{name}** — {angle} apart, {orb} orb *({nature})*")
         st.write(description)
         st.divider()
