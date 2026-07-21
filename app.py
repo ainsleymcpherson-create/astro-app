@@ -54,6 +54,7 @@ from birth_input import resolve_birth_data
 from chart_wheel import (
     draw_chart_wheel, draw_bi_wheel,
     build_chart_data_table_html, build_synastry_data_table_html,
+    get_table_rows, get_synastry_table_rows,
 )
 
 # --- Optional: live Claude interpretation ---
@@ -937,18 +938,30 @@ if st.session_state.get("results"):
             )
             show_wheel_with_download(fig_bi, "synastry")
             st.markdown(build_synastry_data_table_html(r["chart"], r["chart_b"]), unsafe_allow_html=True)
+            synastry_table_df = pd.DataFrame(get_synastry_table_rows(r["chart"], r["chart_b"]))
+            dataframe_download_and_copy(
+                synastry_table_df, f"synastry_table_{r['birth_date'].isoformat()}.csv", "synastry_table"
+            )
 
             st.divider()
             st.subheader(f"{label_a}'s Chart")
             fig_a = draw_chart_wheel(r["chart"], r["aspects"], min_aspect_tightness=0.6)
             show_wheel_with_download(fig_a, "person_a")
             st.markdown(build_chart_data_table_html(r["chart"]), unsafe_allow_html=True)
+            table_df_a = pd.DataFrame(get_table_rows(r["chart"]))
+            dataframe_download_and_copy(
+                table_df_a, f"table_a_{r['birth_date'].isoformat()}.csv", "table_a"
+            )
 
             st.divider()
             st.subheader(f"{label_b}'s Chart")
             fig_b = draw_chart_wheel(r["chart_b"], r["aspects_b"], min_aspect_tightness=0.6)
             show_wheel_with_download(fig_b, "person_b")
             st.markdown(build_chart_data_table_html(r["chart_b"]), unsafe_allow_html=True)
+            table_df_b = pd.DataFrame(get_table_rows(r["chart_b"]))
+            dataframe_download_and_copy(
+                table_df_b, f"table_b_{r['birth_date'].isoformat()}.csv", "table_b"
+            )
         else:
             st.write("The classic circular chart wheel — zodiac ring, house divisions "
                      "(drawn from the actual computed cusps, not evenly spaced), the "
@@ -956,6 +969,10 @@ if st.session_state.get("results"):
             fig = draw_chart_wheel(r["chart"], r["aspects"], min_aspect_tightness=0.6)
             show_wheel_with_download(fig, "chart")
             st.markdown(build_chart_data_table_html(r["chart"]), unsafe_allow_html=True)
+            table_df = pd.DataFrame(get_table_rows(r["chart"]))
+            dataframe_download_and_copy(
+                table_df, f"table_{r['birth_date'].isoformat()}.csv", "table"
+            )
 
     with tabs[3]:
         if r["reading_type"] == "Professional Synastry":
