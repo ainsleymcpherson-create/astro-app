@@ -11,6 +11,13 @@ Streamlit multi-page app).
 
 import streamlit as st
 
+# Standard workaround for Streamlit's known session-state-loss-on-page-
+# switch issue (streamlit/streamlit#5689, #11115) — re-touching every
+# existing key forces it to be properly preserved across page visits,
+# protecting things like the computed chart on the Readings page.
+for _k in list(st.session_state.keys()):
+    st.session_state[_k] = st.session_state[_k]
+
 SIGN_INFO = {
     "Aries": (
         "Fire, Cardinal, ruled by Mars",
