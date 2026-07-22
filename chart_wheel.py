@@ -199,12 +199,12 @@ def build_chart_data_table_html(chart: dict) -> str:
             sign_td = (
                 f'<td rowspan="{sign_rowspan}" style="background:#1c1c1c;color:#eee;'
                 f'padding:14px 20px;border:1px solid #333;font-size:15px;'
-                f'vertical-align:middle;">{point.sign}</td>'
+                f'vertical-align:middle;width:140px;">{point.sign}</td>'
             )
             desc_td = (
                 f'<td rowspan="{sign_rowspan}" style="background:#161616;color:#aaa;'
                 f'padding:14px 16px;border:1px solid #333;font-size:12px;'
-                f'font-style:italic;vertical-align:middle;max-width:220px;">'
+                f'font-style:italic;vertical-align:middle;width:140px;">'
                 f'{SIGN_ONE_LINE.get(point.sign, "")}</td>'
             )
         else:
@@ -317,12 +317,12 @@ def build_synastry_data_table_html(chart_a: dict, chart_b: dict) -> str:
             sign_td = (
                 f'<td rowspan="{sign_rowspan}" style="background:#1c1c1c;color:#eee;'
                 f'padding:14px 20px;border:1px solid #333;font-size:15px;'
-                f'vertical-align:middle;">{point.sign}</td>'
+                f'vertical-align:middle;width:140px;">{point.sign}</td>'
             )
             desc_td = (
                 f'<td rowspan="{sign_rowspan}" style="background:#161616;color:#aaa;'
                 f'padding:14px 16px;border:1px solid #333;font-size:12px;'
-                f'font-style:italic;vertical-align:middle;max-width:220px;">'
+                f'font-style:italic;vertical-align:middle;width:140px;">'
                 f'{SIGN_ONE_LINE.get(point.sign, "")}</td>'
             )
         else:
