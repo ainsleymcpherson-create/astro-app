@@ -1597,5 +1597,3 @@ def build_relationship_synastry_prompt(
         naming_note=naming_note,
         data_block=data_block,
     )
-
-
