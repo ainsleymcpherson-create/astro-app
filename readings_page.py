@@ -37,7 +37,7 @@ EPHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ephe")
 swe.set_ephe_path(EPHE_PATH)
 
 from chart_points import compute_full_chart, extract_speeds
-from aspect_engine import compute_aspects, find_all_patterns
+from aspect_engine import compute_aspects, find_all_patterns, ASPECT_BY_NAME
 from dignity import compute_chart_dignities
 from house_interpretation import build_house_readings
 from transit_engine import compute_transiting_points, assign_transit_houses, compute_transit_aspects
@@ -374,15 +374,21 @@ def points_to_dataframe(chart):
     return pd.DataFrame(rows)
 
 
-def aspects_to_dataframe(aspects):
+def aspects_to_dataframe(aspects, chart, category=None):
     rows = []
     for a in aspects:
+        if category is not None:
+            aspect_def = ASPECT_BY_NAME.get(a.aspect_name)
+            if aspect_def is None or aspect_def.category != category:
+                continue
         motion = ""
         if a.applying is True:
             motion = "applying"
         elif a.applying is False:
             motion = "separating"
+        house = chart[a.point1].house if a.point1 in chart else None
         rows.append({
+            "House": house if house is not None else "",
             "Point 1": a.point1,
             "Aspect": a.aspect_name,
             "Point 2": a.point2,
@@ -392,14 +398,23 @@ def aspects_to_dataframe(aspects):
         })
     df = pd.DataFrame(rows)
     if not df.empty:
-        df = df.sort_values("Point 1", kind="stable").reset_index(drop=True)
+        # Sort by House ascending (points with no house, like angles,
+        # sort to the end via a large placeholder), then Point 1.
+        df["_house_sort"] = df["House"].apply(lambda h: h if h != "" else 999)
+        df = df.sort_values(["_house_sort", "Point 1"], kind="stable").drop(columns="_house_sort").reset_index(drop=True)
     return df
 
 
-def synastry_aspects_to_dataframe(synastry_aspects):
+def synastry_aspects_to_dataframe(synastry_aspects, chart_a, category=None):
     rows = []
     for a in synastry_aspects:
+        if category is not None:
+            aspect_def = ASPECT_BY_NAME.get(a.aspect_name)
+            if aspect_def is None or aspect_def.category != category:
+                continue
+        house = chart_a[a.person_a_point].house if a.person_a_point in chart_a else None
         rows.append({
+            "House": house if house is not None else "",
             "Person A's Point": a.person_a_point,
             "Aspect": a.aspect_name,
             "Person B's Point": a.person_b_point,
@@ -408,8 +423,35 @@ def synastry_aspects_to_dataframe(synastry_aspects):
         })
     df = pd.DataFrame(rows)
     if not df.empty:
-        df = df.sort_values("Person A's Point", kind="stable").reset_index(drop=True)
+        df["_house_sort"] = df["House"].apply(lambda h: h if h != "" else 999)
+        df = df.sort_values(["_house_sort", "Person A's Point"], kind="stable").drop(columns="_house_sort").reset_index(drop=True)
     return df
+
+
+def patterns_to_dataframe(patterns):
+    rows = []
+    for kind, plist in patterns.items():
+        label = kind.replace("_", " ").title()
+        for p in plist:
+            rows.append({
+                "Pattern Type": label,
+                "Points Involved": ", ".join(p.points),
+            })
+    return pd.DataFrame(rows)
+
+
+DIGNITY_DESCRIPTIONS = {
+    "Rulership": "The planet is in the sign it governs — most 'at home,' "
+                 "expressing its core nature directly and without friction.",
+    "Exaltation": "The planet's qualities are especially amplified or "
+                  "honored here — a placement of distinction.",
+    "Peregrine": "No essential dignity in this sign — neutral. Not "
+                 "specially strengthened or weakened by sign placement.",
+    "Fall": "The sign directly opposite the planet's exaltation — tends "
+            "to express its meaning with real difficulty or self-doubt.",
+    "Detriment": "The sign directly opposite the one the planet rules — "
+                 "real friction with its natural mode of expression.",
+}
 
 
 def dignities_to_dataframe(dignities):
@@ -420,6 +462,7 @@ def dignities_to_dataframe(dignities):
             "Sign": d.sign,
             "Status": d.status,
             "Score": d.score,
+            "Description": DIGNITY_DESCRIPTIONS.get(d.status, ""),
         })
     return pd.DataFrame(rows)
 
@@ -1035,57 +1078,71 @@ if st.session_state.get("results"):
             dataframe_download_and_copy(points_df, f"points_{r['birth_date'].isoformat()}.csv", "points")
 
     with tabs[4]:
-        if r["reading_type"] in SYNASTRY_READING_TYPES:
-            st.write("**Cross-chart aspects** — Person A's point to Person B's point. "
-                     "This is the actual synastry data the reading is built from.")
-            synastry_aspects_df = synastry_aspects_to_dataframe(r["synastry_result"]["aspects"])
-            st.dataframe(synastry_aspects_df, use_container_width=True, hide_index=True)
+        def show_split_aspects_table(df_builder, filename_prefix, key_prefix):
+            """Renders Major and Minor aspect tables as two separate,
+            clearly labeled sections, using the same df_builder function
+            (called once per category) so this works for both the
+            single-chart and synastry aspect formatters."""
+            st.subheader("Major Aspects")
+            major_df = df_builder(category="major")
+            st.dataframe(major_df, use_container_width=True, hide_index=True)
             dataframe_download_and_copy(
-                synastry_aspects_df, f"synastry_aspects_{r['birth_date'].isoformat()}.csv", "synastry_aspects"
+                major_df, f"{filename_prefix}_major_{r['birth_date'].isoformat()}.csv",
+                f"{key_prefix}_major",
+            )
+            st.subheader("Minor Aspects")
+            minor_df = df_builder(category="minor")
+            st.dataframe(minor_df, use_container_width=True, hide_index=True)
+            dataframe_download_and_copy(
+                minor_df, f"{filename_prefix}_minor_{r['birth_date'].isoformat()}.csv",
+                f"{key_prefix}_minor",
             )
 
-            st.subheader("Person A's own aspects (within their own chart)")
-            aspects_df_a = aspects_to_dataframe(r["aspects"])
-            st.dataframe(aspects_df_a, use_container_width=True, hide_index=True)
-            dataframe_download_and_copy(aspects_df_a, f"aspects_a_{r['birth_date'].isoformat()}.csv", "aspects_a")
+        if r["reading_type"] in SYNASTRY_READING_TYPES:
+            st.write("**Cross-chart aspects** — Person A's point to Person B's point. "
+                     "This is the actual synastry data the reading is built from. "
+                     "House shown is Person A's.")
+            show_split_aspects_table(
+                lambda category: synastry_aspects_to_dataframe(r["synastry_result"]["aspects"], r["chart"], category=category),
+                "synastry_aspects", "synastry_aspects",
+            )
 
+            st.divider()
+            st.subheader("Person A's own aspects (within their own chart)")
+            show_split_aspects_table(
+                lambda category: aspects_to_dataframe(r["aspects"], r["chart"], category=category),
+                "aspects_a", "aspects_a",
+            )
+
+            st.divider()
             st.subheader("Person B's own aspects (within their own chart)")
-            aspects_df_b = aspects_to_dataframe(r["aspects_b"])
-            st.dataframe(aspects_df_b, use_container_width=True, hide_index=True)
-            dataframe_download_and_copy(aspects_df_b, f"aspects_b_{r['birth_date'].isoformat()}.csv", "aspects_b")
+            show_split_aspects_table(
+                lambda category: aspects_to_dataframe(r["aspects_b"], r["chart_b"], category=category),
+                "aspects_b", "aspects_b",
+            )
         else:
-            aspects_df = aspects_to_dataframe(r["aspects"])
-            st.dataframe(aspects_df, use_container_width=True, hide_index=True)
-            dataframe_download_and_copy(aspects_df, f"aspects_{r['birth_date'].isoformat()}.csv", "aspects")
+            show_split_aspects_table(
+                lambda category: aspects_to_dataframe(r["aspects"], r["chart"], category=category),
+                "aspects", "aspects",
+            )
 
     with tabs[5]:
         def render_patterns_section(patterns, key_prefix, filename):
-            any_patterns = False
-            pattern_lines = []
-            for kind, plist in patterns.items():
-                if not plist:
-                    continue
-                any_patterns = True
-                label = kind.replace("_", " ").title()
-                st.subheader(label)
-                pattern_lines.append(f"{label}:")
-                for p in plist:
-                    line = ", ".join(p.points)
-                    st.write(f"- {line}")
-                    pattern_lines.append(f"  - {line}")
-            if not any_patterns:
+            df = patterns_to_dataframe(patterns)
+            if df.empty:
                 st.info("No aspect patterns detected within the configured orbs.")
             else:
-                text_download_and_copy("\n".join(pattern_lines), filename, key_prefix)
+                st.dataframe(df, use_container_width=True, hide_index=True)
+                dataframe_download_and_copy(df, filename, key_prefix)
 
         if r["reading_type"] in SYNASTRY_READING_TYPES:
             st.subheader("Person A's Patterns")
-            render_patterns_section(r["patterns"], "patterns_a", f"patterns_a_{r['birth_date'].isoformat()}.txt")
+            render_patterns_section(r["patterns"], "patterns_a", f"patterns_a_{r['birth_date'].isoformat()}.csv")
             st.divider()
             st.subheader("Person B's Patterns")
-            render_patterns_section(r["patterns_b"], "patterns_b", f"patterns_b_{r['birth_date'].isoformat()}.txt")
+            render_patterns_section(r["patterns_b"], "patterns_b", f"patterns_b_{r['birth_date'].isoformat()}.csv")
         else:
-            render_patterns_section(r["patterns"], "patterns", f"patterns_{r['birth_date'].isoformat()}.txt")
+            render_patterns_section(r["patterns"], "patterns", f"patterns_{r['birth_date'].isoformat()}.csv")
 
     with tabs[6]:
         if r["reading_type"] in SYNASTRY_READING_TYPES:
@@ -1107,8 +1164,8 @@ if st.session_state.get("results"):
         def render_house_readings_section(house_readings, key_prefix, filename):
             house_lines = []
             for num, reading in house_readings.items():
-                with st.expander(f"House {num} ({reading.sign_on_cusp})"):
-                    st.write(reading.interpretation)
+                st.subheader(f"House {num} ({reading.sign_on_cusp})")
+                st.write(reading.interpretation)
                 house_lines.append(f"House {num} ({reading.sign_on_cusp}):\n{reading.interpretation}\n")
             text_download_and_copy("\n".join(house_lines), filename, key_prefix)
 
