@@ -128,34 +128,46 @@ the exact computed placements, aspects, patterns, dignities, and house \
 conditions below — all mathematically precise, not approximated.
 {naming_note}
 
-First, provide a general and summarized overview of the chart and what \
-the reading uncovered — a short, plain-language orientation before the \
-detailed themes, written as a few flowing paragraphs (not chunked or \
-bulleted — see formatting guidelines below). Head this section with the \
-exact markdown heading "## Overview" (two hash symbols, one space, then \
-the word). Structure the Overview around these three things specifically:
-- NAME SPECIFIC CLUSTERS AND GROUPINGS DIRECTLY, not abstract themes. If \
-three or more points sit together in one sign and house (a stellium), or \
-several planets are conjunct each other, call this out explicitly as its \
-own paragraph — name which planets, which sign, which house, and what \
-that fusion of energies actually produces, rather than describing the \
-chart's themes in the abstract without pointing to the specific \
-placements driving them.
+First, provide an overview of the chart and what the reading \
+uncovered — an orientation before the detailed themes, written as \
+4-6 SEPARATE paragraphs with a blank line between each (not one \
+continuous block, and not chunked or bulleted). Head this section with \
+the exact markdown heading "## Overview" (two hash symbols, one space, \
+then the word). The Overview uses the SAME naming convention as the \
+"What This Means" sections described below: name planets, signs, \
+houses, angles, lesser-used points (like Chiron), and aspect words \
+(like conjunct) directly, with each technical term immediately \
+followed by a brief plain-English gloss the first time it appears — \
+e.g. "your 10th house of career, public reputation, and life \
+direction," or "Chiron, a lesser-known body representing core wounds \
+and the potential to turn them into wisdom." Do NOT paraphrase \
+placements into vague circumlocutions like "the career point" or "an \
+old sensitivity" to avoid naming them — name the actual point AND \
+gloss it. Structure the Overview's paragraphs like this:
+- Open with a 1-2 sentence paragraph stating what the chart is \
+fundamentally built around.
+- NAME SPECIFIC CLUSTERS AND GROUPINGS DIRECTLY, each as its OWN \
+paragraph. If three or more points sit together in one sign and house \
+(a stellium), or several planets are conjunct each other, give that \
+grouping a full paragraph — name which planets (each glossed), which \
+sign, which house (glossed with what it governs), which of them are \
+conjunct, and what that fusion of energies actually produces. Walk \
+through the placements step by step the way a person would explain it \
+aloud, not compressed into a single dense sentence.
 - WEAVE DIGNITY IN AS CAUSAL LANGUAGE, not a separate aside. Instead of \
-noting dignity as a standalone fact, fold it into the sentence explaining \
-why a placement operates the way it does — e.g. a planet in Rulership \
-"operates at full strength in its own sign," one in Detriment "has to \
-work harder to express itself here." The dignity should read as part of \
-the explanation, not a footnote after it.
-- CLOSE WITH A CHART-WIDE PATTERN SUMMARY — after covering the specific \
-clusters, step back and name any pattern that recurs across MULTIPLE \
-different placements or life areas, not just within one theme. If hard \
-aspects (squares, oppositions) repeat across several unrelated points, \
-say so explicitly as a defining structural feature of the whole chart \
-rather than mentioning each one only within its own theme. Do the same \
-for repeated ease (trines, sextiles) if it's a genuine pattern — this is \
-a distinct, chart-level observation that sits above the individual \
-themes, not a repeat of something already said elsewhere.
+noting dignity as a standalone fact, fold it into the sentence \
+explaining why a placement operates the way it does — e.g. a planet in \
+Rulership "operates at full strength in its own sign," one in Detriment \
+"has to work harder to express itself here."
+- CLOSE WITH A CHART-WIDE PATTERN SUMMARY as the final paragraph(s) — \
+step back and name any pattern that recurs across MULTIPLE different \
+placements or life areas. If hard aspects (squares, oppositions) repeat \
+across several unrelated points, say so explicitly as a defining \
+structural feature of the whole chart. Do the same for repeated ease \
+(trines, sextiles) if it's a genuine pattern — this is a distinct, \
+chart-level observation that sits above the individual themes. End \
+with a short synthesizing statement of what kind of chart this is \
+overall.
 
 Then, identify the 2-4 biggest THEMES that emerge when you look at the \
 whole chart together — which placements reinforce each other, which \
@@ -176,9 +188,12 @@ attach this text to the previous section instead of showing it as its \
 own block.
 
 Guidelines for the reading:
-1. THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
-PROSE — no chunked split, no bolded sub-labels, no bullet chunking. \
-Just a few well-written paragraphs in accessible, jargon-light language.
+1. THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN FLOWING PROSE \
+PARAGRAPHS — no chunked split, no bolded sub-labels, no bullet \
+chunking. They follow the same naming convention as everywhere else: \
+technical terms are welcome as long as each is glossed in plain \
+English on first use — accessible through glossing, not through \
+avoiding the terms.
 2. FOR EACH THEME, OPEN with 1-2 sentences of brief plain-language prose \
 summarizing the main takeaway — no bolding, no chunking, just a short \
 lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
@@ -327,36 +342,45 @@ unreliable guesses otherwise. Do not speculate about houses, rising \
 sign, or any of the excluded points — work entirely with what's given.
 {naming_note}
 
-First, provide a general and summarized overview of the chart and what \
-the reading uncovered — a short, plain-language orientation before the \
-detailed themes, written as a few flowing paragraphs (not chunked or \
-bulleted — see formatting guidelines below). Briefly and matter-of-\
+First, provide an overview of the chart and what the reading \
+uncovered — an orientation before the detailed themes, written as \
+4-6 SEPARATE paragraphs with a blank line between each (not one \
+continuous block, and not chunked or bulleted). Briefly and matter-of-\
 factly note in this overview that the reading is based on planets \
 only, without birth-time-dependent points like the rising sign or \
 houses (not as an apology, just an accurate framing of scope). Head \
-this section with the exact markdown heading "## Overview". Structure \
-it around these three things specifically:
-- NAME SPECIFIC CLUSTERS AND GROUPINGS DIRECTLY, not abstract themes. If \
-three or more points sit together in one sign (a stellium), or several \
-planets are conjunct each other, call this out explicitly as its own \
-paragraph — name which planets, which sign, and what that fusion of \
-energies actually produces, rather than describing the chart's themes \
-in the abstract without pointing to the specific placements driving them.
+this section with the exact markdown heading "## Overview". The \
+Overview uses the SAME naming convention as the "What This Means" \
+sections described below: name planets, signs, Chiron, the Nodes, and \
+aspect words (like conjunct) directly, with each technical term \
+immediately followed by a brief plain-English gloss the first time it \
+appears — e.g. "Chiron, a lesser-known body representing core wounds \
+and the potential to turn them into wisdom." Do NOT paraphrase \
+placements into vague circumlocutions like "an old sensitivity" to \
+avoid naming them — name the actual point AND gloss it. Structure the \
+Overview's paragraphs like this:
+- Open with a 1-2 sentence paragraph stating what the chart is \
+fundamentally built around.
+- NAME SPECIFIC CLUSTERS AND GROUPINGS DIRECTLY, each as its OWN \
+paragraph. If three or more points sit together in one sign (a \
+stellium), or several planets are conjunct each other, give that \
+grouping a full paragraph — name which planets (each glossed), which \
+sign, which of them are conjunct, and what that fusion of energies \
+actually produces. Walk through the placements step by step the way a \
+person would explain it aloud, not compressed into a single dense \
+sentence.
 - WEAVE DIGNITY IN AS CAUSAL LANGUAGE, not a separate aside. Instead of \
-noting dignity as a standalone fact, fold it into the sentence explaining \
-why a placement operates the way it does — e.g. a planet in Rulership \
-"operates at full strength in its own sign," one in Detriment "has to \
-work harder to express itself here." The dignity should read as part of \
-the explanation, not a footnote after it.
-- CLOSE WITH A CHART-WIDE PATTERN SUMMARY — after covering the specific \
-clusters, step back and name any pattern that recurs across MULTIPLE \
-different placements, not just within one theme. If hard aspects \
-(squares, oppositions) repeat across several unrelated points, say so \
-explicitly as a defining structural feature of the whole chart rather \
-than mentioning each one only within its own theme. Do the same for \
-repeated ease (trines, sextiles) if it's a genuine pattern — this is a \
-distinct, chart-level observation that sits above the individual \
-themes, not a repeat of something already said elsewhere.
+noting dignity as a standalone fact, fold it into the sentence \
+explaining why a placement operates the way it does — e.g. a planet in \
+Rulership "operates at full strength in its own sign," one in Detriment \
+"has to work harder to express itself here."
+- CLOSE WITH A CHART-WIDE PATTERN SUMMARY as the final paragraph(s) — \
+step back and name any pattern that recurs across MULTIPLE different \
+placements. If hard aspects (squares, oppositions) repeat across \
+several unrelated points, say so explicitly as a defining structural \
+feature of the whole chart. Do the same for repeated ease (trines, \
+sextiles) if it's a genuine pattern. End with a short synthesizing \
+statement of what kind of chart this is overall.
 
 Then, identify the 2-4 biggest THEMES that emerge when you look at the \
 whole chart together. Format each theme's heading as a markdown H2 \
@@ -374,8 +398,11 @@ incorrectly attach this text to the previous section instead of \
 showing it as its own block.
 
 Guidelines for the reading:
-1. THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
-PROSE — no chunked split, no bolded sub-labels, no bullet chunking.
+1. THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN FLOWING PROSE \
+PARAGRAPHS — no chunked split, no bolded sub-labels, no bullet \
+chunking. They follow the same naming convention as everywhere else: \
+technical terms are welcome as long as each is glossed in plain \
+English on first use.
 2. FOR EACH THEME, OPEN with 1-2 sentences of brief plain-language prose \
 summarizing the main takeaway. THEN follow with a two-part chunked \
 structure, IN THIS ORDER:
