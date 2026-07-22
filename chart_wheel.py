@@ -72,6 +72,29 @@ SIGN_ONE_LINE = {
     "Pisces": "Absorptive and imaginative — dissolves boundaries between self and others.",
 }
 
+# One-sentence point/planet descriptions for the data table's second
+# description column (after the point name, before the house).
+POINT_ONE_LINE = {
+    "Sun": "Core identity and what this person is fundamentally expressing.",
+    "Moon": "Emotional instinct and what feels safe on a gut level.",
+    "Mercury": "Communication and thinking style.",
+    "Venus": "Values, aesthetic sense, and how this person relates to others.",
+    "Mars": "Drive, assertion, and how this person pursues goals.",
+    "Jupiter": "Growth, expansion, and where this person finds opportunity.",
+    "Saturn": "Structure, discipline, and where sustained effort is required.",
+    "Uranus": "Disruption, independence, and a drive toward originality.",
+    "Neptune": "Imagination, idealism, and a dissolving of boundaries.",
+    "Pluto": "Deep transformation and what must be faced rather than avoided.",
+    "Chiron": "The 'wounded healer' — a core sensitivity that becomes a source of insight.",
+    "North Node": "The direction of growth this person is meant to develop toward.",
+    "South Node": "Familiar, innate patterns this person naturally falls back on.",
+    "Ascendant": "How this person initiates and comes across to others.",
+    "Part of Fortune": "Where ease and good fortune tend to show up most naturally.",
+    "Part of Spirit": "Conscious will — where deliberate effort tends to pay off.",
+    "Vertex": "Sometimes tied to fated encounters or significant turning points.",
+    "Anti-Vertex": "The point directly opposite the Vertex, completing that axis.",
+}
+
 
 def _order_points_from_ascendant(chart: dict, asc_lon: float) -> list:
     """Returns [(name, point), ...] for the points in TABLE_POINTS that
@@ -218,6 +241,9 @@ def build_chart_data_table_html(chart: dict) -> str:
             f'<td style="background:#0a0a0a;color:#eee;padding:14px 20px;'
             f'border:1px solid #333;font-size:14px;letter-spacing:1px;">'
             f'{TABLE_GLYPHS.get(name, "?")} {name.upper()}</td>'
+            f'<td style="background:#161616;color:#aaa;padding:14px 16px;'
+            f'border:1px solid #333;font-size:12px;font-style:italic;'
+            f'max-width:220px;">{POINT_ONE_LINE.get(name, "")}</td>'
             f'{house_td}'
             '</tr>'
         )
@@ -334,6 +360,9 @@ def build_synastry_data_table_html(chart_a: dict, chart_b: dict) -> str:
             f'<td style="background:{name_bg};color:#eee;padding:14px 20px;'
             f'border:1px solid #333;font-size:14px;letter-spacing:1px;">'
             f'{TABLE_GLYPHS.get(name, "?")} {name.upper()} ({who})</td>'
+            f'<td style="background:#161616;color:#aaa;padding:14px 16px;'
+            f'border:1px solid #333;font-size:12px;font-style:italic;'
+            f'max-width:220px;">{POINT_ONE_LINE.get(name, "")}</td>'
             f'{house_td}'
             '</tr>'
         )
