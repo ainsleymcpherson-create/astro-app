@@ -56,6 +56,22 @@ TABLE_POINTS = [
 ]
 TABLE_GLYPHS = {**PLANET_GLYPHS, **FALLBACK_LABELS, "Ascendant": "↑"}
 
+# One-sentence sign descriptions for the data table's description column.
+SIGN_ONE_LINE = {
+    "Aries": "Direct and instinctive — acts first and asks questions later.",
+    "Taurus": "Grounded and steady — values comfort, stability, and things built to last.",
+    "Gemini": "Curious and quick — gathers information from many angles at once.",
+    "Cancer": "Protective and emotionally attuned — oriented around safety and belonging.",
+    "Leo": "Warm and expressive — wants to be genuinely seen and valued.",
+    "Virgo": "Precise and service-oriented — notices what's off and works to improve it.",
+    "Libra": "Relational and fairness-oriented — seeks balance and genuine partnership.",
+    "Scorpio": "Intense and private — drawn to what's beneath the surface.",
+    "Sagittarius": "Expansive and meaning-seeking — oriented toward the big picture.",
+    "Capricorn": "Disciplined and long-game oriented — builds structure and earns authority over time.",
+    "Aquarius": "Independent-minded — values being genuinely original over following the crowd.",
+    "Pisces": "Absorptive and imaginative — dissolves boundaries between self and others.",
+}
+
 
 def _order_points_from_ascendant(chart: dict, asc_lon: float) -> list:
     """Returns [(name, point), ...] for the points in TABLE_POINTS that
@@ -162,8 +178,15 @@ def build_chart_data_table_html(chart: dict) -> str:
                 f'padding:14px 20px;border:1px solid #333;font-size:15px;'
                 f'vertical-align:middle;">{point.sign}</td>'
             )
+            desc_td = (
+                f'<td rowspan="{sign_rowspan}" style="background:#161616;color:#aaa;'
+                f'padding:14px 16px;border:1px solid #333;font-size:12px;'
+                f'font-style:italic;vertical-align:middle;max-width:220px;">'
+                f'{SIGN_ONE_LINE.get(point.sign, "")}</td>'
+            )
         else:
             sign_td = ""  # covered by the rowspan cell above
+            desc_td = ""  # covered by the rowspan cell above
         sign_row += 1
         if sign_row >= sign_rowspan:
             sign_idx += 1
@@ -191,6 +214,7 @@ def build_chart_data_table_html(chart: dict) -> str:
         row_html += (
             '<tr>'
             f'{sign_td}'
+            f'{desc_td}'
             f'<td style="background:#0a0a0a;color:#eee;padding:14px 20px;'
             f'border:1px solid #333;font-size:14px;letter-spacing:1px;">'
             f'{TABLE_GLYPHS.get(name, "?")} {name.upper()}</td>'
@@ -269,8 +293,15 @@ def build_synastry_data_table_html(chart_a: dict, chart_b: dict) -> str:
                 f'padding:14px 20px;border:1px solid #333;font-size:15px;'
                 f'vertical-align:middle;">{point.sign}</td>'
             )
+            desc_td = (
+                f'<td rowspan="{sign_rowspan}" style="background:#161616;color:#aaa;'
+                f'padding:14px 16px;border:1px solid #333;font-size:12px;'
+                f'font-style:italic;vertical-align:middle;max-width:220px;">'
+                f'{SIGN_ONE_LINE.get(point.sign, "")}</td>'
+            )
         else:
             sign_td = ""
+            desc_td = ""
         sign_row += 1
         if sign_row >= sign_rowspan:
             sign_idx += 1
@@ -299,6 +330,7 @@ def build_synastry_data_table_html(chart_a: dict, chart_b: dict) -> str:
         row_html += (
             '<tr>'
             f'{sign_td}'
+            f'{desc_td}'
             f'<td style="background:{name_bg};color:#eee;padding:14px 20px;'
             f'border:1px solid #333;font-size:14px;letter-spacing:1px;">'
             f'{TABLE_GLYPHS.get(name, "?")} {name.upper()} ({who})</td>'
