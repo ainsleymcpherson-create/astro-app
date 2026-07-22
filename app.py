@@ -17,21 +17,29 @@ import streamlit as st
 st.set_page_config(page_title="Tenth House Readings", layout="wide")
 
 # Narrow the sidebar. Streamlit doesn't expose sidebar width as a
-# simple, reliably-available parameter across versions (a newer
-# int-based initial_sidebar_state exists in some recent releases, but
-# isn't guaranteed present in every deployed version), so this uses the
-# well-established, broadly-compatible CSS override instead. 190px is
-# just wide enough for "🔭 Readings" / "📖 Resources" to sit on one
-# line each without the large empty space at the default width.
+# simple, reliably-available parameter across versions, so this uses
+# CSS instead. Recent Streamlit versions made the sidebar user-
+# resizable via a drag handle, which sets its width as an INLINE style
+# — inline styles override plain CSS rules, which is why a simple
+# width rule alone doesn't stick. Using !important on every relevant
+# property (and disabling the resize handle) forces it to actually
+# take effect and stay put.
 st.markdown(
     """
     <style>
-    [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
-        width: 190px;
+    [data-testid="stSidebar"] {
+        width: 190px !important;
+        min-width: 190px !important;
+        max-width: 190px !important;
+        resize: none !important;
     }
-    [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
-        width: 190px;
-        margin-left: -190px;
+    [data-testid="stSidebar"] > div:first-child {
+        width: 190px !important;
+        min-width: 190px !important;
+        max-width: 190px !important;
+    }
+    [data-testid="stSidebar"][aria-expanded="false"] {
+        margin-left: -190px !important;
     }
     </style>
     """,
