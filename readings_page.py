@@ -1148,16 +1148,16 @@ if st.session_state.get("results"):
         if r["reading_type"] in SYNASTRY_READING_TYPES:
             st.subheader("Person A")
             dignity_df_a = dignities_to_dataframe(r["dignities"])
-            st.dataframe(dignity_df_a, use_container_width=True, hide_index=True)
+            st.table(dignity_df_a.set_index("Planet"))
             dataframe_download_and_copy(dignity_df_a, f"dignity_a_{r['birth_date'].isoformat()}.csv", "dignity_a")
 
             st.subheader("Person B")
             dignity_df_b = dignities_to_dataframe(r["dignities_b"])
-            st.dataframe(dignity_df_b, use_container_width=True, hide_index=True)
+            st.table(dignity_df_b.set_index("Planet"))
             dataframe_download_and_copy(dignity_df_b, f"dignity_b_{r['birth_date'].isoformat()}.csv", "dignity_b")
         else:
             dignity_df = dignities_to_dataframe(r["dignities"])
-            st.dataframe(dignity_df, use_container_width=True, hide_index=True)
+            st.table(dignity_df.set_index("Planet"))
             dataframe_download_and_copy(dignity_df, f"dignity_{r['birth_date'].isoformat()}.csv", "dignity")
 
     with tabs[7]:
