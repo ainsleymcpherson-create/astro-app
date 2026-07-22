@@ -49,6 +49,7 @@ from prompt_builder import (
     build_career_interpretation_prompt_no_time,
     build_transit_prompt,
     build_professional_synastry_prompt,
+    build_relationship_synastry_prompt,
 )
 from birth_input import resolve_birth_data
 from chart_wheel import (
@@ -56,6 +57,20 @@ from chart_wheel import (
     build_chart_data_table_html, build_synastry_data_table_html,
     get_table_rows, get_synastry_table_rows,
 )
+
+# --- Session state persistence safeguard (targeted, not blanket) ---
+# The earlier blanket version of this fix (re-touching EVERY session
+# state key) crashed on current Streamlit versions, because it's now
+# forbidden to set a widget-owned key via session_state, even to its
+# own current value. "results" and "processing" are the only two keys
+# this app sets directly by assignment rather than through any widget's
+# key= parameter (confirmed: neither is used as a widget key anywhere
+# in this file), so re-touching only these two is safe and won't hit
+# that restriction. This is what keeps a computed chart intact when
+# you navigate to Resources and back, without risking a crash.
+for _safe_key in ("results", "processing"):
+    if _safe_key in st.session_state:
+        st.session_state[_safe_key] = st.session_state[_safe_key]
 
 # --- Optional: live Claude interpretation ---
 # Requires: pip install anthropic (already in requirements.txt)
@@ -132,10 +147,17 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Used throughout for "is this any two-person reading" checks (UI
+# structure, tab logic), as distinct from "which specific synastry
+# type" checks (which prompt to build) — see the reading_type
+# if/elif branches further down for the latter.
+SYNASTRY_READING_TYPES = ("Professional Synastry", "Relationship Synastry")
+
 # --- Input form ---
 reading_type = st.selectbox(
     "Reading focus",
-    options=["General", "Career / Work", "Transits", "Professional Synastry"],
+    options=["General", "Career / Work", "Transits",
+             "Professional Synastry", "Relationship Synastry"],
     index=0,
     help="General covers the whole chart. Career/Work focuses "
          "specifically on workplace happiness, colleague dynamics, "
@@ -143,7 +165,10 @@ reading_type = st.selectbox(
          "answers 'what's happening right now' — how today's sky is "
          "currently interacting with this natal chart. Professional "
          "Synastry compares TWO people's charts to analyze their working "
-         "dynamic — not romantic compatibility.",
+         "dynamic — not romantic compatibility. Relationship Synastry "
+         "compares two people's charts for traditional romantic "
+         "compatibility — attraction, emotional connection, and "
+         "long-term potential.",
 )
 
 # Read the checkbox's stored value BEFORE the checkbox widget itself is
@@ -158,7 +183,7 @@ unknown_time = (
     if reading_type != "Transits" else False
 )
 
-if reading_type == "Professional Synastry":
+if reading_type in SYNASTRY_READING_TYPES:
     st.subheader("Person A")
 
 person_name = st.text_input(
@@ -224,8 +249,8 @@ with align_col2:
     else:
         unknown_time = False  # not applicable to Transits
 
-# --- Person B (Professional Synastry only) ---
-if reading_type == "Professional Synastry":
+# --- Person B (any synastry reading) ---
+if reading_type in SYNASTRY_READING_TYPES:
     st.divider()
     st.subheader("Person B")
 
@@ -630,6 +655,26 @@ if st.session_state.get("processing", False):
                         synastry_result, dignities, dignities_b,
                         person_a_name=person_name, person_b_name=person_name_b,
                     )
+            elif reading_type == "Relationship Synastry":
+                with st.spinner("Resolving Person B's location and computing their chart..."):
+                    datetime_str_b = f"{birth_date_b.strftime('%B %d, %Y')} {birth_hour_b:02d}:{birth_minute_b} {birth_ampm_b}"
+                    birth_b = resolve_birth_data(datetime_str_b, location_str_b, verbose=False)
+                    chart_b = compute_full_chart(birth_b, house_system=house_system)
+                    aspects_b = compute_aspects(chart_b, speeds=extract_speeds(chart_b))
+                    patterns_b = find_all_patterns(chart_b, aspects_b)
+                    dignities_b = compute_chart_dignities(chart_b)
+                    house_readings_b = build_house_readings(chart_b)
+
+                with st.spinner("Computing synastry between the two charts..."):
+                    synastry_result = compute_full_synastry(
+                        chart, chart_b,
+                        person_a_time_known=not unknown_time,
+                        person_b_time_known=not unknown_time_b,
+                    )
+                    prompt = build_relationship_synastry_prompt(
+                        synastry_result, dignities, dignities_b,
+                        person_a_name=person_name, person_b_name=person_name_b,
+                    )
             elif reading_type == "Career / Work" and unknown_time:
                 prompt = build_career_interpretation_prompt_no_time(
                     chart, aspects, patterns, dignities, person_name=person_name,
@@ -785,9 +830,9 @@ if st.session_state.get("processing", False):
             "birth_date": birth_date,
             "transit_date": transit_date,
             "person_name": person_name,
-            "person_name_b": person_name_b if reading_type == "Professional Synastry" else None,
-            "datetime_str_b": datetime_str_b if reading_type == "Professional Synastry" else None,
-            "location_str_b": location_str_b if reading_type == "Professional Synastry" else None,
+            "person_name_b": person_name_b if reading_type in SYNASTRY_READING_TYPES else None,
+            "datetime_str_b": datetime_str_b if reading_type in SYNASTRY_READING_TYPES else None,
+            "location_str_b": location_str_b if reading_type in SYNASTRY_READING_TYPES else None,
             "chart": chart,
             "aspects": aspects,
             "patterns": patterns,
@@ -834,7 +879,7 @@ if st.session_state.get("results"):
             f"Natal chart: {who} in {r['location_str']} "
             f"({r['house_system_label']} houses) — Transits for {r['transit_date'].isoformat()}"
         )
-    elif r["reading_type"] == "Professional Synastry":
+    elif r["reading_type"] in SYNASTRY_READING_TYPES:
         who_a = label_a if label_a else f"Person A ({r['datetime_str']})"
         who_b = label_b if label_b else f"Person B ({r['datetime_str_b']})"
         st.success(
@@ -856,7 +901,7 @@ if st.session_state.get("results"):
             render_interpretation(r["interpretation_text"])
             st.divider()
 
-            if r["reading_type"] == "Professional Synastry":
+            if r["reading_type"] in SYNASTRY_READING_TYPES:
                 title_who = f"{label_a or 'Person A'} & {label_b or 'Person B'}"
             else:
                 title_who = label_a if label_a else r['datetime_str']
@@ -921,7 +966,7 @@ if st.session_state.get("results"):
                 key=f"wheel_dl_{filename_suffix}",
             )
 
-        if r["reading_type"] == "Professional Synastry":
+        if r["reading_type"] in SYNASTRY_READING_TYPES:
             label_a = r["person_name"] or "Person A"
             label_b = r["person_name_b"] or "Person B"
 
@@ -974,7 +1019,7 @@ if st.session_state.get("results"):
             )
 
     with tabs[3]:
-        if r["reading_type"] == "Professional Synastry":
+        if r["reading_type"] in SYNASTRY_READING_TYPES:
             st.subheader("Person A")
             points_df_a = points_to_dataframe(r["chart"])
             st.dataframe(points_df_a, use_container_width=True, hide_index=True)
@@ -990,7 +1035,7 @@ if st.session_state.get("results"):
             dataframe_download_and_copy(points_df, f"points_{r['birth_date'].isoformat()}.csv", "points")
 
     with tabs[4]:
-        if r["reading_type"] == "Professional Synastry":
+        if r["reading_type"] in SYNASTRY_READING_TYPES:
             st.write("**Cross-chart aspects** — Person A's point to Person B's point. "
                      "This is the actual synastry data the reading is built from.")
             synastry_aspects_df = synastry_aspects_to_dataframe(r["synastry_result"]["aspects"])
@@ -1033,7 +1078,7 @@ if st.session_state.get("results"):
             else:
                 text_download_and_copy("\n".join(pattern_lines), filename, key_prefix)
 
-        if r["reading_type"] == "Professional Synastry":
+        if r["reading_type"] in SYNASTRY_READING_TYPES:
             st.subheader("Person A's Patterns")
             render_patterns_section(r["patterns"], "patterns_a", f"patterns_a_{r['birth_date'].isoformat()}.txt")
             st.divider()
@@ -1043,7 +1088,7 @@ if st.session_state.get("results"):
             render_patterns_section(r["patterns"], "patterns", f"patterns_{r['birth_date'].isoformat()}.txt")
 
     with tabs[6]:
-        if r["reading_type"] == "Professional Synastry":
+        if r["reading_type"] in SYNASTRY_READING_TYPES:
             st.subheader("Person A")
             dignity_df_a = dignities_to_dataframe(r["dignities"])
             st.dataframe(dignity_df_a, use_container_width=True, hide_index=True)
@@ -1067,7 +1112,7 @@ if st.session_state.get("results"):
                 house_lines.append(f"House {num} ({reading.sign_on_cusp}):\n{reading.interpretation}\n")
             text_download_and_copy("\n".join(house_lines), filename, key_prefix)
 
-        if r["reading_type"] == "Professional Synastry":
+        if r["reading_type"] in SYNASTRY_READING_TYPES:
             st.write("**House overlays** — whose planets fall in whose houses. "
                      "Only available in a direction where the house-owning "
                      "person's birth time is known.")
