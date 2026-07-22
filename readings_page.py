@@ -198,7 +198,7 @@ col1, col2, col3 = st.columns([1, 1.3, 1])
 with col1:
     birth_date = st.date_input(
         "Birth date",
-        value=date_type(1981, 12, 24),
+        value=date_type(1989, 07, 05),
         min_value=date_type(1900, 1, 1),
         max_value=date_type.today(),
         help="Tap to open the calendar picker.",
@@ -224,7 +224,7 @@ with col2:
 with col3:
     location_str = st.text_input(
         "Birth location",
-        value="Brooklyn, New York, USA",
+        value="Washington, DC, USA",
         help="Be specific — add state/country if the place name is common",
     )
 
