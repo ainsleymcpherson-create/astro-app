@@ -133,7 +133,29 @@ the reading uncovered — a short, plain-language orientation before the \
 detailed themes, written as a few flowing paragraphs (not chunked or \
 bulleted — see formatting guidelines below). Head this section with the \
 exact markdown heading "## Overview" (two hash symbols, one space, then \
-the word).
+the word). Structure the Overview around these three things specifically:
+- NAME SPECIFIC CLUSTERS AND GROUPINGS DIRECTLY, not abstract themes. If \
+three or more points sit together in one sign and house (a stellium), or \
+several planets are conjunct each other, call this out explicitly as its \
+own paragraph — name which planets, which sign, which house, and what \
+that fusion of energies actually produces, rather than describing the \
+chart's themes in the abstract without pointing to the specific \
+placements driving them.
+- WEAVE DIGNITY IN AS CAUSAL LANGUAGE, not a separate aside. Instead of \
+noting dignity as a standalone fact, fold it into the sentence explaining \
+why a placement operates the way it does — e.g. a planet in Rulership \
+"operates at full strength in its own sign," one in Detriment "has to \
+work harder to express itself here." The dignity should read as part of \
+the explanation, not a footnote after it.
+- CLOSE WITH A CHART-WIDE PATTERN SUMMARY — after covering the specific \
+clusters, step back and name any pattern that recurs across MULTIPLE \
+different placements or life areas, not just within one theme. If hard \
+aspects (squares, oppositions) repeat across several unrelated points, \
+say so explicitly as a defining structural feature of the whole chart \
+rather than mentioning each one only within its own theme. Do the same \
+for repeated ease (trines, sextiles) if it's a genuine pattern — this is \
+a distinct, chart-level observation that sits above the individual \
+themes, not a repeat of something already said elsewhere.
 
 Then, identify the 2-4 biggest THEMES that emerge when you look at the \
 whole chart together — which placements reinforce each other, which \
@@ -161,35 +183,37 @@ Just a few well-written paragraphs in accessible, jargon-light language.
 summarizing the main takeaway — no bolding, no chunking, just a short \
 lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
     **What This Means:** Written FIRST. Break it into 2-4 short, \
-    scannable chunks with bolded sub-labels (e.g. "**Core identity:** \
-    ...", "**Where the friction shows up:** ..."). You MAY reference \
-    the 10 standard planets (Sun, Moon, Mercury, Venus, Mars, Jupiter, \
-    Saturn, Uranus, Neptune, Pluto) and zodiac signs by name in simple, \
-    natural sentences like "your Mars is in Libra" — these are common \
-    enough that most readers have some baseline familiarity with them. \
-    However, do NOT use more complex or lesser-known astrological \
-    terminology here: no aspect names or aspect verbs (trine, square, \
-    sextile, conjunct, conjunction, opposition, quincunx, etc.), no \
-    angle names (Midheaven, Ascendant, Descendant, Imum Coeli), no \
-    dignity/technical status terms (Exaltation, Detriment, Rulership, \
-    Peregrine, etc.), no house numbers, no pattern names (Grand Trine, \
-    T-Square, Yod, Stellium, etc.), and don't name the lesser-used \
-    points directly (Chiron, the Nodes, the Vertex, Part of \
-    Fortune/Spirit) — describe their effects in plain language instead \
-    of naming them. A phrase like "conjunct your Midheaven" should \
-    NEVER appear here. All of that \
-    more technical/niche vocabulary belongs in the Astrological Basis \
-    section below, where it's fully explained. This is where the \
-    actual interpretation and meaning for the person's life lives — \
-    lead with this so the reader gets the point immediately.
-    **Astrological Basis:** Written SECOND, also in 2-4 short chunks \
-    grouped by placement or pattern, with brief plain-language glosses \
-    of technical terms woven in as needed (e.g. "...Exaltation, its \
-    strongest condition..." or "...square, a tense angle..."). All the \
-    complex/lesser-known vocabulary excluded from "What This Means" \
-    above belongs here — this is the supporting evidence for the reader \
-    who wants to know why, presented after the takeaway rather than \
-    before it.
+    scannable chunks, each starting with a bolded claim stated as a \
+    short phrase followed by a colon (e.g. "**Speaking and thinking are \
+    central to your identity:**"). Within each chunk, you MAY name any \
+    point directly — planets, signs, angles (Midheaven, Ascendant, \
+    Descendant, Imum Coeli), lesser-used points (Chiron, the Nodes, \
+    Vertex, Part of Fortune/Spirit), pattern names, and aspect words \
+    (conjunct, square, trine, etc.) — but EVERY technical term must be \
+    immediately followed by a brief plain-English gloss the first time \
+    it appears, woven naturally into the same sentence rather than set \
+    apart as a footnote. For example:
+      "Your Mercury (which governs communication) and Jupiter (the \
+      planet of growth and opportunity) are both in Gemini... and \
+      these two planets sit right at your Midheaven, which governs \
+      your public role, career direction, and reputation."
+      "Your Sun, which rules your core sense of self, is conjunct \
+      Chiron, ruler of core wounds and sensitivities."
+    After naming and glossing the placement, land on the concrete, \
+    real-world implication — what this actually means for how the \
+    person experiences or acts in the world, not just what the \
+    placement technically is. Claim, then the named-and-glossed \
+    placements behind it, then the real-life payoff — that's the shape \
+    of each chunk. This is where the interpretation and meaning for the \
+    person's life lives, so don't just list placements — say what they \
+    add up to.
+    **Astrological Basis:** Written SECOND, 2-4 short chunks covering \
+    the more precise technical grounding that didn't fit naturally into \
+    "What This Means" above — exact degrees, exact house numbers, \
+    dignity scores, orb tightness, and any additional supporting \
+    placements worth mentioning for a reader who wants the fuller \
+    picture. Don't just repeat what "What This Means" already named — \
+    add the next layer of precision.
   Do NOT alternate line-by-line between meaning and astrological facts \
   — group all the plain-language interpretation together first, then \
   all the supporting astrology together, once per theme.
@@ -310,7 +334,29 @@ bulleted — see formatting guidelines below). Briefly and matter-of-\
 factly note in this overview that the reading is based on planets \
 only, without birth-time-dependent points like the rising sign or \
 houses (not as an apology, just an accurate framing of scope). Head \
-this section with the exact markdown heading "## Overview".
+this section with the exact markdown heading "## Overview". Structure \
+it around these three things specifically:
+- NAME SPECIFIC CLUSTERS AND GROUPINGS DIRECTLY, not abstract themes. If \
+three or more points sit together in one sign (a stellium), or several \
+planets are conjunct each other, call this out explicitly as its own \
+paragraph — name which planets, which sign, and what that fusion of \
+energies actually produces, rather than describing the chart's themes \
+in the abstract without pointing to the specific placements driving them.
+- WEAVE DIGNITY IN AS CAUSAL LANGUAGE, not a separate aside. Instead of \
+noting dignity as a standalone fact, fold it into the sentence explaining \
+why a placement operates the way it does — e.g. a planet in Rulership \
+"operates at full strength in its own sign," one in Detriment "has to \
+work harder to express itself here." The dignity should read as part of \
+the explanation, not a footnote after it.
+- CLOSE WITH A CHART-WIDE PATTERN SUMMARY — after covering the specific \
+clusters, step back and name any pattern that recurs across MULTIPLE \
+different placements, not just within one theme. If hard aspects \
+(squares, oppositions) repeat across several unrelated points, say so \
+explicitly as a defining structural feature of the whole chart rather \
+than mentioning each one only within its own theme. Do the same for \
+repeated ease (trines, sextiles) if it's a genuine pattern — this is a \
+distinct, chart-level observation that sits above the individual \
+themes, not a repeat of something already said elsewhere.
 
 Then, identify the 2-4 biggest THEMES that emerge when you look at the \
 whole chart together. Format each theme's heading as a markdown H2 \
@@ -334,27 +380,26 @@ PROSE — no chunked split, no bolded sub-labels, no bullet chunking.
 summarizing the main takeaway. THEN follow with a two-part chunked \
 structure, IN THIS ORDER:
     **What This Means:** Written FIRST, broken into 2-4 short, \
-    scannable chunks with bolded sub-labels. You MAY reference the \
-    planets (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, \
-    Neptune, Pluto) and zodiac signs by name in simple, natural \
-    sentences like "your Mars is in Libra" — these are common enough \
-    that most readers have some baseline familiarity with them. \
-    However, do NOT use more complex or lesser-known astrological \
-    terminology here: no aspect names or aspect verbs (trine, square, \
-    sextile, conjunct, conjunction, opposition, quincunx, etc.), no \
-    dignity/technical status terms (Exaltation, Detriment, Rulership, \
-    Peregrine, etc.), no pattern names (Grand Trine, T-Square, Yod, \
-    Stellium, etc.), and don't name Chiron or the Nodes directly — \
-    describe their effects in plain language instead of naming them. \
-    A phrase like "square your Sun" should NEVER appear here. All of \
-    that more technical/niche vocabulary belongs in the Astrological \
-    Basis section below, where it's fully explained.
-    **Astrological Basis:** Written SECOND, also in 2-4 short chunks \
-    grouped by planet or aspect, with brief plain-language glosses of \
-    technical terms woven in (e.g. "...Exaltation, its strongest \
-    condition..." or "...square, a tense angle..."). All the complex/ \
-    lesser-known vocabulary excluded from "What This Means" above \
-    belongs here.
+    scannable chunks, each starting with a bolded claim stated as a \
+    short phrase followed by a colon. Within each chunk, you MAY name \
+    any point directly — planets, signs, Chiron, the Nodes, pattern \
+    names, and aspect words (conjunct, square, trine, etc.) — but EVERY \
+    technical term must be immediately followed by a brief \
+    plain-English gloss the first time it appears, woven naturally into \
+    the same sentence rather than set apart as a footnote. For example:
+      "Your Sun, which rules your core sense of self, is conjunct \
+      Chiron, ruler of core wounds and sensitivities."
+    After naming and glossing the placement, land on the concrete, \
+    real-world implication — what this actually means for how the \
+    person experiences or acts in the world, not just what the \
+    placement technically is. Claim, then the named-and-glossed \
+    placements behind it, then the real-life payoff.
+    **Astrological Basis:** Written SECOND, 2-4 short chunks covering \
+    the more precise technical grounding that didn't fit naturally into \
+    "What This Means" above — exact degrees, dignity scores, orb \
+    tightness, and any additional supporting placements worth \
+    mentioning. Don't just repeat what "What This Means" already named \
+    — add the next layer of precision.
   Group all the plain-language interpretation together first, then all \
   the supporting astrology together, once per theme — don't alternate \
   line-by-line between the two.
