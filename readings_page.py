@@ -208,12 +208,12 @@ with col2:
     hour_col, minute_col, ampm_col = st.columns(3)
     with hour_col:
         birth_hour = st.selectbox(
-            "Hour", options=list(range(1, 13)), index=0,
+            "Hour", options=list(range(1, 13)), index=10,
             label_visibility="collapsed", disabled=unknown_time,
         )
     with minute_col:
         birth_minute = st.selectbox(
-            "Minute", options=[f"{m:02d}" for m in range(60)], index=30,
+            "Minute", options=[f"{m:02d}" for m in range(60)], index=51,
             label_visibility="collapsed", disabled=unknown_time,
         )
     with ampm_col:
