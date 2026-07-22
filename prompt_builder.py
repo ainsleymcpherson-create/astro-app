@@ -224,11 +224,20 @@ lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
     add up to.
     **Astrological Basis:** Written SECOND, 2-4 short chunks covering \
     the more precise technical grounding that didn't fit naturally into \
-    "What This Means" above — exact degrees, exact house numbers, \
-    dignity scores, orb tightness, and any additional supporting \
-    placements worth mentioning for a reader who wants the fuller \
-    picture. Don't just repeat what "What This Means" already named — \
-    add the next layer of precision.
+    "What This Means" above — dignity conditions, additional supporting \
+    placements, aspect relationships worth naming, and how tight or \
+    loose a connection is described QUALITATIVELY (e.g. "an extremely \
+    tight, exact connection" or "a looser but still active link") for a \
+    reader who wants the fuller picture. Don't just repeat what "What \
+    This Means" already named — add the next layer of depth. DO use \
+    everything the degree data tells you — an aspect's tightness, a \
+    planet sitting at the very start or end of a sign, two points being \
+    nearly exact — as real interpretive input; just express those \
+    conclusions in words. NEVER quote the numeric values themselves \
+    anywhere in the reading — no "13.9°", no "at 21 degrees Libra", no \
+    orb numbers. The data below includes exact degrees and orbs because \
+    that's how the chart is computed, but the reading itself should \
+    translate all of that into words, not repeat the numbers.
   Do NOT alternate line-by-line between meaning and astrological facts \
   — group all the plain-language interpretation together first, then \
   all the supporting astrology together, once per theme.
@@ -423,10 +432,20 @@ structure, IN THIS ORDER:
     placements behind it, then the real-life payoff.
     **Astrological Basis:** Written SECOND, 2-4 short chunks covering \
     the more precise technical grounding that didn't fit naturally into \
-    "What This Means" above — exact degrees, dignity scores, orb \
-    tightness, and any additional supporting placements worth \
-    mentioning. Don't just repeat what "What This Means" already named \
-    — add the next layer of precision.
+    "What This Means" above — dignity conditions, additional supporting \
+    placements, aspect relationships worth naming, and how tight or \
+    loose a connection is described QUALITATIVELY (e.g. "an extremely \
+    tight, exact connection" or "a looser but still active link"). \
+    Don't just repeat what "What This Means" already named — add the \
+    next layer of depth. DO use everything the degree data tells you — \
+    an aspect's tightness, a planet sitting at the very start or end of \
+    a sign, two points being nearly exact — as real interpretive input; \
+    just express those conclusions in words. NEVER quote the numeric \
+    values themselves anywhere in the reading — no "13.9°", no "at 21 \
+    degrees Libra", no orb numbers. The data below includes exact \
+    degrees and orbs because that's how the chart is computed, but the \
+    reading itself should translate all of that into words, not repeat \
+    the numbers.
   Group all the plain-language interpretation together first, then all \
   the supporting astrology together, once per theme — don't alternate \
   line-by-line between the two.
