@@ -218,7 +218,7 @@ with col2:
         )
     with ampm_col:
         birth_ampm = st.selectbox(
-            "AM/PM", options=["AM", "PM"], index=1,
+            "AM/PM", options=["AM", "PM"], index=0,
             label_visibility="collapsed", disabled=unknown_time,
         )
 with col3:
