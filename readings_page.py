@@ -198,7 +198,7 @@ col1, col2, col3 = st.columns([1, 1.3, 1])
 with col1:
     birth_date = st.date_input(
         "Birth date",
-        value=date_type(1989, 07, 05),
+        value=date_type(1989, 7, 5),
         min_value=date_type(1900, 1, 1),
         max_value=date_type.today(),
         help="Tap to open the calendar picker.",
