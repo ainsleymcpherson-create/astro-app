@@ -198,7 +198,7 @@ col1, col2, col3 = st.columns([1, 1.3, 1])
 with col1:
     birth_date = st.date_input(
         "Birth date",
-        value=date_type(1989, 7, 5),
+        value=date_type(1981, 12, 24),
         min_value=date_type(1900, 1, 1),
         max_value=date_type.today(),
         help="Tap to open the calendar picker.",
@@ -224,7 +224,7 @@ with col2:
 with col3:
     location_str = st.text_input(
         "Birth location",
-        value="Washington, DC, USA",
+        value="Brooklyn, New York, USA",
         help="Be specific — add state/country if the place name is common",
     )
 
@@ -388,7 +388,8 @@ def aspects_to_dataframe(aspects, chart, category=None):
             motion = "separating"
         house = chart[a.point1].house if a.point1 in chart else None
         rows.append({
-            "House": house if house is not None else "",
+            "_house_raw": house,
+            "House": str(house) if house is not None else "",
             "Point 1": a.point1,
             "Aspect": a.aspect_name,
             "Point 2": a.point2,
@@ -399,9 +400,14 @@ def aspects_to_dataframe(aspects, chart, category=None):
     df = pd.DataFrame(rows)
     if not df.empty:
         # Sort by House ascending (points with no house, like angles,
-        # sort to the end via a large placeholder), then Point 1.
-        df["_house_sort"] = df["House"].apply(lambda h: h if h != "" else 999)
-        df = df.sort_values(["_house_sort", "Point 1"], kind="stable").drop(columns="_house_sort").reset_index(drop=True)
+        # sort to the end via a large placeholder), then Point 1. Sort
+        # on the raw int/None column, THEN drop it — sorting directly on
+        # the display "House" string column would sort alphabetically
+        # ("10" before "2"), which isn't what we want.
+        df["_house_sort"] = df["_house_raw"].apply(lambda h: h if h is not None else 999)
+        df = (df.sort_values(["_house_sort", "Point 1"], kind="stable")
+                .drop(columns=["_house_sort", "_house_raw"])
+                .reset_index(drop=True))
     return df
 
 
@@ -414,7 +420,8 @@ def synastry_aspects_to_dataframe(synastry_aspects, chart_a, category=None):
                 continue
         house = chart_a[a.person_a_point].house if a.person_a_point in chart_a else None
         rows.append({
-            "House": house if house is not None else "",
+            "_house_raw": house,
+            "House": str(house) if house is not None else "",
             "Person A's Point": a.person_a_point,
             "Aspect": a.aspect_name,
             "Person B's Point": a.person_b_point,
@@ -423,8 +430,10 @@ def synastry_aspects_to_dataframe(synastry_aspects, chart_a, category=None):
         })
     df = pd.DataFrame(rows)
     if not df.empty:
-        df["_house_sort"] = df["House"].apply(lambda h: h if h != "" else 999)
-        df = df.sort_values(["_house_sort", "Person A's Point"], kind="stable").drop(columns="_house_sort").reset_index(drop=True)
+        df["_house_sort"] = df["_house_raw"].apply(lambda h: h if h is not None else 999)
+        df = (df.sort_values(["_house_sort", "Person A's Point"], kind="stable")
+                .drop(columns=["_house_sort", "_house_raw"])
+                .reset_index(drop=True))
     return df
 
 
