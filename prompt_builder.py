@@ -30,17 +30,6 @@ from house_interpretation import HouseReading
 # a shorter prompt (e.g. skip house system nuance, just do points+aspects).
 # ---------------------------------------------------------------------------
 
-def _sign_position_word(sign_degree: float) -> str:
-    """Converts a 0-30 position within a sign to a qualitative
-    descriptor, so prompts carry the interpretive signal (early/late
-    degrees matter) without numeric values the model might quote."""
-    if sign_degree < 10:
-        return "early"
-    if sign_degree < 20:
-        return "mid"
-    return "late"
-
-
 def _orb_tightness_word(orb: float, max_orb: float) -> str:
     """Converts an orb into a qualitative tightness label. Keeps the
     tightness information available for interpretation while removing
@@ -58,16 +47,14 @@ def _orb_tightness_word(orb: float, max_orb: float) -> str:
 
 
 def format_points_section(chart: dict[str, ChartPoint]) -> str:
-    lines = ["PLACEMENTS (sign with early/mid/late position, house, "
-             "retrograde status):"]
+    lines = ["PLACEMENTS (sign, house, retrograde status):"]
     for name, point in sorted(chart.items(), key=lambda x: x[1].longitude):
         if name.startswith("House "):
             continue  # cusps listed separately in the houses section
         house_str = f", House {point.house}" if point.house else ""
         retro_str = " (retrograde)" if point.retrograde else ""
         lines.append(
-            f"  - {name}: {_sign_position_word(point.sign_degree)} "
-            f"{point.sign}{house_str}{retro_str}"
+            f"  - {name}: {point.sign}{house_str}{retro_str}"
         )
     return "\n".join(lines)
 
@@ -259,9 +246,9 @@ lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
     tight, exact connection" or "a looser but still active link") for a \
     reader who wants the fuller picture. Don't just repeat what "What \
     This Means" already named — add the next layer of depth. DO use \
-    everything the degree data tells you — an aspect's tightness, a \
-    planet sitting at the very start or end of a sign, two points being \
-    nearly exact — as real interpretive input; just express those \
+    everything the degree data tells you — an aspect's tightness, two \
+    points being nearly exact — as real interpretive input; just express \
+    those \
     conclusions in words. NEVER quote the numeric values themselves \
     anywhere in the reading — no "13.9°", no "at 21 degrees Libra", no \
     orb numbers. The data below includes exact degrees and orbs because \
@@ -309,6 +296,11 @@ lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
     the edges further, making it easy to idealize partners or \
     financial situations and harder to see them clearly." — that one \
     works because it names a specific, recognizable behavior.
+  NEVER DESCRIBE WHERE IN A SIGN A PLANET SITS. Do not say "early in \
+  Libra," "late Gemini," "the very end of," "mid Cancer," or anything \
+  about position within a sign. Just name the sign: "Mars sits in \
+  Libra." The exact degree isn't meaningful to the reader and adds \
+  clutter.
   KEEP HOUSE DESCRIPTIONS TO A MAXIMUM OF TWO DESCRIPTORS. When \
   glossing what a house governs, name at most two things — never three \
   or more. Not "your 8th house, concerned with intimacy, merging, and \
@@ -332,9 +324,9 @@ lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
   overloaded sentence: "It's placed in the 10th house, which governs \
   career, public reputation, and life direction, and it sits in an \
   essentially exact conjunction with the Sun (your core identity) in \
-  mid Cancer, also in the 10th, alongside Chiron, a lesser-known body \
-  representing core wounds and the potential to turn them into wisdom, \
-  sitting early in the same sign" — write it as: "It's placed in your \
+  Cancer, also in the 10th, alongside Chiron, a lesser-known body \
+  representing core wounds and the potential to turn them into wisdom" \
+  — write it as: "It's placed in your \
   10th house, which governs career, public reputation, and life \
   direction. Right beside it sits your Sun, your core identity, in mid \
   Cancer. The two are in an essentially exact conjunction. Chiron is \
@@ -551,8 +543,8 @@ structure, IN THIS ORDER:
     tight, exact connection" or "a looser but still active link"). \
     Don't just repeat what "What This Means" already named — add the \
     next layer of depth. DO use everything the degree data tells you — \
-    an aspect's tightness, a planet sitting at the very start or end of \
-    a sign, two points being nearly exact — as real interpretive input; \
+    an aspect's tightness, two points being nearly exact — as real \
+    interpretive input; \
     just express those conclusions in words. NEVER quote the numeric \
     values themselves anywhere in the reading — no "13.9°", no "at 21 \
     degrees Libra", no orb numbers. The data below includes exact \
@@ -600,6 +592,11 @@ structure, IN THIS ORDER:
     the edges further, making it easy to idealize partners or \
     financial situations and harder to see them clearly." — that one \
     works because it names a specific, recognizable behavior.
+  NEVER DESCRIBE WHERE IN A SIGN A PLANET SITS. Do not say "early in \
+  Libra," "late Gemini," "the very end of," "mid Cancer," or anything \
+  about position within a sign. Just name the sign: "Mars sits in \
+  Libra." The exact degree isn't meaningful to the reader and adds \
+  clutter.
   KEEP ANY GLOSS TO A MAXIMUM OF TWO DESCRIPTORS. When explaining what \
   a point or sign governs, name at most two things — never three or \
   more. Not "Venus, which governs love, beauty, values, and \
@@ -618,13 +615,13 @@ structure, IN THIS ORDER:
   appended as trailing clauses. This does NOT mean cutting \
   information — every fact still appears, just distributed across more \
   sentences. For example, instead of this one overloaded sentence: \
-  "Mercury sits at the very end of Gemini, its own sign, meaning it \
+  "Mercury sits in Gemini, its own sign, meaning it \
   operates at full strength, and it's in an essentially exact \
-  conjunction with the Sun (your core identity) in mid Cancer, \
+  conjunction with the Sun (your core identity) in Cancer, \
   alongside Chiron, a lesser-known body representing core wounds" — \
-  write it as: "Mercury sits at the very end of Gemini. That's its own \
+  write it as: "Mercury sits in Gemini. That's its own \
   sign, so it operates at full strength. Right beside it is your Sun, \
-  your core identity, in mid Cancer. Chiron is there too — a \
+  your core identity, in Cancer. Chiron is there too — a \
   lesser-known body representing core wounds and the potential to turn \
   them into wisdom." Same facts, four sentences instead of one.
   VARY SENTENCE LENGTH THROUGHOUT THE ENTIRE READING, the way natural \
@@ -1203,15 +1200,13 @@ def format_transiting_points_section(
     """Formats the current sky positions, with each transiting planet's
     natal house noted if houses were assigned via
     transit_engine.assign_transit_houses()."""
-    lines = ["CURRENT SKY (transiting planets, sign with early/mid/late "
-             "position, and which of YOUR natal houses each currently "
-             "falls in):"]
+    lines = ["CURRENT SKY (transiting planets, sign, and which of YOUR "
+             "natal houses each currently falls in):"]
     for name, point in sorted(transiting_points.items(), key=lambda x: x[1].longitude):
         house_str = f", in your natal House {point.house}" if point.house else ""
         retro_str = " (retrograde)" if point.retrograde else ""
         lines.append(
-            f"  - Transiting {name}: {_sign_position_word(point.sign_degree)} "
-            f"{point.sign}{house_str}{retro_str}"
+            f"  - Transiting {name}: {point.sign}{house_str}{retro_str}"
         )
     return "\n".join(lines)
 
@@ -1421,16 +1416,14 @@ def build_transit_prompt(
 # their professional meanings instead.
 
 def format_synastry_points_section(chart: dict, person_label: str) -> str:
-    lines = [f"PERSON {person_label}'S PLACEMENTS (sign with early/mid/late "
-             "position, house if available):"]
+    lines = [f"PERSON {person_label}'S PLACEMENTS (sign, house if available):"]
     for name, point in sorted(chart.items(), key=lambda x: x[1].longitude):
         if name.startswith("House "):
             continue
         house_str = f", House {point.house}" if point.house else ""
         retro_str = " (retrograde)" if point.retrograde else ""
         lines.append(
-            f"  - {name}: {_sign_position_word(point.sign_degree)} "
-            f"{point.sign}{house_str}{retro_str}"
+            f"  - {name}: {point.sign}{house_str}{retro_str}"
         )
     return "\n".join(lines)
 
