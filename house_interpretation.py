@@ -28,18 +28,18 @@ from dignity import get_house_ruler, get_dignity, DignityResult
 # ---------------------------------------------------------------------------
 
 HOUSE_THEMES = {
-    1: "Self, identity, physical body, how you initiate and come across to others",
-    2: "Resources, money, possessions, self-worth, what you value",
-    3: "Communication, siblings, short trips, everyday learning, immediate environment",
-    4: "Home, family, roots, ancestry, emotional foundations, one parent",
-    5: "Creativity, romance, self-expression, children, pleasure, risk-taking",
-    6: "Daily work, routines, health habits, service, the body as a functioning system",
-    7: "Partnerships, marriage, open relationships, contracts, how you meet others",
-    8: "Shared resources, intimacy, transformation, death/rebirth, other people's money",
-    9: "Philosophy, higher education, long-distance travel, belief systems, publishing",
-    10: "Career, public reputation, life direction, authority, the other parent",
-    11: "Community, friendships, groups, hopes and long-term goals",
-    12: "The unconscious, solitude, spirituality, hidden matters, self-undoing",
+    1: "Self and identity",
+    2: "Money and self-worth",
+    3: "Communication and everyday learning",
+    4: "Home and family",
+    5: "Creativity and romance",
+    6: "Daily work and health",
+    7: "Partnership and marriage",
+    8: "Intimacy and transformation",
+    9: "Philosophy and travel",
+    10: "Career and public reputation",
+    11: "Community and friendship",
+    12: "The unconscious and solitude",
 }
 
 # Points that count as "occupying" a house for the purposes of
