@@ -809,11 +809,19 @@ the traditional work-relevant signals.
 
 Structure your answer as follows:
 
-First, provide a general and summarized overview of the chart and what \
-the reading uncovered — a short, plain-language orientation before the \
-detailed sections, written as a few flowing paragraphs (not chunked or \
-bulleted — see formatting guidelines below). Head this section with \
-the exact markdown heading "## Overview".
+First, provide an overview of the chart and what the reading \
+uncovered — an orientation before the detailed sections, written as a \
+few flowing paragraphs (not chunked or bulleted — see formatting \
+guidelines below). Head this section with the exact markdown heading \
+"## Overview". OPEN WITH A PUNCHY DECLARATIVE THESIS — one or two \
+short, confident sentences stating what this chart means for this \
+person's work life, with no hedging. Something with the shape of \
+"Your career runs on structured ambition." State it plainly, then \
+spend the rest of the Overview proving it. Use the SAME naming \
+convention as "Career Implications" below: name planets, signs, \
+houses, and angles directly, PREFERRING THE INVERTED FORM — lead with \
+plain meaning, technical term in parentheses: "your discipline \
+(Saturn)," "your public role (the Midheaven)."
 
 Then, go into the following sections. Format each one as a markdown H2 \
 heading — exactly "## Section Name" (two hash symbols, one space, then \
@@ -898,40 +906,37 @@ Professional Growth Trajectory), OPEN EACH SECTION with 1-2 sentences \
 of brief plain-language prose summarizing the main takeaway of that \
 section — no bolding, no chunking, just a short lead-in sentence or \
 two, similar in style to the Overview. THEN, after that brief summary, \
-follow with the two-part chunked structure below. Every one of the six \
+follow with the three-part structure below. Every one of the six \
 sections should have this same shape: short prose summary first, then \
 chunked detail.
 - FOR THE SIX SECTION HEADERS ONLY (Professional Strengths through \
-Professional Growth Trajectory), USE A TWO-PART FORMAT AT THE SECTION \
-LEVEL, not per individual claim. Structure the detail AFTER the brief \
-summary above as exactly two consolidated parts, IN THIS ORDER:
+Professional Growth Trajectory), USE A THREE-PART FORMAT AT THE \
+SECTION LEVEL, not per individual claim. Structure the detail AFTER \
+the brief summary above as exactly three consolidated parts, IN THIS \
+ORDER:
     **Career Implications:** Written FIRST. Do NOT write this as one \
     dense paragraph — break it into 2-4 short, scannable chunks, each \
     just 1-3 sentences, using either short bullet points or brief bolded \
     sub-labels (e.g. "**Daily reliability:** ...", "**Building your \
-    network:** ..."). You MAY reference the 10 standard planets (Sun, \
-    Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto) \
-    and zodiac signs by name in simple, natural sentences like "your \
-    Mars is in Libra" — these are common enough that most readers have \
-    some baseline familiarity with them. However, do NOT use any more \
-    complex or lesser-known astrological terminology here — this \
-    includes but is not limited to: no aspect names or aspect verbs \
-    (trine, square, sextile, conjunct, conjunction, opposition, \
-    quincunx, etc.), no angle names (Midheaven, Ascendant, Descendant, \
-    Imum Coeli), no dignity/technical status terms (Exaltation, \
-    Detriment, Rulership, Peregrine, etc.), no house numbers, no \
-    pattern names (Grand Trine, T-Square, Yod, Stellium, etc.), and \
-    don't name the lesser-used points directly (Chiron, the Nodes, the \
-    Vertex, Part of Fortune/Spirit) — describe their effects in plain \
-    language instead. Every one of these belongs in the Astrological \
-    Basis section below, not here — a phrase like "conjunct your \
-    Midheaven" or "square your natal Sun" should NEVER appear in this \
-    section. Cover what this part of the chart actually means for this \
-    person professionally, in plain business/career language. This is \
-    where the actual interpretation, advice, and takeaways for the \
-    reader live — lead with this so the reader gets the point \
-    immediately.
-    **Astrological Basis:** Written SECOND. Also break this into 2-4 \
+    network:** ..."). You MAY name any point directly — planets, signs, \
+    angles, lesser-used points, aspect words — but PREFER THE INVERTED \
+    FORM: lead with plain meaning, technical term in parentheses ("your \
+    drive (Mars)" rather than "Mars, the planet of drive"). Use the \
+    longer "X, which governs Y" form only for points that need more \
+    explaining. Cover what this part of the chart actually means for \
+    this person professionally, in plain business/career language — \
+    and always cash the technical fact out into what it actually looks \
+    like day to day: a habit, a reaction, a recognizable pattern at \
+    work, not just a label. This is where the actual interpretation \
+    and takeaways for the reader live — lead with this so the reader \
+    gets the point immediately.
+    **Advice:** Written SECOND, right after Career Implications and \
+    BEFORE Astrological Basis — this ordering matters, the app relies \
+    on it. A short paragraph, not chunked. Speak directly to the person \
+    in the imperative — concrete, actionable career direction. Mix \
+    warnings with encouragements. No astrology in this block. 2-4 \
+    sentences.
+    **Astrological Basis:** Written THIRD. Also break this into 2-4 \
     short, scannable chunks rather than one dense paragraph — group by \
     placement or pattern (e.g. "**Saturn:** ...", "**Supporting \
     aspects:** ...", "**Part of Fortune:** ..."), each chunk just 1-3 \
@@ -946,8 +951,11 @@ summary above as exactly two consolidated parts, IN THIS ORDER:
   Do NOT alternate line-by-line between career interpretation and \
   astrological facts — group all the career interpretation together \
   first, then all the supporting astrology together. This chunked \
-  two-part structure applies ONLY to the six section headers — the \
+  three-part structure applies ONLY to the six section headers — the \
   Overview and Conclusion stay in prose, per the note above.
+- WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use \
+an occasional adjective triad for tone ("The energy here is intense, \
+focused, and demanding") — once or twice per section, not more.
 - SYNTHESIZE within each section — don't just list placements one by \
 one, identify how 2-3 placements combine to create each point you make. \
 Focus on the most important items, not the entire list. Where possible, \
@@ -1112,16 +1120,22 @@ reliable weighting signals available without house data.
 
 Structure your answer as follows:
 
-First, provide a general and summarized overview of the chart and what \
-the reading uncovered — a short, plain-language orientation before the \
-detailed sections, written as a few flowing paragraphs (not chunked or \
-bulleted — see formatting guidelines below). Briefly and matter-of-factly \
-note that this reading is based on planets only, without birth-time-\
-dependent points like the rising sign or houses, so it won't cover things \
-like "what house your career planets fall in" the way a full reading \
-would — this isn't a limitation to apologize for, just an accurate \
-scope-setting note. Head this section with the exact markdown heading \
-"## Overview".
+First, provide an overview of the chart and what the reading \
+uncovered — an orientation before the detailed sections, written as a \
+few flowing paragraphs (not chunked or bulleted — see formatting \
+guidelines below). Briefly and matter-of-factly note that this reading \
+is based on planets only, without birth-time-dependent points like the \
+rising sign or houses, so it won't cover things like "what house your \
+career planets fall in" the way a full reading would — this isn't a \
+limitation to apologize for, just an accurate scope-setting note. Head \
+this section with the exact markdown heading "## Overview". OPEN WITH \
+A PUNCHY DECLARATIVE THESIS — one or two short, confident sentences \
+stating what this chart means for this person's work life, with no \
+hedging. State it plainly, then spend the rest of the Overview proving \
+it. Use the SAME naming convention as "Career Implications" below: \
+name planets and signs directly, PREFERRING THE INVERTED FORM — lead \
+with plain meaning, technical term in parentheses: "your discipline \
+(Saturn)."
 
 Then, go into the following sections. Format each one as a markdown H2 \
 heading — exactly "## Section Name" (two hash symbols, one space, then \
@@ -1180,28 +1194,30 @@ PROSE — no "Career Implications" / "Astrological Basis" split, no \
 bolded sub-labels, no bullet chunking.
 - FOR THE SIX SECTION HEADERS ONLY, OPEN EACH SECTION with 1-2 \
 sentences of brief plain-language prose summarizing the main takeaway \
-of that section. THEN follow with a two-part chunked structure, IN \
+of that section. THEN follow with a three-part structure, IN \
 THIS ORDER:
     **Career Implications:** Written FIRST, broken into 2-4 short, \
-    scannable chunks with bolded sub-labels. You MAY reference the \
-    planets (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, \
-    Neptune, Pluto) and zodiac signs by name in simple, natural \
-    sentences like "your Mars is in Libra" — these are common enough \
-    that most readers have some baseline familiarity with them. \
-    However, do NOT use any more complex or lesser-known astrological \
-    terminology here: no aspect names or aspect verbs (trine, square, \
-    sextile, conjunct, conjunction, opposition, quincunx, etc.), no \
-    dignity/technical status terms (Exaltation, Detriment, Rulership, \
-    Peregrine, etc.), no pattern names (Grand Trine, T-Square, Yod, \
-    Stellium, etc.), and don't name Chiron or the Nodes directly — \
-    describe their effects in plain language instead. Every one of \
-    these belongs in the Astrological Basis section below, not here — \
-    a phrase like "square your natal Sun" should NEVER appear in this \
-    section.
-    **Astrological Basis:** Written SECOND, also broken into 2-4 short \
+    scannable chunks with bolded sub-labels. You MAY name any point \
+    directly — planets, signs, Chiron, the Nodes, aspect words — but \
+    PREFER THE INVERTED FORM: lead with plain meaning, technical term \
+    in parentheses ("your drive (Mars)" rather than "Mars, the planet \
+    of drive"). Cover what this actually means for this person \
+    professionally, and always cash the technical fact out into what \
+    it actually looks like day to day — a habit, a reaction, a \
+    recognizable pattern at work, not just a label.
+    **Advice:** Written SECOND, right after Career Implications and \
+    BEFORE Astrological Basis — this ordering matters, the app relies \
+    on it. A short paragraph, not chunked. Speak directly to the person \
+    in the imperative — concrete, actionable career direction. Mix \
+    warnings with encouragements. No astrology in this block. 2-4 \
+    sentences.
+    **Astrological Basis:** Written THIRD, also broken into 2-4 short \
     chunks grouped by planet or aspect, with brief plain-language \
     glosses of technical terms woven in (e.g. "...Exaltation, its \
     strongest condition..." or "...square, a tense angle...").
+- WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use \
+an occasional adjective triad for tone ("The energy here is intense, \
+focused, and demanding") — once or twice per section, not more.
 - SYNTHESIZE within each section — identify how 2-3 placements combine \
 to create each point, rather than listing them one by one. Avoid \
 repeating the same point across multiple sections.
@@ -1334,14 +1350,19 @@ dignity for context. All mathematically precise, not approximated.
 
 Structure your answer as follows:
 
-First, provide a general and summarized overview of what this current \
-period is broadly about for this person — a short, plain-language \
-orientation before the detailed points, written as a few flowing \
-paragraphs (not chunked or bulleted — see formatting guidelines below). \
-Head this section with the exact markdown heading "## Overview". If \
-there are no significant transits at all right now, say so plainly \
-rather than manufacturing significance — a quiet period is a real and \
-valid finding.
+First, provide an overview of what this current period is broadly \
+about for this person — an orientation before the detailed points, \
+written as a few flowing paragraphs (not chunked or bulleted — see \
+formatting guidelines below). Head this section with the exact \
+markdown heading "## Overview". If there are no significant transits \
+at all right now, say so plainly rather than manufacturing \
+significance — a quiet period is a real and valid finding. Otherwise, \
+OPEN WITH A PUNCHY DECLARATIVE THESIS — one or two short, confident \
+sentences stating what this period is fundamentally about, with no \
+hedging. Use the SAME naming convention as "What This Means" below: \
+name planets and points directly, PREFERRING THE INVERTED FORM — lead \
+with plain meaning, technical term in parentheses: "your public \
+direction (transiting Saturn)."
 
 Then, identify the 2-4 most significant currently-active transits or \
 transit-driven themes (prioritize tighter orbs and applying transits, \
@@ -1351,8 +1372,8 @@ Neptune/Pluto as generally longer-lasting and more significant than \
 fast-moving ones like the Moon, unless a fast transit is unusually \
 exact). Format each theme's heading as a markdown H2 heading — exactly \
 "## Theme Name" — since the app displaying this reading relies on that \
-exact format to build a collapsible view. Then follow the two-part \
-chunked format described below for each one.
+exact format to build a collapsible view. Then follow the three-part \
+format described below for each one.
 
 End with a conclusion distilling what actually matters most about this \
 current period, but try not to repeat the intro summary. Write it as \
@@ -1366,31 +1387,33 @@ General guidelines that still apply:
 - THE OVERVIEW AND THE CONCLUSION SHOULD BE WRITTEN IN PLAIN FLOWING \
 PROSE — no chunked split, no bolded sub-labels, no bullet chunking.
 - FOR EACH THEME, OPEN with 1-2 sentences of brief plain-language prose \
-summarizing the main takeaway. THEN follow with a two-part chunked \
+summarizing the main takeaway. THEN follow with a three-part \
 structure, IN THIS ORDER:
     **What This Means:** Written FIRST, broken into 2-4 short, \
-    scannable chunks with bolded sub-labels. You MAY reference the \
-    planets and zodiac signs by name in simple, natural sentences like \
-    "transiting Saturn is currently in Libra" — these are common enough \
-    that most readers have some baseline familiarity with them. However, \
-    do NOT use more complex or lesser-known astrological terminology \
-    here: no aspect names or aspect verbs (trine, square, sextile, \
-    conjunct, conjunction, opposition, quincunx, etc.), no angle names \
-    (Midheaven, Ascendant, Descendant, Imum Coeli), no dignity/technical \
-    status terms (Exaltation, Detriment, Rulership, Peregrine, etc.), no \
-    house numbers, and don't name Chiron or the Nodes directly — \
-    describe their effects in plain language instead. A phrase like \
-    "transiting Saturn is conjunct your Midheaven" should NEVER appear \
-    here — say something like "this is putting real focus on your \
-    public reputation and career direction" instead. All of that more \
-    technical vocabulary belongs in the Astrological Basis section below.
-    **Astrological Basis:** Written SECOND, also in 2-4 short chunks \
+    scannable chunks with bolded sub-labels. You MAY name any point \
+    directly — planets, angles, Chiron, the Nodes, aspect words — but \
+    PREFER THE INVERTED FORM: lead with plain meaning, technical term \
+    in parentheses, e.g. "your public direction (the Midheaven)" \
+    rather than "your Midheaven, which governs..." Instead of \
+    "transiting Saturn is conjunct your Midheaven," write "This is \
+    putting real, sustained focus on your public reputation and career \
+    direction (transiting Saturn conjunct your Midheaven)." Always cash \
+    the technical fact out into what it actually looks like day to day.
+    **Advice:** Written SECOND, right after "What This Means" and \
+    BEFORE "Astrological Basis" — this ordering matters, the app \
+    relies on it. A short paragraph, not chunked. Speak directly to the \
+    person in the imperative — concrete, actionable direction for this \
+    specific window of time. Mix warnings with encouragements. No \
+    astrology in this block. 2-4 sentences.
+    **Astrological Basis:** Written THIRD, also in 2-4 short chunks \
     grouped by transit, with brief plain-language glosses of technical \
-    terms woven in as needed. All the complex/lesser-known vocabulary \
-    excluded from "What This Means" above belongs here.
+    terms woven in as needed.
   Group all the plain-language interpretation together first, then all \
   the supporting astrology together, once per theme — don't alternate \
   line-by-line between the two.
+- WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use \
+an occasional adjective triad for tone ("The energy is intense, \
+focused, and demanding") — once or twice per theme, not more.
 - USE DIGNITY AS CONTEXT. If a transiting planet is aspecting a natal \
 planet that's well-dignified (Rulership/Exaltation), that natal planet \
 can generally handle the activation more directly; if poorly dignified \
@@ -1416,7 +1439,7 @@ Here is the full computed transit data:
 {data_block}
 
 Now write the reading: opening overview, 2-4 themes each in the \
-two-part chunked format above, then a closing conclusion.\
+three-part format above, then a closing conclusion.\
 """
 
 
@@ -1579,7 +1602,9 @@ plain-language orientation before the detail, written as a few
 flowing paragraphs (not chunked or bulleted). Do not include anything
 related to astrology here — format it as an overview of these two
 people and a summary of what follows, purely from a professional and
-working perspective. Head it "## Overview".
+working perspective. OPEN WITH A PUNCHY DECLARATIVE THESIS — one or
+two short, confident sentences stating what this working dynamic is
+fundamentally about, with no hedging. Head it "## Overview".
 
 Then, exactly these three sections, each a markdown H2 heading exactly
 as written (the app relies on this exact format for a collapsible view):
@@ -1640,7 +1665,13 @@ summarizing the takeaway. Then a three-part structure, IN ORDER:
     forward quickly, which can rub against Person B's need for
     structure" instead. Always name WHICH person — never leave it
     ambiguous.
-    **Astrological Basis:** SECOND, and this is supporting evidence
+    **Advice:** SECOND, right after Working Implications and BEFORE
+    Astrological Basis — this ordering matters, the app relies on it.
+    A short paragraph, not chunked. Speak directly to the two people
+    in the imperative — concrete, actionable direction for working
+    together better. Mix warnings with encouragements. No astrology in
+    this block. 2-4 sentences.
+    **Astrological Basis:** THIRD, and this is supporting evidence
     ONLY — keep it brief and minimal, 1-2 short chunks, just enough for
     a curious reader to see where the claim came from. This is NOT the
     place to elaborate further — all the actual depth and insight
@@ -1651,6 +1682,10 @@ summarizing the takeaway. Then a three-part structure, IN ORDER:
   — never alternate line by line. The reading as a whole should feel
   like a business document that happens to cite astrology as its
   method, not an astrology reading that happens to mention business.
+- WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use
+an occasional adjective triad for tone ("The dynamic here is direct,
+fast-moving, and occasionally blunt") — once or twice per section, not
+more.
 - DIGNITY IS REAL WEIGHTING for both charts.
 - SYNASTRY CONTACTS ARE MUTUAL: a contact between Person A's Saturn and
 Person B's Sun affects both people, even if experienced differently —
@@ -1775,7 +1810,10 @@ Structure your answer as follows:
 
 First, a general overview of the connection between these two people —
 a short, plain-language orientation before the detail, written as a
-few flowing paragraphs (not chunked or bulleted). Head it "## Overview".
+few flowing paragraphs (not chunked or bulleted). OPEN WITH A PUNCHY
+DECLARATIVE THESIS — one or two short, confident sentences stating
+what this connection is fundamentally about, with no hedging. Head it
+"## Overview".
 
 Then, exactly these five sections, each a markdown H2 heading exactly
 as written (the app relies on this exact format for a collapsible view):
@@ -1823,14 +1861,18 @@ summarizing the takeaway. Then a three-part structure, IN ORDER:
     **What This Means:** FIRST, 2-4 substantive chunks with bolded
     sub-labels — real, specific detail about what this actually looks
     like between these two people, not generic relationship advice.
-    You MAY name the 10 planets and zodiac signs plainly (e.g. "Person
-    A's Venus is in Scorpio"). You may NOT use: aspect names/verbs
-    (trine, square, conjunct, sextile, opposition), angle names
-    (Midheaven, Ascendant, Descendant, Imum Coeli), dignity terms
-    (Exaltation, Detriment, Rulership, Peregrine), house numbers, or
-    pattern names (Grand Trine, T-Square, Yod). Always name WHICH
+    You MAY name any point directly — planets, signs, angles, aspect
+    words — but PREFER THE INVERTED FORM: lead with plain meaning,
+    technical term in parentheses ("Person A's warmth (Venus)" rather
+    than "Person A's Venus, the planet of warmth"). Always name WHICH
     person — never leave it ambiguous.
-    **Astrological Basis:** SECOND, 1-2 short chunks, just enough
+    **Advice:** SECOND, right after "What This Means" and BEFORE
+    "Astrological Basis" — this ordering matters, the app relies on
+    it. A short paragraph, not chunked. Speak directly to the two
+    people in the imperative — concrete, actionable relationship
+    guidance. Mix warnings with encouragements. No astrology in this
+    block. 2-4 sentences.
+    **Astrological Basis:** THIRD, 1-2 short chunks, just enough
     supporting evidence for a curious reader to see where the claim
     came from — this isn't the place for further elaboration, which
     belongs in "What This Means" above. Technical terms are allowed
@@ -1838,6 +1880,9 @@ summarizing the takeaway. Then a three-part structure, IN ORDER:
     belongs to.
   Group all plain-language content first, then all supporting astrology
   — never alternate line by line.
+- WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use
+an occasional adjective triad for tone ("The connection is warm,
+intense, and immediate") — once or twice per section, not more.
 - DIGNITY IS REAL WEIGHTING for both charts.
 - SYNASTRY CONTACTS ARE MUTUAL: a contact between Person A's Venus and
 Person B's Mars affects both people, even if experienced differently —
