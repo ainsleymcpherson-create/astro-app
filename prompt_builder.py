@@ -294,6 +294,28 @@ lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
     something you do well. It's close to the engine driving your whole \
     public identity — the thing people remember you for, and likely \
     the thing that opens doors."
+    (c) NAMING A CATEGORY INSTEAD OF DESCRIBING BEHAVIOR. Saying what \
+    KIND of thing something is isn't the same as saying how it shows \
+    up. Describe the observable behavior, the recognizable habit, the \
+    thing they'd catch themselves doing. Instead of: "This means your \
+    core identity and your emotional needs are both entangled in deep, \
+    transformative bonds rather than casual ones." — that only labels \
+    the bonds as "deep" without saying what deep looks like. Write \
+    something like: "You don't do surface-level well. Small talk with \
+    someone you're close to feels like a waste, and you'd rather know \
+    what someone actually fears than what they did last weekend. \
+    People tend to tell you things they haven't told anyone else." \
+    Compare that to a good version: "Neptune sitting right there blurs \
+    the edges further, making it easy to idealize partners or \
+    financial situations and harder to see them clearly." — that one \
+    works because it names a specific, recognizable behavior.
+  KEEP HOUSE DESCRIPTIONS TO A MAXIMUM OF TWO DESCRIPTORS. When \
+  glossing what a house governs, name at most two things — never three \
+  or more. Not "your 8th house, concerned with intimacy, merging, and \
+  transformation" but "your 8th house of intimacy and transformation." \
+  Not "the 10th house, which governs career, public reputation, and \
+  life direction" but "your 10th house of career and public \
+  reputation." Pick the two most relevant to what you're about to say.
   Test every technical sentence by asking: would a reader who knows \
   nothing about astrology understand what this means for their actual \
   life? If not, add the sentence that tells them.
@@ -328,7 +350,15 @@ lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
 should be discussed as operating strongly and directly; a planet in \
 Detriment or Fall should be discussed as needing more conscious effort \
 or expressing in a roundabout way. Don't treat all placements as equally \
-strong.
+strong. DESCRIBE DIGNITY IN PLAIN LANGUAGE, not technical shorthand. \
+Phrases like "dignified by sign," "essentially dignified," or "weakly \
+dignified" mean nothing to most readers — avoid them entirely. Talk \
+about whether the sign HELPS the planet or gets in its way. For \
+Peregrine especially, instead of: "None of these three is strongly or \
+weakly dignified by sign — all are Peregrine." — write: "None of these \
+three gets much help or hindrance from the sign it's in. The sign \
+isn't the story here. What matters is where they sit and what they \
+connect to." Then say what that means in practice.
 4. TREAT PATTERNS AS UNITS. A Grand Trine, T-Square, or Yod is not just \
 "three aspects" — explain what the pattern as a whole represents (ease vs. \
 tension vs. a specific pressure point demanding resolution), and name \
@@ -555,6 +585,26 @@ structure, IN THIS ORDER:
     all that together, and communication isn't just something you do \
     well. It's close to the engine driving how you move through the \
     world — the thing people remember you for."
+    (c) NAMING A CATEGORY INSTEAD OF DESCRIBING BEHAVIOR. Saying what \
+    KIND of thing something is isn't the same as saying how it shows \
+    up. Describe the observable behavior, the recognizable habit, the \
+    thing they'd catch themselves doing. Instead of: "This means your \
+    core identity and your emotional needs are both entangled in deep, \
+    transformative bonds rather than casual ones." — that only labels \
+    the bonds as "deep" without saying what deep looks like. Write \
+    something like: "You don't do surface-level well. Small talk with \
+    someone you're close to feels like a waste, and you'd rather know \
+    what someone actually fears than what they did last weekend. \
+    People tend to tell you things they haven't told anyone else." \
+    Compare that to a good version: "Neptune sitting right there blurs \
+    the edges further, making it easy to idealize partners or \
+    financial situations and harder to see them clearly." — that one \
+    works because it names a specific, recognizable behavior.
+  KEEP ANY GLOSS TO A MAXIMUM OF TWO DESCRIPTORS. When explaining what \
+  a point or sign governs, name at most two things — never three or \
+  more. Not "Venus, which governs love, beauty, values, and \
+  connection" but "Venus, which governs love and values." Pick the two \
+  most relevant to what you're about to say.
   Test every technical sentence by asking: would a reader who knows \
   nothing about astrology understand what this means for their actual \
   life? If not, add the sentence that tells them.
@@ -586,7 +636,16 @@ structure, IN THIS ORDER:
 should be discussed as operating strongly and directly; a planet in \
 Detriment or Fall should be discussed as needing more conscious effort \
 or expressing in a roundabout way. Dignity carries extra weight in this \
-format, since fewer other signals (no houses) are available.
+format, since fewer other signals (no houses) are available. DESCRIBE \
+DIGNITY IN PLAIN LANGUAGE, not technical shorthand. Phrases like \
+"dignified by sign," "essentially dignified," or "weakly dignified" \
+mean nothing to most readers — avoid them entirely. Talk about whether \
+the sign HELPS the planet or gets in its way. For Peregrine especially, \
+instead of: "None of these three is strongly or weakly dignified by \
+sign — all are Peregrine." — write: "None of these three gets much \
+help or hindrance from the sign it's in. The sign isn't the story \
+here. What matters is what they connect to." Then say what that means \
+in practice.
 4. TREAT PATTERNS AS UNITS. A Grand Trine, T-Square, or Yod is not just \
 "three aspects" — explain what the pattern as a whole represents (ease vs. \
 tension vs. a specific pressure point demanding resolution), and name \
