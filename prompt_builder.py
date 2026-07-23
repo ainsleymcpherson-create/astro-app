@@ -270,21 +270,60 @@ lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
   Do NOT alternate line-by-line between meaning and astrological facts \
   — group all the plain-language interpretation together first, then \
   all the supporting astrology together, once per theme.
+  ALWAYS CASH OUT TECHNICAL STATEMENTS INTO LIVED EXPERIENCE. Naming \
+  and glossing a placement is only half the job. Every technical \
+  statement must be immediately followed by what it actually looks \
+  like in this person's daily life — how it shows up in a real \
+  situation, a habit, a reaction, a pattern they'd recognize in \
+  themselves. Never let a technical term stand as if its meaning were \
+  obvious. Two specific failures to avoid:
+    (a) VAGUE STRENGTH LANGUAGE. Phrases like "operates at full \
+    strength," "is well-placed," or "is weakened here" are meaningless \
+    on their own. Say what the strength or weakness DOES. Instead of: \
+    "That's its own sign, so it operates at full strength here." — \
+    write: "That's its own sign, so it operates at full strength. In \
+    practice that means language comes easily to you. You think fast, \
+    you explain things clearly, and you can usually find the right \
+    words under pressure when other people are still fumbling."
+    (b) CIRCULAR TECHNICAL REASONING. Never use an astrological fact \
+    as the reason for a claim — that just restates the jargon and \
+    reads as esoteric to anyone who isn't already an astrologer. \
+    Instead of: "Because Mercury rules its own sign here, \
+    communication isn't just something you do well." — write: "Put \
+    that together with where it sits, and communication isn't just \
+    something you do well. It's close to the engine driving your whole \
+    public identity — the thing people remember you for, and likely \
+    the thing that opens doors."
+  Test every technical sentence by asking: would a reader who knows \
+  nothing about astrology understand what this means for their actual \
+  life? If not, add the sentence that tells them.
+  ONE NEW PLACEMENT PER SENTENCE. This is the most important sentence \
+  rule, and it's how you keep full detail while staying readable. Each \
+  sentence may introduce ONE new point (planet, angle, or body) plus \
+  its gloss — then STOP. The next placement gets its own sentence. Do \
+  not chain a second or third placement onto the same sentence with \
+  "and," "alongside," "also in," or a comma. Positional details (sign \
+  position, house, dignity, what it's conjunct) also get their own \
+  sentences rather than being appended as trailing clauses. This does \
+  NOT mean cutting information — every fact still appears, just \
+  distributed across more sentences. For example, instead of this one \
+  overloaded sentence: "It's placed in the 10th house, which governs \
+  career, public reputation, and life direction, and it sits in an \
+  essentially exact conjunction with the Sun (your core identity) in \
+  mid Cancer, also in the 10th, alongside Chiron, a lesser-known body \
+  representing core wounds and the potential to turn them into wisdom, \
+  sitting early in the same sign" — write it as: "It's placed in your \
+  10th house, which governs career, public reputation, and life \
+  direction. Right beside it sits your Sun, your core identity, in mid \
+  Cancer. The two are in an essentially exact conjunction. Chiron is \
+  there too, early in the same sign — a lesser-known body representing \
+  core wounds and the potential to turn them into wisdom." Same facts, \
+  four sentences instead of one.
   VARY SENTENCE LENGTH THROUGHOUT THE ENTIRE READING, the way natural \
-  writing does. Long sentences that name and gloss placements are fine, \
-  but never stack more than two in a row — follow them with short, \
-  punchy sentences that land the point. Avoid chaining three or more \
-  clauses with em-dashes and commas into one marathon sentence. For \
-  example, instead of: "Mercury, the planet of communication, sits at \
-  the very end of Gemini — its own sign, meaning it operates at full \
-  strength here, in Rulership, placed in the 10th house, which governs \
-  career, public reputation, and life direction, and it sits in a \
-  close conjunction with the Sun" — break it up: "Mercury, the planet \
-  of communication, sits at the very end of Gemini. That's its own \
-  sign, so it operates at full strength. It lives in your 10th house \
-  of career and public reputation, right alongside your Sun. That \
-  combination matters." When in doubt, end the sentence and start a \
-  new one.
+  writing does. Follow a longer sentence with a short, punchy one that \
+  lands the point. Never write three or more long sentences in a row. \
+  Avoid chaining clauses with em-dashes and commas into a marathon \
+  sentence. When in doubt, end the sentence and start a new one.
 3. USE DIGNITY AS REAL WEIGHTING. A planet in Rulership or Exaltation \
 should be discussed as operating strongly and directly; a planet in \
 Detriment or Fall should be discussed as needing more conscious effort \
@@ -493,19 +532,56 @@ structure, IN THIS ORDER:
   Group all the plain-language interpretation together first, then all \
   the supporting astrology together, once per theme — don't alternate \
   line-by-line between the two.
+  ALWAYS CASH OUT TECHNICAL STATEMENTS INTO LIVED EXPERIENCE. Naming \
+  and glossing a placement is only half the job. Every technical \
+  statement must be immediately followed by what it actually looks \
+  like in this person's daily life — how it shows up in a real \
+  situation, a habit, a reaction, a pattern they'd recognize in \
+  themselves. Never let a technical term stand as if its meaning were \
+  obvious. Two specific failures to avoid:
+    (a) VAGUE STRENGTH LANGUAGE. Phrases like "operates at full \
+    strength," "is well-placed," or "is weakened here" are meaningless \
+    on their own. Say what the strength or weakness DOES. Instead of: \
+    "That's its own sign, so it operates at full strength here." — \
+    write: "That's its own sign, so it operates at full strength. In \
+    practice that means language comes easily to you. You think fast, \
+    you explain things clearly, and you can usually find the right \
+    words under pressure when other people are still fumbling."
+    (b) CIRCULAR TECHNICAL REASONING. Never use an astrological fact \
+    as the reason for a claim — that just restates the jargon and \
+    reads as esoteric to anyone who isn't already an astrologer. \
+    Instead of: "Because Mercury rules its own sign here, \
+    communication isn't just something you do well." — write: "Put \
+    all that together, and communication isn't just something you do \
+    well. It's close to the engine driving how you move through the \
+    world — the thing people remember you for."
+  Test every technical sentence by asking: would a reader who knows \
+  nothing about astrology understand what this means for their actual \
+  life? If not, add the sentence that tells them.
+  ONE NEW PLACEMENT PER SENTENCE. This is the most important sentence \
+  rule, and it's how you keep full detail while staying readable. Each \
+  sentence may introduce ONE new point (planet or body) plus its gloss \
+  — then STOP. The next placement gets its own sentence. Do not chain \
+  a second or third placement onto the same sentence with "and," \
+  "alongside," or a comma. Positional details (sign position, dignity, \
+  what it's conjunct) also get their own sentences rather than being \
+  appended as trailing clauses. This does NOT mean cutting \
+  information — every fact still appears, just distributed across more \
+  sentences. For example, instead of this one overloaded sentence: \
+  "Mercury sits at the very end of Gemini, its own sign, meaning it \
+  operates at full strength, and it's in an essentially exact \
+  conjunction with the Sun (your core identity) in mid Cancer, \
+  alongside Chiron, a lesser-known body representing core wounds" — \
+  write it as: "Mercury sits at the very end of Gemini. That's its own \
+  sign, so it operates at full strength. Right beside it is your Sun, \
+  your core identity, in mid Cancer. Chiron is there too — a \
+  lesser-known body representing core wounds and the potential to turn \
+  them into wisdom." Same facts, four sentences instead of one.
   VARY SENTENCE LENGTH THROUGHOUT THE ENTIRE READING, the way natural \
-  writing does. Long sentences that name and gloss placements are fine, \
-  but never stack more than two in a row — follow them with short, \
-  punchy sentences that land the point. Avoid chaining three or more \
-  clauses with em-dashes and commas into one marathon sentence. For \
-  example, instead of: "Mercury, the planet of communication, sits at \
-  the very end of Gemini — its own sign, meaning it operates at full \
-  strength here, in Rulership, and it sits in a close conjunction with \
-  the Sun, your core identity" — break it up: "Mercury, the planet of \
-  communication, sits at the very end of Gemini. That's its own sign, \
-  so it operates at full strength. And it sits right alongside your \
-  Sun. That combination matters." When in doubt, end the sentence and \
-  start a new one.
+  writing does. Follow a longer sentence with a short, punchy one that \
+  lands the point. Never write three or more long sentences in a row. \
+  Avoid chaining clauses with em-dashes and commas into a marathon \
+  sentence. When in doubt, end the sentence and start a new one.
 3. USE DIGNITY AS REAL WEIGHTING. A planet in Rulership or Exaltation \
 should be discussed as operating strongly and directly; a planet in \
 Detriment or Fall should be discussed as needing more conscious effort \
