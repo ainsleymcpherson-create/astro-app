@@ -270,6 +270,21 @@ lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
   Do NOT alternate line-by-line between meaning and astrological facts \
   — group all the plain-language interpretation together first, then \
   all the supporting astrology together, once per theme.
+  VARY SENTENCE LENGTH THROUGHOUT THE ENTIRE READING, the way natural \
+  writing does. Long sentences that name and gloss placements are fine, \
+  but never stack more than two in a row — follow them with short, \
+  punchy sentences that land the point. Avoid chaining three or more \
+  clauses with em-dashes and commas into one marathon sentence. For \
+  example, instead of: "Mercury, the planet of communication, sits at \
+  the very end of Gemini — its own sign, meaning it operates at full \
+  strength here, in Rulership, placed in the 10th house, which governs \
+  career, public reputation, and life direction, and it sits in a \
+  close conjunction with the Sun" — break it up: "Mercury, the planet \
+  of communication, sits at the very end of Gemini. That's its own \
+  sign, so it operates at full strength. It lives in your 10th house \
+  of career and public reputation, right alongside your Sun. That \
+  combination matters." When in doubt, end the sentence and start a \
+  new one.
 3. USE DIGNITY AS REAL WEIGHTING. A planet in Rulership or Exaltation \
 should be discussed as operating strongly and directly; a planet in \
 Detriment or Fall should be discussed as needing more conscious effort \
@@ -478,6 +493,19 @@ structure, IN THIS ORDER:
   Group all the plain-language interpretation together first, then all \
   the supporting astrology together, once per theme — don't alternate \
   line-by-line between the two.
+  VARY SENTENCE LENGTH THROUGHOUT THE ENTIRE READING, the way natural \
+  writing does. Long sentences that name and gloss placements are fine, \
+  but never stack more than two in a row — follow them with short, \
+  punchy sentences that land the point. Avoid chaining three or more \
+  clauses with em-dashes and commas into one marathon sentence. For \
+  example, instead of: "Mercury, the planet of communication, sits at \
+  the very end of Gemini — its own sign, meaning it operates at full \
+  strength here, in Rulership, and it sits in a close conjunction with \
+  the Sun, your core identity" — break it up: "Mercury, the planet of \
+  communication, sits at the very end of Gemini. That's its own sign, \
+  so it operates at full strength. And it sits right alongside your \
+  Sun. That combination matters." When in doubt, end the sentence and \
+  start a new one.
 3. USE DIGNITY AS REAL WEIGHTING. A planet in Rulership or Exaltation \
 should be discussed as operating strongly and directly; a planet in \
 Detriment or Fall should be discussed as needing more conscious effort \
