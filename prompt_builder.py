@@ -30,15 +30,44 @@ from house_interpretation import HouseReading
 # a shorter prompt (e.g. skip house system nuance, just do points+aspects).
 # ---------------------------------------------------------------------------
 
+def _sign_position_word(sign_degree: float) -> str:
+    """Converts a 0-30 position within a sign to a qualitative
+    descriptor, so prompts carry the interpretive signal (early/late
+    degrees matter) without numeric values the model might quote."""
+    if sign_degree < 10:
+        return "early"
+    if sign_degree < 20:
+        return "mid"
+    return "late"
+
+
+def _orb_tightness_word(orb: float, max_orb: float) -> str:
+    """Converts an orb into a qualitative tightness label. Keeps the
+    tightness information available for interpretation while removing
+    the numeric orb values the model tends to quote verbatim."""
+    if max_orb <= 0:
+        return "exact"
+    ratio = orb / max_orb
+    if ratio <= 0.15:
+        return "essentially exact"
+    if ratio <= 0.4:
+        return "very tight"
+    if ratio <= 0.7:
+        return "moderately tight"
+    return "wide/loose"
+
+
 def format_points_section(chart: dict[str, ChartPoint]) -> str:
-    lines = ["PLACEMENTS (sign, house, retrograde status):"]
+    lines = ["PLACEMENTS (sign with early/mid/late position, house, "
+             "retrograde status):"]
     for name, point in sorted(chart.items(), key=lambda x: x[1].longitude):
         if name.startswith("House "):
             continue  # cusps listed separately in the houses section
         house_str = f", House {point.house}" if point.house else ""
         retro_str = " (retrograde)" if point.retrograde else ""
         lines.append(
-            f"  - {name}: {point.sign_degree:.1f}° {point.sign}{house_str}{retro_str}"
+            f"  - {name}: {_sign_position_word(point.sign_degree)} "
+            f"{point.sign}{house_str}{retro_str}"
         )
     return "\n".join(lines)
 
@@ -49,8 +78,8 @@ def format_aspects_section(aspects: list[Aspect], min_tightness: float = 1.0) ->
     to only include the tighter/stronger half of aspects if the full list
     is too long for your prompt budget.
     """
-    lines = ["ASPECTS (orb = how exact; applying = still building, "
-             "separating = past exact and fading):"]
+    lines = ["ASPECTS (tightness = how exact the connection is; applying = "
+             "still building, separating = past exact and fading):"]
     filtered = [a for a in aspects if a.tightness <= min_tightness]
     for a in filtered:
         app_str = ""
@@ -60,7 +89,7 @@ def format_aspects_section(aspects: list[Aspect], min_tightness: float = 1.0) ->
             app_str = ", separating"
         lines.append(
             f"  - {a.point1} {a.aspect_name} {a.point2} "
-            f"(orb {a.orb:.2f}°{app_str}, nature: {a.nature})"
+            f"({_orb_tightness_word(a.orb, a.max_orb)}{app_str}, nature: {a.nature})"
         )
     return "\n".join(lines)
 
@@ -1011,21 +1040,25 @@ def format_transiting_points_section(
     """Formats the current sky positions, with each transiting planet's
     natal house noted if houses were assigned via
     transit_engine.assign_transit_houses()."""
-    lines = ["CURRENT SKY (transiting planets, sign, and which of YOUR "
-             "natal houses each currently falls in):"]
+    lines = ["CURRENT SKY (transiting planets, sign with early/mid/late "
+             "position, and which of YOUR natal houses each currently "
+             "falls in):"]
     for name, point in sorted(transiting_points.items(), key=lambda x: x[1].longitude):
         house_str = f", in your natal House {point.house}" if point.house else ""
         retro_str = " (retrograde)" if point.retrograde else ""
-        lines.append(f"  - Transiting {name}: {point.sign_degree:.1f}° {point.sign}{house_str}{retro_str}")
+        lines.append(
+            f"  - Transiting {name}: {_sign_position_word(point.sign_degree)} "
+            f"{point.sign}{house_str}{retro_str}"
+        )
     return "\n".join(lines)
 
 
 def format_transit_aspects_section(transit_aspects: list, min_tightness: float = 1.0) -> str:
     """Formats transit-to-natal aspects, tightest (most exact/significant) first."""
-    lines = ["TRANSIT ASPECTS (transiting planet to natal point; orb = how "
-             "exact — transit orbs are intentionally tight, since transits "
-             "matter most when close to exact; applying = still building "
-             "toward exact, separating = past exact and fading):"]
+    lines = ["TRANSIT ASPECTS (transiting planet to natal point; tightness "
+             "= how exact — transits matter most when close to exact; "
+             "applying = still building toward exact, separating = past "
+             "exact and fading):"]
     filtered = [a for a in transit_aspects if a.tightness <= min_tightness]
     if not filtered:
         lines.append("  - No significant transits within the configured orbs right now.")
@@ -1037,7 +1070,7 @@ def format_transit_aspects_section(transit_aspects: list, min_tightness: float =
             app_str = ", separating"
         lines.append(
             f"  - Transiting {a.transiting_point} {a.aspect_name} natal "
-            f"{a.natal_point} (orb {a.orb:.2f}°{app_str}, nature: {a.nature})"
+            f"{a.natal_point} ({_orb_tightness_word(a.orb, a.max_orb)}{app_str}, nature: {a.nature})"
         )
     return "\n".join(lines)
 
@@ -1225,26 +1258,30 @@ def build_transit_prompt(
 # their professional meanings instead.
 
 def format_synastry_points_section(chart: dict, person_label: str) -> str:
-    lines = [f"PERSON {person_label}'S PLACEMENTS (sign, house if available):"]
+    lines = [f"PERSON {person_label}'S PLACEMENTS (sign with early/mid/late "
+             "position, house if available):"]
     for name, point in sorted(chart.items(), key=lambda x: x[1].longitude):
         if name.startswith("House "):
             continue
         house_str = f", House {point.house}" if point.house else ""
         retro_str = " (retrograde)" if point.retrograde else ""
-        lines.append(f"  - {name}: {point.sign_degree:.1f}° {point.sign}{house_str}{retro_str}")
+        lines.append(
+            f"  - {name}: {_sign_position_word(point.sign_degree)} "
+            f"{point.sign}{house_str}{retro_str}"
+        )
     return "\n".join(lines)
 
 
 def format_synastry_aspects_section(aspects: list, min_tightness: float = 1.0) -> str:
     lines = ["CROSS-CHART ASPECTS (Person A's point to Person B's point; "
-             "orb = how exact):"]
+             "tightness = how exact the connection is):"]
     filtered = [a for a in aspects if a.tightness <= min_tightness]
     if not filtered:
         lines.append("  - No significant cross-chart aspects within the configured orbs.")
     for a in filtered:
         lines.append(
             f"  - Person A's {a.person_a_point} {a.aspect_name} Person B's "
-            f"{a.person_b_point} (orb {a.orb:.2f}°, nature: {a.nature})"
+            f"{a.person_b_point} ({_orb_tightness_word(a.orb, a.max_orb)}, nature: {a.nature})"
         )
     return "\n".join(lines)
 
