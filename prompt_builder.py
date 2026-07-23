@@ -152,16 +152,22 @@ the exact markdown heading "## Overview" (two hash symbols, one space, \
 then the word). The Overview uses the SAME naming convention as the \
 "What This Means" sections described below: name planets, signs, \
 houses, angles, lesser-used points (like Chiron), and aspect words \
-(like conjunct) directly, with each technical term immediately \
-followed by a brief plain-English gloss the first time it appears — \
-e.g. "your 10th house of career, public reputation, and life \
-direction," or "Chiron, a lesser-known body representing core wounds \
-and the potential to turn them into wisdom." Do NOT paraphrase \
-placements into vague circumlocutions like "the career point" or "an \
-old sensitivity" to avoid naming them — name the actual point AND \
-gloss it. Structure the Overview's paragraphs like this:
-- Open with a 1-2 sentence paragraph stating what the chart is \
-fundamentally built around.
+(like conjunct) directly, with each technical term carrying a plain- \
+English meaning alongside it. PREFER THE INVERTED FORM — lead with \
+plain meaning, put the technical term in parentheses: "your drive \
+(Mars)," "your public role (the Midheaven)," "your 10th house of \
+career and reputation." Use the longer "X, which governs Y" form only \
+for points that need more explaining, like "Chiron, a lesser-known \
+body tied to old wounds and the potential to turn them into wisdom." \
+Do NOT paraphrase placements into vague circumlocutions like "the \
+career point" or "an old sensitivity" to avoid naming them — name the \
+actual point AND gloss it. Structure the Overview's paragraphs like \
+this:
+- OPEN WITH A PUNCHY DECLARATIVE THESIS — one or two short, confident \
+sentences stating what this chart is fundamentally about, with no \
+hedging and no astrology in them at all. Something with the shape of \
+"Your career is in a state of ambitious reconstruction." State it \
+plainly, then spend the rest of the Overview proving it.
 - NAME SPECIFIC CLUSTERS AND GROUPINGS DIRECTLY, each as its OWN \
 paragraph. If three or more points sit together in one sign and house \
 (a stellium), or several planets are conjunct each other, give that \
@@ -190,7 +196,7 @@ whole chart together — which placements reinforce each other, which \
 create tension, and why. Format each theme's heading as a markdown H2 \
 heading — exactly "## Theme Name" (two hash symbols, one space, then \
 the name) — since the app displaying this reading relies on that exact \
-format to build a collapsible view. Then follow the two-part chunked \
+format to build a collapsible view. Then follow the three-part \
 format described below for each one.
 
 End with a conclusion and summary of key points, but try not to repeat \
@@ -212,7 +218,7 @@ English on first use — accessible through glossing, not through \
 avoiding the terms.
 2. FOR EACH THEME, OPEN with 1-2 sentences of brief plain-language prose \
 summarizing the main takeaway — no bolding, no chunking, just a short \
-lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
+lead-in. THEN follow with a three-part structure, IN THIS ORDER:
     **What This Means:** Written FIRST. Break it into 2-4 short, \
     scannable chunks, each starting with a bolded claim stated as a \
     short phrase followed by a colon (e.g. "**Speaking and thinking are \
@@ -220,16 +226,22 @@ lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
     point directly — planets, signs, angles (Midheaven, Ascendant, \
     Descendant, Imum Coeli), lesser-used points (Chiron, the Nodes, \
     Vertex, Part of Fortune/Spirit), pattern names, and aspect words \
-    (conjunct, square, trine, etc.) — but EVERY technical term must be \
-    immediately followed by a brief plain-English gloss the first time \
-    it appears, woven naturally into the same sentence rather than set \
-    apart as a footnote. For example:
-      "Your Mercury (which governs communication) and Jupiter (the \
-      planet of growth and opportunity) are both in Gemini... and \
-      these two planets sit right at your Midheaven, which governs \
-      your public role, career direction, and reputation."
-      "Your Sun, which rules your core sense of self, is conjunct \
-      Chiron, ruler of core wounds and sensitivities."
+    (conjunct, square, trine, etc.) — but EVERY technical term must \
+    carry a plain-English meaning alongside it. PREFER THE INVERTED \
+    FORM: lead with the plain meaning and put the technical term in \
+    parentheses after it. Write "your drive (Mars)" and "your \
+    discipline (Saturn)" rather than "Mars, the planet of drive" and \
+    "Saturn, the planet of discipline." This keeps the reader in \
+    ordinary language and treats the astrology as the reference, not \
+    the subject. Use the longer "X, which governs Y" form only when a \
+    point genuinely needs more than two or three words to explain — \
+    Chiron, the Nodes, the Parts, the Vertex. For example:
+      "Your drive (Mars) sits in Libra."
+      "Your public role and reputation (the Midheaven) is where this \
+      lands."
+      "Your core sense of self (the Sun) is conjunct Chiron, a \
+      lesser-known body tied to old wounds and the potential to turn \
+      them into wisdom."
     After naming and glossing the placement, land on the concrete, \
     real-world implication — what this actually means for how the \
     person experiences or acts in the world, not just what the \
@@ -238,7 +250,18 @@ lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
     of each chunk. This is where the interpretation and meaning for the \
     person's life lives, so don't just list placements — say what they \
     add up to.
-    **Astrological Basis:** Written SECOND, 2-4 short chunks covering \
+    **Advice:** Written SECOND, immediately after "What This Means" \
+    and BEFORE "Astrological Basis" — this ordering matters, the app \
+    relies on it. A short paragraph (not chunked, no sub-labels). \
+    Speak directly to the person in the imperative — concrete, \
+    actionable direction they could act on this week. Use the voice of \
+    a trusted advisor giving real guidance: "Don't avoid challenging \
+    projects; this year builds lasting structures." "Align your \
+    professional efforts with your core values." "Be cautious not to \
+    overwork in pursuit of results." Mix warnings with encouragements. \
+    No astrology at all in this block — it's pure direction. Keep it \
+    to 2-4 sentences.
+    **Astrological Basis:** Written THIRD and LAST, 2-4 short chunks covering \
     the more precise technical grounding that didn't fit naturally into \
     "What This Means" above — dignity conditions, additional supporting \
     placements, aspect relationships worth naming, and how tight or \
@@ -296,6 +319,14 @@ lead-in. THEN follow with a two-part chunked structure, IN THIS ORDER:
     the edges further, making it easy to idealize partners or \
     financial situations and harder to see them clearly." — that one \
     works because it names a specific, recognizable behavior.
+  WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. \
+  "This suggests a period of structured revision" beats "this might \
+  possibly indicate that there could be some revision." Trust the \
+  reading and say what it says.
+  USE OCCASIONAL ADJECTIVE TRIADS FOR TONE. Once or twice per theme, \
+  characterize an energy with three adjectives in a row — "The energy \
+  is intense, focused, and demanding." Used sparingly, this gives the \
+  writing rhythm and authority. Don't overdo it.
   NEVER DESCRIBE WHERE IN A SIGN A PLANET SITS. Do not say "early in \
   Libra," "late Gemini," "the very end of," "mid Cancer," or anything \
   about position within a sign. Just name the sign: "Mars sits in \
@@ -386,7 +417,7 @@ Here is the full computed chart data:
 {data_block}
 
 Now write the reading: opening overview, 2-4 themes each in the \
-two-part chunked format above, then a closing conclusion. You don't \
+three-part format above, then a closing conclusion. You don't \
 need to follow a rigid template of "personality, then love, then \
 career" — let the chart's own emphases (strong patterns, dignified \
 planets, activated houses) determine which themes emerge and what gets \
@@ -467,14 +498,20 @@ this section with the exact markdown heading "## Overview". The \
 Overview uses the SAME naming convention as the "What This Means" \
 sections described below: name planets, signs, Chiron, the Nodes, and \
 aspect words (like conjunct) directly, with each technical term \
-immediately followed by a brief plain-English gloss the first time it \
-appears — e.g. "Chiron, a lesser-known body representing core wounds \
-and the potential to turn them into wisdom." Do NOT paraphrase \
+carrying a plain-English meaning alongside it. PREFER THE INVERTED \
+FORM — lead with plain meaning, put the technical term in \
+parentheses: "your drive (Mars)," "your discipline (Saturn)." Use the \
+longer "X, which governs Y" form only for points that need more \
+explaining, like "Chiron, a lesser-known body tied to old wounds and \
+the potential to turn them into wisdom." Do NOT paraphrase \
 placements into vague circumlocutions like "an old sensitivity" to \
 avoid naming them — name the actual point AND gloss it. Structure the \
 Overview's paragraphs like this:
-- Open with a 1-2 sentence paragraph stating what the chart is \
-fundamentally built around.
+- OPEN WITH A PUNCHY DECLARATIVE THESIS — one or two short, confident \
+sentences stating what this chart is fundamentally about, with no \
+hedging and no astrology in them at all. Something with the shape of \
+"Your career is in a state of ambitious reconstruction." State it \
+plainly, then spend the rest of the Overview proving it.
 - NAME SPECIFIC CLUSTERS AND GROUPINGS DIRECTLY, each as its OWN \
 paragraph. If three or more points sit together in one sign (a \
 stellium), or several planets are conjunct each other, give that \
@@ -500,7 +537,7 @@ Then, identify the 2-4 biggest THEMES that emerge when you look at the \
 whole chart together. Format each theme's heading as a markdown H2 \
 heading — exactly "## Theme Name" (two hash symbols, one space, then \
 the name) — since the app displaying this reading relies on that exact \
-format to build a collapsible view. Then follow the two-part chunked \
+format to build a collapsible view. Then follow the three-part \
 format described below for each one.
 
 End with a conclusion and summary of key points, but try not to repeat \
@@ -518,24 +555,42 @@ chunking. They follow the same naming convention as everywhere else: \
 technical terms are welcome as long as each is glossed in plain \
 English on first use.
 2. FOR EACH THEME, OPEN with 1-2 sentences of brief plain-language prose \
-summarizing the main takeaway. THEN follow with a two-part chunked \
+summarizing the main takeaway. THEN follow with a three-part \
 structure, IN THIS ORDER:
     **What This Means:** Written FIRST, broken into 2-4 short, \
     scannable chunks, each starting with a bolded claim stated as a \
     short phrase followed by a colon. Within each chunk, you MAY name \
     any point directly — planets, signs, Chiron, the Nodes, pattern \
     names, and aspect words (conjunct, square, trine, etc.) — but EVERY \
-    technical term must be immediately followed by a brief \
-    plain-English gloss the first time it appears, woven naturally into \
-    the same sentence rather than set apart as a footnote. For example:
-      "Your Sun, which rules your core sense of self, is conjunct \
-      Chiron, ruler of core wounds and sensitivities."
+    technical term must carry a plain-English meaning alongside it. \
+    PREFER THE INVERTED FORM: lead with the plain meaning and put the \
+    technical term in parentheses after it. Write "your drive (Mars)" \
+    and "your discipline (Saturn)" rather than "Mars, the planet of \
+    drive." This keeps the reader in ordinary language and treats the \
+    astrology as the reference, not the subject. Use the longer "X, \
+    which governs Y" form only when a point genuinely needs more than \
+    two or three words to explain — Chiron, the Nodes. For example:
+      "Your drive (Mars) sits in Libra."
+      "Your core sense of self (the Sun) is conjunct Chiron, a \
+      lesser-known body tied to old wounds and the potential to turn \
+      them into wisdom."
     After naming and glossing the placement, land on the concrete, \
     real-world implication — what this actually means for how the \
     person experiences or acts in the world, not just what the \
     placement technically is. Claim, then the named-and-glossed \
     placements behind it, then the real-life payoff.
-    **Astrological Basis:** Written SECOND, 2-4 short chunks covering \
+    **Advice:** Written SECOND, immediately after "What This Means" \
+    and BEFORE "Astrological Basis" — this ordering matters, the app \
+    relies on it. A short paragraph (not chunked, no sub-labels). \
+    Speak directly to the person in the imperative — concrete, \
+    actionable direction they could act on this week. Use the voice of \
+    a trusted advisor giving real guidance: "Don't avoid challenging \
+    projects; this year builds lasting structures." "Align your \
+    professional efforts with your core values." "Be cautious not to \
+    overwork in pursuit of results." Mix warnings with encouragements. \
+    No astrology at all in this block — it's pure direction. Keep it \
+    to 2-4 sentences.
+    **Astrological Basis:** Written THIRD and LAST, 2-4 short chunks covering \
     the more precise technical grounding that didn't fit naturally into \
     "What This Means" above — dignity conditions, additional supporting \
     placements, aspect relationships worth naming, and how tight or \
@@ -592,6 +647,14 @@ structure, IN THIS ORDER:
     the edges further, making it easy to idealize partners or \
     financial situations and harder to see them clearly." — that one \
     works because it names a specific, recognizable behavior.
+  WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. \
+  "This suggests a period of structured revision" beats "this might \
+  possibly indicate that there could be some revision." Trust the \
+  reading and say what it says.
+  USE OCCASIONAL ADJECTIVE TRIADS FOR TONE. Once or twice per theme, \
+  characterize an energy with three adjectives in a row — "The energy \
+  is intense, focused, and demanding." Used sparingly, this gives the \
+  writing rhythm and authority. Don't overdo it.
   NEVER DESCRIBE WHERE IN A SIGN A PLANET SITS. Do not say "early in \
   Libra," "late Gemini," "the very end of," "mid Cancer," or anything \
   about position within a sign. Just name the sign: "Mars sits in \
@@ -677,7 +740,7 @@ of those are reliable without an exact birth time):
 {data_block}
 
 Now write the reading: opening overview, 2-4 themes each in the \
-two-part chunked format above, then a closing conclusion. Let the \
+three-part format above, then a closing conclusion. Let the \
 chart's own emphases (strong patterns, dignified planets) determine \
 which themes emerge.\
 """
@@ -1557,7 +1620,7 @@ terms. Use the astrology to arrive at your interpretation, but don't
 surface the astrology itself anywhere outside the dedicated
 Astrological Basis sections.
 - EACH OF THE THREE SECTIONS: open with 1-2 plain-language sentences
-summarizing the takeaway. Then a two-part chunked structure, IN ORDER:
+summarizing the takeaway. Then a three-part structure, IN ORDER:
     **Working Implications:** FIRST, and this is the MAIN CONTENT of
     the reading — 3-5 substantive chunks with bolded sub-labels. This
     should read like a business consultant's actual analysis, not a
@@ -1756,7 +1819,7 @@ General guidelines:
 - OVERVIEW AND CONCLUSION: plain flowing prose only — no chunking, no
 bolded sub-labels, no bullets.
 - EACH OF THE FIVE SECTIONS: open with 1-2 plain-language sentences
-summarizing the takeaway. Then a two-part chunked structure, IN ORDER:
+summarizing the takeaway. Then a three-part structure, IN ORDER:
     **What This Means:** FIRST, 2-4 substantive chunks with bolded
     sub-labels — real, specific detail about what this actually looks
     like between these two people, not generic relationship advice.
