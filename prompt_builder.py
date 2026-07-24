@@ -242,6 +242,15 @@ lead-in. THEN follow with a three-part structure, IN THIS ORDER:
       "Your core sense of self (the Sun) is conjunct Chiron, a \
       lesser-known body tied to old wounds and the potential to turn \
       them into wisdom."
+    GLOSS EVERY SIGN THE FIRST TIME IT'S NAMED ANYWHERE IN THE READING \
+    — not just planets and points. A brief 2-3 word descriptor right \
+    after the sign name, same inverted-parenthetical spirit as \
+    everything else here. Not "Your core sense of self (the Sun) sits \
+    in Capricorn." — write "Your core sense of self (the Sun) sits in \
+    Capricorn, disciplined and ambitious." Keep it to a couple of \
+    words, not a full sentence. Once a sign has been glossed anywhere \
+    in the reading, later mentions of that same sign don't need to \
+    repeat the descriptor.
     After naming and glossing the placement, land on the concrete, \
     real-world implication — what this actually means for how the \
     person experiences or acts in the world, not just what the \
@@ -617,6 +626,15 @@ structure, IN THIS ORDER:
       "Your core sense of self (the Sun) is conjunct Chiron, a \
       lesser-known body tied to old wounds and the potential to turn \
       them into wisdom."
+    GLOSS EVERY SIGN THE FIRST TIME IT'S NAMED ANYWHERE IN THE READING \
+    — not just planets and points. A brief 2-3 word descriptor right \
+    after the sign name, same inverted-parenthetical spirit as \
+    everything else here. Not "Your core sense of self (the Sun) sits \
+    in Capricorn." — write "Your core sense of self (the Sun) sits in \
+    Capricorn, disciplined and ambitious." Keep it to a couple of \
+    words, not a full sentence. Once a sign has been glossed anywhere \
+    in the reading, later mentions of that same sign don't need to \
+    repeat the descriptor.
     After naming and glossing the placement, land on the concrete, \
     real-world implication — what this actually means for how the \
     person experiences or acts in the world, not just what the \
