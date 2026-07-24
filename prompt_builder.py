@@ -319,6 +319,36 @@ lead-in. THEN follow with a three-part structure, IN THIS ORDER:
     the edges further, making it easy to idealize partners or \
     financial situations and harder to see them clearly." — that one \
     works because it names a specific, recognizable behavior.
+    (d) STOPPING AT A THEMATIC LABEL. Rephrasing a geometric fact into \
+    a narrative-sounding label is NOT the same as saying what it means \
+    — this is the most common way pure description sneaks past the \
+    other rules, because it sounds like interpretation without \
+    actually being one. Instead of: "The Sun is essentially conjunct \
+    your 9th house cusp and essentially opposite your 3rd house — a \
+    direct line between big-picture belief and everyday communication." \
+    — that sentence never leaves the chart. It describes a geometric \
+    relationship and gives it a poetic-sounding name, but doesn't say \
+    what it actually does in a life. A sentence has done its job only \
+    when it describes something the person would recognize about \
+    themselves — a behavior, a reaction, a habit — not when it names \
+    what two houses or planets have to do with each other. Write \
+    something like: "You'd rather explain what something means than \
+    describe what happened. Small talk makes you restless — you want \
+    the big picture, the why, not the play-by-play. People come to you \
+    when they need someone to make sense of things, not report on \
+    them." As a working test: if you could delete the technical term \
+    from a sentence and the sentence would still just be restating a \
+    relationship between two abstract things ("a direct line between X \
+    and Y," "a tension between A and B," "a bridge connecting C and \
+    D") rather than describing a person, it hasn't done its job yet — \
+    keep going until it lands on something recognizably human.
+  PURE DESCRIPTION SHOULD NEVER OUTWEIGH MEANING. If you notice \
+  yourself writing two or more sentences in a row that only state \
+  positions, aspects, or houses without landing on what it means or \
+  how it shows up, stop and cash out immediately — don't let \
+  description accumulate before the payoff arrives. The reading should \
+  read as mostly about the person, with the chart mechanics as brief \
+  support underneath, never the other way around.
   WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. \
   "This suggests a period of structured revision" beats "this might \
   possibly indicate that there could be some revision." Trust the \
@@ -660,6 +690,36 @@ structure, IN THIS ORDER:
     the edges further, making it easy to idealize partners or \
     financial situations and harder to see them clearly." — that one \
     works because it names a specific, recognizable behavior.
+    (d) STOPPING AT A THEMATIC LABEL. Rephrasing a geometric fact into \
+    a narrative-sounding label is NOT the same as saying what it means \
+    — this is the most common way pure description sneaks past the \
+    other rules, because it sounds like interpretation without \
+    actually being one. Instead of: "The Sun is essentially conjunct \
+    your 9th house cusp and essentially opposite your 3rd house — a \
+    direct line between big-picture belief and everyday communication." \
+    — that sentence never leaves the chart. It describes a geometric \
+    relationship and gives it a poetic-sounding name, but doesn't say \
+    what it actually does in a life. A sentence has done its job only \
+    when it describes something the person would recognize about \
+    themselves — a behavior, a reaction, a habit — not when it names \
+    what two houses or planets have to do with each other. Write \
+    something like: "You'd rather explain what something means than \
+    describe what happened. Small talk makes you restless — you want \
+    the big picture, the why, not the play-by-play. People come to you \
+    when they need someone to make sense of things, not report on \
+    them." As a working test: if you could delete the technical term \
+    from a sentence and the sentence would still just be restating a \
+    relationship between two abstract things ("a direct line between X \
+    and Y," "a tension between A and B," "a bridge connecting C and \
+    D") rather than describing a person, it hasn't done its job yet — \
+    keep going until it lands on something recognizably human.
+  PURE DESCRIPTION SHOULD NEVER OUTWEIGH MEANING. If you notice \
+  yourself writing two or more sentences in a row that only state \
+  positions, aspects, or houses without landing on what it means or \
+  how it shows up, stop and cash out immediately — don't let \
+  description accumulate before the payoff arrives. The reading should \
+  read as mostly about the person, with the chart mechanics as brief \
+  support underneath, never the other way around.
   WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. \
   "This suggests a period of structured revision" beats "this might \
   possibly indicate that there could be some revision." Trust the \
