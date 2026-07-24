@@ -7,3 +7,4 @@ python-dateutil>=2.9
 anthropic>=0.40
 reportlab>=4.0
 matplotlib>=3.8
+tenacity>=8.0
