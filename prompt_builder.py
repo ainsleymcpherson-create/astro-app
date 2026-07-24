@@ -343,27 +343,40 @@ lead-in. THEN follow with a three-part structure, IN THIS ORDER:
   nothing about astrology understand what this means for their actual \
   life? If not, add the sentence that tells them.
   ONE NEW PLACEMENT PER SENTENCE. This is the most important sentence \
-  rule, and it's how you keep full detail while staying readable. Each \
-  sentence may introduce ONE new point (planet, angle, or body) plus \
-  its gloss — then STOP. The next placement gets its own sentence. Do \
-  not chain a second or third placement onto the same sentence with \
-  "and," "alongside," "also in," or a comma. Positional details (sign \
-  position, house, dignity, what it's conjunct) also get their own \
-  sentences rather than being appended as trailing clauses. This does \
-  NOT mean cutting information — every fact still appears, just \
-  distributed across more sentences. For example, instead of this one \
-  overloaded sentence: "It's placed in the 10th house, which governs \
-  career, public reputation, and life direction, and it sits in an \
-  essentially exact conjunction with the Sun (your core identity) in \
-  Cancer, also in the 10th, alongside Chiron, a lesser-known body \
-  representing core wounds and the potential to turn them into wisdom" \
-  — write it as: "It's placed in your \
-  10th house, which governs career, public reputation, and life \
-  direction. Right beside it sits your Sun, your core identity, in mid \
-  Cancer. The two are in an essentially exact conjunction. Chiron is \
-  there too, early in the same sign — a lesser-known body representing \
-  core wounds and the potential to turn them into wisdom." Same facts, \
-  four sentences instead of one.
+  rule in this entire prompt, and it applies to EVERY part of the \
+  reading without exception — the Overview, every "What This Means" \
+  block, every "Advice" block, every "Astrological Basis" block, and \
+  the Conclusion. The Astrological Basis sections are NOT exempt: \
+  technical vocabulary is allowed there, but cramming several \
+  placements into one sentence is not. Each sentence may introduce ONE \
+  new point (planet, angle, house, or body) plus its gloss — then \
+  STOP. The next placement gets its own sentence. Do not chain a \
+  second or third placement onto the same sentence with "and," \
+  "alongside," "also in," "sitting in," or a comma. Dignity, house, \
+  sign, and aspect details each get their OWN sentence rather than \
+  being appended as trailing clauses. This does NOT mean cutting \
+  information — every fact still appears, just distributed across more \
+  sentences. Two worked examples:
+    BAD (six things in one sentence): "Drive (Mars) is in its weakest \
+    dignity (detriment) in diplomatic Libra, sitting in the 6th house \
+    and square both the 3rd and 9th houses (everyday communication and \
+    big-picture belief systems)."
+    GOOD: "Your drive (Mars) sits in Libra. That's its weakest \
+    placement — Libra's instinct toward diplomacy and balance works \
+    against Mars's instinct to just push forward. It lands in your 6th \
+    house of daily work and health. From there it's at odds with both \
+    your 3rd house of everyday communication and your 9th house of \
+    big-picture belief."
+    BAD: "It's placed in the 10th house, which governs career, public \
+    reputation, and life direction, and it sits in an essentially \
+    exact conjunction with the Sun (your core identity) in Cancer, \
+    also in the 10th, alongside Chiron."
+    GOOD: "It's placed in your 10th house of career and public \
+    reputation. Right beside it sits your core identity (the Sun), in \
+    Cancer. The two are essentially exact. Chiron is there too — a \
+    lesser-known body tied to old wounds and the potential to turn \
+    them into wisdom."
+  If a sentence contains more than one astrological object, break it.
   VARY SENTENCE LENGTH THROUGHOUT THE ENTIRE READING, the way natural \
   writing does. Follow a longer sentence with a short, punchy one that \
   lands the point. Never write three or more long sentences in a row. \
@@ -669,24 +682,35 @@ structure, IN THIS ORDER:
   nothing about astrology understand what this means for their actual \
   life? If not, add the sentence that tells them.
   ONE NEW PLACEMENT PER SENTENCE. This is the most important sentence \
-  rule, and it's how you keep full detail while staying readable. Each \
-  sentence may introduce ONE new point (planet or body) plus its gloss \
-  — then STOP. The next placement gets its own sentence. Do not chain \
-  a second or third placement onto the same sentence with "and," \
-  "alongside," or a comma. Positional details (sign position, dignity, \
-  what it's conjunct) also get their own sentences rather than being \
-  appended as trailing clauses. This does NOT mean cutting \
-  information — every fact still appears, just distributed across more \
-  sentences. For example, instead of this one overloaded sentence: \
-  "Mercury sits in Gemini, its own sign, meaning it \
-  operates at full strength, and it's in an essentially exact \
-  conjunction with the Sun (your core identity) in Cancer, \
-  alongside Chiron, a lesser-known body representing core wounds" — \
-  write it as: "Mercury sits in Gemini. That's its own \
-  sign, so it operates at full strength. Right beside it is your Sun, \
-  your core identity, in Cancer. Chiron is there too — a \
-  lesser-known body representing core wounds and the potential to turn \
-  them into wisdom." Same facts, four sentences instead of one.
+  rule in this entire prompt, and it applies to EVERY part of the \
+  reading without exception — the Overview, every "What This Means" \
+  block, every "Advice" block, every "Astrological Basis" block, and \
+  the Conclusion. The Astrological Basis sections are NOT exempt: \
+  technical vocabulary is allowed there, but cramming several \
+  placements into one sentence is not. Each sentence may introduce ONE \
+  new point (planet or body) plus its gloss — then STOP. The next \
+  placement gets its own sentence. Do not chain a second or third \
+  placement onto the same sentence with "and," "alongside," or a \
+  comma. Dignity, sign, and aspect details each get their OWN sentence \
+  rather than being appended as trailing clauses. This does NOT mean \
+  cutting information — every fact still appears, just distributed \
+  across more sentences. Two worked examples:
+    BAD (several things in one sentence): "Drive (Mars) is in its \
+    weakest dignity (detriment) in diplomatic Libra, and square both \
+    Mercury and Jupiter."
+    GOOD: "Your drive (Mars) sits in Libra. That's its weakest \
+    placement — Libra's instinct toward diplomacy and balance works \
+    against Mars's instinct to just push forward. It's also at odds \
+    with how you think and communicate (Mercury). And with your sense \
+    of growth and opportunity (Jupiter)."
+    BAD: "Mercury sits in Gemini, its own sign, meaning it operates at \
+    full strength, and it's in an essentially exact conjunction with \
+    the Sun (your core identity) in Cancer, alongside Chiron."
+    GOOD: "Mercury sits in Gemini. That's its own sign, so it operates \
+    at full strength. Right beside it is your core identity (the Sun), \
+    in Cancer. Chiron is there too — a lesser-known body tied to old \
+    wounds and the potential to turn them into wisdom."
+  If a sentence contains more than one astrological object, break it.
   VARY SENTENCE LENGTH THROUGHOUT THE ENTIRE READING, the way natural \
   writing does. Follow a longer sentence with a short, punchy one that \
   lands the point. Never write three or more long sentences in a row. \
@@ -953,6 +977,22 @@ ORDER:
   first, then all the supporting astrology together. This chunked \
   three-part structure applies ONLY to the six section headers — the \
   Overview and Conclusion stay in prose, per the note above.
+- ONE NEW PLACEMENT PER SENTENCE. This applies to EVERY part of the \
+reading — the Overview, every plain-language block, every "Astrological \
+Basis" block, and the Conclusion. Astrological Basis is NOT exempt: \
+technical vocabulary is allowed there, but cramming several placements \
+into one sentence is not. Each sentence may introduce ONE new point \
+plus its gloss — then STOP. Do not chain a second or third placement \
+onto the same sentence with "and," "alongside," "sitting in," or a \
+comma. Dignity, house, sign, and aspect details each get their OWN \
+sentence. This does NOT mean cutting information — every fact still \
+appears, just spread across more sentences. BAD: "Drive (Mars) is in \
+its weakest dignity (detriment) in diplomatic Libra, sitting in the \
+6th house and square both the 3rd and 9th houses." GOOD: "Your drive \
+(Mars) sits in Libra. That's its weakest placement. It lands in your \
+6th house of daily work and health. From there it's at odds with your \
+3rd house of everyday communication." If a sentence contains more than \
+one astrological object, break it.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use \
 an occasional adjective triad for tone ("The energy here is intense, \
 focused, and demanding") — once or twice per section, not more.
@@ -1215,6 +1255,22 @@ THIS ORDER:
     chunks grouped by planet or aspect, with brief plain-language \
     glosses of technical terms woven in (e.g. "...Exaltation, its \
     strongest condition..." or "...square, a tense angle...").
+- ONE NEW PLACEMENT PER SENTENCE. This applies to EVERY part of the \
+reading — the Overview, every plain-language block, every "Astrological \
+Basis" block, and the Conclusion. Astrological Basis is NOT exempt: \
+technical vocabulary is allowed there, but cramming several placements \
+into one sentence is not. Each sentence may introduce ONE new point \
+plus its gloss — then STOP. Do not chain a second or third placement \
+onto the same sentence with "and," "alongside," "sitting in," or a \
+comma. Dignity, house, sign, and aspect details each get their OWN \
+sentence. This does NOT mean cutting information — every fact still \
+appears, just spread across more sentences. BAD: "Drive (Mars) is in \
+its weakest dignity (detriment) in diplomatic Libra, sitting in the \
+6th house and square both the 3rd and 9th houses." GOOD: "Your drive \
+(Mars) sits in Libra. That's its weakest placement. It lands in your \
+6th house of daily work and health. From there it's at odds with your \
+3rd house of everyday communication." If a sentence contains more than \
+one astrological object, break it.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use \
 an occasional adjective triad for tone ("The energy here is intense, \
 focused, and demanding") — once or twice per section, not more.
@@ -1411,6 +1467,22 @@ structure, IN THIS ORDER:
   Group all the plain-language interpretation together first, then all \
   the supporting astrology together, once per theme — don't alternate \
   line-by-line between the two.
+- ONE NEW PLACEMENT PER SENTENCE. This applies to EVERY part of the \
+reading — the Overview, every plain-language block, every "Astrological \
+Basis" block, and the Conclusion. Astrological Basis is NOT exempt: \
+technical vocabulary is allowed there, but cramming several placements \
+into one sentence is not. Each sentence may introduce ONE new point \
+plus its gloss — then STOP. Do not chain a second or third placement \
+onto the same sentence with "and," "alongside," "sitting in," or a \
+comma. Dignity, house, sign, and aspect details each get their OWN \
+sentence. This does NOT mean cutting information — every fact still \
+appears, just spread across more sentences. BAD: "Drive (Mars) is in \
+its weakest dignity (detriment) in diplomatic Libra, sitting in the \
+6th house and square both the 3rd and 9th houses." GOOD: "Your drive \
+(Mars) sits in Libra. That's its weakest placement. It lands in your \
+6th house of daily work and health. From there it's at odds with your \
+3rd house of everyday communication." If a sentence contains more than \
+one astrological object, break it.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use \
 an occasional adjective triad for tone ("The energy is intense, \
 focused, and demanding") — once or twice per theme, not more.
@@ -1682,6 +1754,22 @@ summarizing the takeaway. Then a three-part structure, IN ORDER:
   — never alternate line by line. The reading as a whole should feel
   like a business document that happens to cite astrology as its
   method, not an astrology reading that happens to mention business.
+- ONE NEW PLACEMENT PER SENTENCE. This applies to EVERY part of the \
+reading — the Overview, every plain-language block, every "Astrological \
+Basis" block, and the Conclusion. Astrological Basis is NOT exempt: \
+technical vocabulary is allowed there, but cramming several placements \
+into one sentence is not. Each sentence may introduce ONE new point \
+plus its gloss — then STOP. Do not chain a second or third placement \
+onto the same sentence with "and," "alongside," "sitting in," or a \
+comma. Dignity, house, sign, and aspect details each get their OWN \
+sentence. This does NOT mean cutting information — every fact still \
+appears, just spread across more sentences. BAD: "Drive (Mars) is in \
+its weakest dignity (detriment) in diplomatic Libra, sitting in the \
+6th house and square both the 3rd and 9th houses." GOOD: "Your drive \
+(Mars) sits in Libra. That's its weakest placement. It lands in your \
+6th house of daily work and health. From there it's at odds with your \
+3rd house of everyday communication." If a sentence contains more than \
+one astrological object, break it.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use
 an occasional adjective triad for tone ("The dynamic here is direct,
 fast-moving, and occasionally blunt") — once or twice per section, not
@@ -1880,6 +1968,22 @@ summarizing the takeaway. Then a three-part structure, IN ORDER:
     belongs to.
   Group all plain-language content first, then all supporting astrology
   — never alternate line by line.
+- ONE NEW PLACEMENT PER SENTENCE. This applies to EVERY part of the \
+reading — the Overview, every plain-language block, every "Astrological \
+Basis" block, and the Conclusion. Astrological Basis is NOT exempt: \
+technical vocabulary is allowed there, but cramming several placements \
+into one sentence is not. Each sentence may introduce ONE new point \
+plus its gloss — then STOP. Do not chain a second or third placement \
+onto the same sentence with "and," "alongside," "sitting in," or a \
+comma. Dignity, house, sign, and aspect details each get their OWN \
+sentence. This does NOT mean cutting information — every fact still \
+appears, just spread across more sentences. BAD: "Drive (Mars) is in \
+its weakest dignity (detriment) in diplomatic Libra, sitting in the \
+6th house and square both the 3rd and 9th houses." GOOD: "Your drive \
+(Mars) sits in Libra. That's its weakest placement. It lands in your \
+6th house of daily work and health. From there it's at odds with your \
+3rd house of everyday communication." If a sentence contains more than \
+one astrological object, break it.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use
 an occasional adjective triad for tone ("The connection is warm,
 intense, and immediate") — once or twice per section, not more.
