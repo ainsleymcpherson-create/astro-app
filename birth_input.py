@@ -24,9 +24,36 @@ os.environ.setdefault("NUMBA_DISABLE_JIT", "1")
 from zoneinfo import ZoneInfo
 from dateutil import parser as date_parser
 from geopy.geocoders import Nominatim
+from geopy.exc import GeopyError
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from timezonefinder import TimezoneFinder
 
 from chart_points import BirthData
+
+# Cache geocoding results by location string. Nominatim (OpenStreetMap's
+# free geocoding service) rate-limits at 1 request/second, and — since
+# Streamlit Community Cloud apps often share outbound IP pools — can
+# also temporarily rate-limit or block a shared IP range due to traffic
+# from OTHER apps entirely, not just this one. Caching means re-running
+# the same location (e.g. re-testing the same birth chart repeatedly,
+# which is exactly what happens during normal use and debugging) never
+# needs a second network call at all.
+_GEOCODE_CACHE: dict[str, tuple[float, float, str]] = {}
+
+
+@retry(
+    # Catch GeopyError (the base of geopy's whole exception hierarchy)
+    # rather than a specific subclass — this guarantees every failure
+    # mode gets retried (429 rate limits, timeouts, service-unavailable,
+    # etc.) without needing to know which exact subclass geopy raises
+    # for any particular HTTP status.
+    retry=retry_if_exception_type(GeopyError),
+    stop=stop_after_attempt(4),
+    wait=wait_exponential(multiplier=1, min=2, max=20),
+    reraise=True,
+)
+def _geocode_with_retry(geolocator, location_str: str):
+    return geolocator.geocode(location_str)
 
 
 def resolve_birth_data(datetime_str: str, location_str: str, verbose: bool = True) -> BirthData:
@@ -40,17 +67,36 @@ def resolve_birth_data(datetime_str: str, location_str: str, verbose: bool = Tru
     Example:
         birth = resolve_birth_data("December 24, 1981 1:30pm", "Brooklyn, New York, USA")
     """
-    # Explicit timeout: geopy defaults to just 1 second, which is fine on
-    # some networks (e.g. Colab) but too tight on others (e.g. Streamlit
-    # Community Cloud), causing spurious GeocoderUnavailable errors.
-    geolocator = Nominatim(user_agent="astro_chart_app", timeout=10)
-    location = geolocator.geocode(location_str)
-    if location is None:
-        raise ValueError(
-            f"Could not find location: {location_str!r}. Try being more "
-            f"specific — e.g. add a state/country, or use a nearby larger city."
+    cache_key = location_str.strip().lower()
+    if cache_key in _GEOCODE_CACHE:
+        lat, lon, address = _GEOCODE_CACHE[cache_key]
+    else:
+        # Explicit timeout: geopy defaults to just 1 second, which is fine
+        # on some networks (e.g. Colab) but too tight on others (e.g.
+        # Streamlit Community Cloud), causing spurious GeocoderUnavailable
+        # errors. User-agent identifies this specific app with contact
+        # info, per Nominatim's usage policy — a generic/anonymous
+        # user-agent is more likely to get caught up in bulk blocking.
+        geolocator = Nominatim(
+            user_agent="tenth-house-readings-astro-app (contact: via GitHub repo)",
+            timeout=10,
         )
-    lat, lon = location.latitude, location.longitude
+        try:
+            location = _geocode_with_retry(geolocator, location_str)
+        except GeopyError as e:
+            raise ValueError(
+                f"The location lookup service is temporarily rate-limited "
+                f"or unavailable after several retries ({e}). This is an "
+                f"external service issue, not a problem with your input — "
+                f"please wait a minute and try again."
+            ) from e
+        if location is None:
+            raise ValueError(
+                f"Could not find location: {location_str!r}. Try being more "
+                f"specific — e.g. add a state/country, or use a nearby larger city."
+            )
+        lat, lon, address = location.latitude, location.longitude, location.address
+        _GEOCODE_CACHE[cache_key] = (lat, lon, address)
 
     tf = TimezoneFinder()
     tz_name = tf.timezone_at(lat=lat, lng=lon)
@@ -64,7 +110,7 @@ def resolve_birth_data(datetime_str: str, location_str: str, verbose: bool = Tru
     utc_dt = local_dt.astimezone(ZoneInfo("UTC"))
 
     if verbose:
-        print(f"Resolved location: {location.address}")
+        print(f"Resolved location: {address}")
         print(f"Coordinates: {lat:.4f}, {lon:.4f}")
         print(f"Timezone: {tz_name}")
         print(f"Local time: {local_dt}")
