@@ -28,6 +28,7 @@ your service's Environment tab):
 
 import os
 import re
+import threading
 import traceback
 
 import requests
@@ -100,25 +101,20 @@ def send_email(to_address: str, subject: str, body_text: str) -> None:
     response.raise_for_status()
 
 
-@app.route("/generate-and-email", methods=["POST"])
-def generate_and_email():
-    # Verify this request genuinely came from QStash, not some random
-    # request to this URL — without this, anyone who finds this
-    # endpoint could trigger paid Claude API calls and emails at will.
-    signature = request.headers.get("Upstash-Signature", "")
-    body_raw = request.get_data(as_text=True)
-    try:
-        receiver.verify(
-            signature=signature,
-            body=body_raw,
-            url=request.url,
-        )
-    except Exception as e:
-        return jsonify({"error": f"Signature verification failed: {e}"}), 401
+def _process_reading_job(job: dict):
+    """
+    Does the actual work — chart computation, Claude generation, and
+    emailing — running in a background thread AFTER the HTTP response
+    to QStash has already been sent. This is what keeps QStash's
+    60-second response-time limit from being an issue: QStash only
+    needs to see a fast 200 OK confirming the job was received, not
+    wait for the (much longer) actual generation to finish.
 
+    Any error in here just gets logged to stdout (visible in Render's
+    logs) since there's no HTTP response left to report it through —
+    QStash already considers this delivery successful.
+    """
     try:
-        job = request.get_json(force=True)
-
         reading_type = job["reading_type"]
         datetime_str = job["datetime_str"]
         location_str = job["location_str"]
@@ -128,9 +124,8 @@ def generate_and_email():
         email_address = job["email"]
 
         if reading_type != "General":
-            # Only General has both a quick-summary AND full-reading
-            # path wired up right now — see readings_page.py.
-            return jsonify({"error": f"Unsupported reading_type: {reading_type}"}), 400
+            print(f"[email_worker] Unsupported reading_type: {reading_type}")
+            return
 
         birth = resolve_birth_data(datetime_str, location_str, verbose=False)
         house_system = HOUSE_SYSTEM_MAP.get(house_system_label, b"P")
@@ -167,19 +162,48 @@ def generate_and_email():
                 accumulated_text += text_chunk
 
         if not accumulated_text:
-            return jsonify({"error": "Claude returned no usable text"}), 502
+            print("[email_worker] Claude returned no usable text")
+            return
 
-        who = person_name if person_name else "your"
         subject = f"Your Full {reading_type} Reading — Tenth House Readings"
         send_email(email_address, subject, accumulated_text)
-
-        return jsonify({"status": "sent", "email": email_address}), 200
+        print(f"[email_worker] Sent reading to {email_address}")
 
     except Exception as e:
-        return jsonify({
-            "error": f"{type(e).__name__}: {e}",
-            "traceback": traceback.format_exc(),
-        }), 500
+        print(f"[email_worker] Job failed: {type(e).__name__}: {e}")
+        print(traceback.format_exc())
+
+
+@app.route("/generate-and-email", methods=["POST"])
+def generate_and_email():
+    # Verify this request genuinely came from QStash, not some random
+    # request to this URL — without this, anyone who finds this
+    # endpoint could trigger paid Claude API calls and emails at will.
+    signature = request.headers.get("Upstash-Signature", "")
+    body_raw = request.get_data(as_text=True)
+    try:
+        receiver.verify(
+            signature=signature,
+            body=body_raw,
+            url=request.url,
+        )
+    except Exception as e:
+        return jsonify({"error": f"Signature verification failed: {e}"}), 401
+
+    try:
+        job = request.get_json(force=True)
+    except Exception as e:
+        return jsonify({"error": f"Invalid job payload: {e}"}), 400
+
+    # Kick off the actual work in a background thread, then respond
+    # immediately — QStash only needs a fast 2xx to consider this
+    # delivery successful. Without this split, QStash's 60-second
+    # response timeout would fire mid-generation (full readings can
+    # take several minutes) and retry, risking duplicate emails.
+    thread = threading.Thread(target=_process_reading_job, args=(job,), daemon=True)
+    thread.start()
+
+    return jsonify({"status": "accepted"}), 200
 
 
 @app.route("/health", methods=["GET"])
