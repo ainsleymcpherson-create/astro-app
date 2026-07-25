@@ -535,14 +535,22 @@ def markdown_to_pdf_bytes(markdown_text: str, title: str) -> bytes:
 
 def render_interpretation(text: str):
     """
-    Renders an AI-generated reading with each section's 'Astrological
-    Basis' part collapsed into an expander — the plain-language
-    interpretation stays visible by default, and the technical detail
-    (planet placements, aspect names, dignity terms) is available on
-    tap for readers who want it, without cluttering the main view for
-    readers who don't. Falls back to plain rendering if the text
-    doesn't match the expected section structure (e.g. if the LLM
-    didn't follow the formatting instructions exactly).
+    Renders an AI-generated reading. If a section includes a
+    **Summary:** block (the newer prompt format — currently General
+    only), shows the summary always-visible and wraps everything else
+    in that section inside a single "Read more" expander. Deliberately
+    does NOT separately collapse "Astrological Basis" within that Read
+    More content — Streamlit doesn't allow nested expanders and will
+    crash if you try, so once a reader opts into "Read more" they see
+    everything else in that section flat, undifferentiated.
+
+    Sections without a Summary block (Career, Transits, and both
+    Synastry types, which haven't been updated to the new format yet)
+    fall back to the original behavior: full content visible, with
+    just "Astrological Basis" collapsed into its own expander.
+
+    Falls back to plain rendering entirely if the text doesn't match
+    the expected section structure at all.
     """
     section_pattern = re.compile(r"(?m)^## (.+)$")
     matches = list(section_pattern.finditer(text))
@@ -554,7 +562,11 @@ def render_interpretation(text: str):
     if matches[0].start() > 0:
         st.markdown(text[:matches[0].start()].strip())
 
+    summary_pattern = re.compile(r"\*\*Summary:?\*\*", re.IGNORECASE)
     basis_pattern = re.compile(r"\*\*Astrological Basis:?\*\*", re.IGNORECASE)
+    next_label_pattern = re.compile(
+        r"\*\*(What This Means|Advice|Astrological Basis):?\*\*", re.IGNORECASE
+    )
 
     for i, match in enumerate(matches):
         header = match.group(1).strip()
@@ -564,18 +576,95 @@ def render_interpretation(text: str):
 
         st.markdown(f"### {header}")
 
-        basis_match = basis_pattern.search(body)
-        if basis_match:
-            before_basis = body[:basis_match.start()].strip()
-            basis_content = body[basis_match.end():].strip()
-            if before_basis:
-                st.markdown(before_basis)
-            with st.expander("📐 Astrological Basis (tap to expand)"):
-                st.markdown(basis_content)
+        summary_match = summary_pattern.search(body)
+        if summary_match:
+            # New format: Summary always visible, everything else
+            # inside one Read More expander. Two boundary strategies:
+            # themed sections have a labeled next block (What This
+            # Means/Advice/Astrological Basis) to split on; Overview
+            # and Conclusion don't, so for those we fall back to
+            # splitting at the first paragraph break instead — Summary
+            # is just its own short paragraph, everything after it is
+            # Read More content.
+            before_summary = body[:summary_match.start()].strip()
+            after_summary_start = summary_match.end()
+            next_label_match = next_label_pattern.search(body, after_summary_start)
+            if next_label_match:
+                summary_content = body[after_summary_start:next_label_match.start()].strip()
+                rest_content = body[next_label_match.start():].strip()
+            else:
+                after_summary = body[after_summary_start:]
+                para_break = re.search(r"\n\s*\n", after_summary)
+                if para_break:
+                    summary_content = after_summary[:para_break.start()].strip()
+                    rest_content = after_summary[para_break.end():].strip()
+                else:
+                    summary_content = after_summary.strip()
+                    rest_content = ""
+
+            if before_summary:
+                st.markdown(before_summary)
+            st.markdown(summary_content)
+            if rest_content:
+                with st.expander("📖 Read more"):
+                    st.markdown(rest_content)
         else:
-            # Overview, Conclusion, or any section that didn't include
-            # a basis split — just render the whole thing normally.
-            st.markdown(body)
+            # Older format without a Summary block — original behavior.
+            basis_match = basis_pattern.search(body)
+            if basis_match:
+                before_basis = body[:basis_match.start()].strip()
+                basis_content = body[basis_match.end():].strip()
+                if before_basis:
+                    st.markdown(before_basis)
+                with st.expander("📐 Astrological Basis (tap to expand)"):
+                    st.markdown(basis_content)
+            else:
+                st.markdown(body)
+
+
+def extract_summary_only(text: str) -> str:
+    """
+    Builds a condensed version of a reading containing just each
+    section's header and Summary block — used for the "Summary"
+    PDF/TXT download. Falls back to using each section's first
+    paragraph as a rough summary for sections without an explicit
+    Summary block (older reading types not yet updated to the new
+    format), so this stays useful across every reading type.
+    """
+    section_pattern = re.compile(r"(?m)^## (.+)$")
+    matches = list(section_pattern.finditer(text))
+    if not matches:
+        return text
+
+    summary_pattern = re.compile(r"\*\*Summary:?\*\*", re.IGNORECASE)
+    next_label_pattern = re.compile(
+        r"\*\*(What This Means|Advice|Astrological Basis):?\*\*", re.IGNORECASE
+    )
+
+    out_parts = []
+    for i, match in enumerate(matches):
+        header = match.group(1).strip()
+        start = match.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        body = text[start:end].strip()
+
+        summary_match = summary_pattern.search(body)
+        if summary_match:
+            after = body[summary_match.end():]
+            next_label_match = next_label_pattern.search(after)
+            if next_label_match:
+                summary_content = after[:next_label_match.start()].strip()
+            else:
+                para_break = re.search(r"\n\s*\n", after)
+                summary_content = (
+                    after[:para_break.start()].strip() if para_break else after.strip()
+                )
+        else:
+            summary_content = body.split("\n\n")[0].strip()
+
+        out_parts.append(f"## {header}\n\n{summary_content}")
+
+    return "\n\n".join(out_parts)
 
 
 def dataframe_download_and_copy(df: pd.DataFrame, filename: str, key_prefix: str):
@@ -957,32 +1046,73 @@ if st.session_state.get("results"):
                 title_who = f"{label_a or 'Person A'} & {label_b or 'Person B'}"
             else:
                 title_who = label_a if label_a else r['datetime_str']
-            pdf_title = f"{r['reading_type']} Reading — {title_who}"
-            pdf_bytes = markdown_to_pdf_bytes(r["interpretation_text"], pdf_title)
 
-            dl_col1, dl_col2 = st.columns(2)
-            with dl_col1:
+            summary_text = extract_summary_only(r["interpretation_text"])
+            full_text = r["interpretation_text"]
+            summary_pdf_bytes = markdown_to_pdf_bytes(
+                summary_text, f"{r['reading_type']} — Summary — {title_who}"
+            )
+            full_pdf_bytes = markdown_to_pdf_bytes(
+                full_text, f"{r['reading_type']} Reading — {title_who}"
+            )
+            date_str = r['birth_date'].isoformat()
+
+            st.subheader("Summary Version")
+            sum_col1, sum_col2 = st.columns(2)
+            with sum_col1:
                 st.download_button(
                     "📄 Download as .pdf",
-                    data=pdf_bytes,
-                    file_name=f"reading_{r['birth_date'].isoformat()}.pdf",
+                    data=summary_pdf_bytes,
+                    file_name=f"reading_summary_{date_str}.pdf",
                     mime="application/pdf",
                     use_container_width=True,
+                    key="summary_pdf_dl",
                 )
-            with dl_col2:
+            with sum_col2:
                 st.download_button(
                     "Download as .txt",
-                    data=r["interpretation_text"],
-                    file_name=f"reading_{r['birth_date'].isoformat()}.txt",
+                    data=summary_text,
+                    file_name=f"reading_summary_{date_str}.txt",
                     mime="text/plain",
                     use_container_width=True,
+                    key="summary_txt_dl",
                 )
-            with st.expander("Copy as plain text"):
+            with st.expander("Copy summary as plain text"):
                 st.text_area(
-                    "Reading (tap inside, select all, copy)",
-                    value=r["interpretation_text"],
+                    "Summary (tap inside, select all, copy)",
+                    value=summary_text,
+                    height=250,
+                    label_visibility="collapsed",
+                    key="summary_copy",
+                )
+
+            st.subheader("Full Version")
+            full_col1, full_col2 = st.columns(2)
+            with full_col1:
+                st.download_button(
+                    "📄 Download as .pdf",
+                    data=full_pdf_bytes,
+                    file_name=f"reading_full_{date_str}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                    key="full_pdf_dl",
+                )
+            with full_col2:
+                st.download_button(
+                    "Download as .txt",
+                    data=full_text,
+                    file_name=f"reading_full_{date_str}.txt",
+                    mime="text/plain",
+                    use_container_width=True,
+                    key="full_txt_dl",
+                )
+            with st.expander("Copy full reading as plain text"):
+                st.text_area(
+                    "Full reading (tap inside, select all, copy)",
+                    value=full_text,
                     height=400,
                     label_visibility="collapsed",
+                    key="full_copy",
                 )
         elif r["interpretation_error"]:
             st.warning("Something went wrong generating the live interpretation:")
