@@ -24,7 +24,6 @@ os.environ.setdefault("NUMBA_DISABLE_JIT", "1")
 from zoneinfo import ZoneInfo
 from dateutil import parser as date_parser
 from geopy.geocoders import Nominatim
-from geopy.exc import GeopyError
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from timezonefinder import TimezoneFinder
 
@@ -42,12 +41,14 @@ _GEOCODE_CACHE: dict[str, tuple[float, float, str]] = {}
 
 
 @retry(
-    # Catch GeopyError (the base of geopy's whole exception hierarchy)
-    # rather than a specific subclass — this guarantees every failure
-    # mode gets retried (429 rate limits, timeouts, service-unavailable,
-    # etc.) without needing to know which exact subclass geopy raises
-    # for any particular HTTP status.
-    retry=retry_if_exception_type(GeopyError),
+    # Catch bare Exception, not a specific geopy exception class. The
+    # first version of this fix only caught GeopyError, and the same
+    # raw "Non-successful status code 429" text kept appearing anyway
+    # — meaning whatever geopy actually raises for this particular
+    # failure isn't reliably a GeopyError subclass in every code path.
+    # Rather than keep guessing at geopy's exact exception hierarchy,
+    # this catches everything, so nothing can slip through unretried.
+    retry=retry_if_exception_type(Exception),
     stop=stop_after_attempt(4),
     wait=wait_exponential(multiplier=1, min=2, max=20),
     reraise=True,
@@ -83,12 +84,12 @@ def resolve_birth_data(datetime_str: str, location_str: str, verbose: bool = Tru
         )
         try:
             location = _geocode_with_retry(geolocator, location_str)
-        except GeopyError as e:
+        except Exception as e:
             raise ValueError(
                 f"The location lookup service is temporarily rate-limited "
-                f"or unavailable after several retries ({e}). This is an "
-                f"external service issue, not a problem with your input — "
-                f"please wait a minute and try again."
+                f"or unavailable after several retries ({type(e).__name__}: "
+                f"{e}). This is an external service issue, not a problem "
+                f"with your input — please wait a minute and try again."
             ) from e
         if location is None:
             raise ValueError(
