@@ -161,13 +161,27 @@ for points that need more explaining, like "Chiron, a lesser-known \
 body tied to old wounds and the potential to turn them into wisdom." \
 Do NOT paraphrase placements into vague circumlocutions like "the \
 career point" or "an old sensitivity" to avoid naming them — name the \
-actual point AND gloss it. Structure the Overview's paragraphs like \
-this:
-- OPEN WITH A PUNCHY DECLARATIVE THESIS — one or two short, confident \
-sentences stating what this chart is fundamentally about, with no \
-hedging and no astrology in them at all. Something with the shape of \
-"Your career is in a state of ambitious reconstruction." State it \
-plainly, then spend the rest of the Overview proving it.
+actual point AND gloss it. GLOSS EVERY SIGN THE FIRST TIME IT'S NAMED \
+IN THE OVERVIEW — this is not optional and not automatically inherited \
+from the "What This Means" instructions below, it applies directly \
+here too. A brief 2-3 word descriptor right after the sign name. Not \
+"Your core identity (the Sun) sits in Capricorn." — write "Your core \
+identity (the Sun) sits in Capricorn, disciplined and ambitious." \
+Structure the Overview's paragraphs like this:
+- OPEN WITH A PUNCHY DECLARATIVE THESIS, BUT ONE ACTUALLY GROUNDED IN \
+THIS SPECIFIC CHART — one or two short, confident sentences, with no \
+hedging and no astrology in them at all. The sentence must be \
+something that would be FALSE or at least not obviously true of a \
+random other person's chart — a real claim this specific data \
+supports, not a general truth about human psychology that could open \
+literally anyone's reading. "You don't experience yourself in \
+isolation — every part of who you are gets tested by whoever's \
+standing across from you" is NOT acceptable: it's true of everyone and \
+references nothing in this chart. "Your career is in a state of \
+ambitious reconstruction" IS acceptable, because it commits to a \
+specific claim the rest of the Overview then has to prove. If you \
+can't yet point to which placement justifies the sentence, don't write \
+it — figure out the real thesis from the data first, then state it.
 - NAME SPECIFIC CLUSTERS AND GROUPINGS DIRECTLY, each as its OWN \
 paragraph. If three or more points sit together in one sign and house \
 (a stellium), or several planets are conjunct each other, give that \
@@ -191,19 +205,32 @@ chart-level observation that sits above the individual themes. End \
 with a short synthesizing statement of what kind of chart this is \
 overall.
 
+BEFORE all of the above, open the Overview with a **Summary:** block \
+— exactly that bolded label, then 2-4 plain-language sentences that \
+distill the single most important takeaway from the whole chart. This \
+must genuinely stand alone: someone who reads ONLY this and nothing \
+else in the entire reading should still walk away with the real \
+headline. No jargon, no hedging, no "let's explore" throat-clearing — \
+just the actual point. Everything from the punchy thesis onward (all \
+the paragraph content described above) comes AFTER this Summary block \
+and expands on it — the Summary is the short version, everything below \
+it is the long version.
+
 Then, identify the 2-4 biggest THEMES that emerge when you look at the \
 whole chart together — which placements reinforce each other, which \
 create tension, and why. Format each theme's heading as a markdown H2 \
 heading — exactly "## Theme Name" (two hash symbols, one space, then \
 the name) — since the app displaying this reading relies on that exact \
-format to build a collapsible view. Then follow the three-part \
+format to build a collapsible view. Then follow the four-part \
 format described below for each one.
 
 End with a conclusion and summary of key points, but try not to repeat \
 the intro summary — the intro orients the reader before the detail, the \
 conclusion should distill what actually matters most after reading it. \
 Write the conclusion as flowing prose too, matching the Overview's \
-style — not chunked or bulleted. Head this section with the exact \
+style — not chunked or bulleted. Open the Conclusion with its own \
+**Summary:** block too (2-4 sentences), same rules as above, followed \
+by the fuller conclusion prose. Head this section with the exact \
 markdown heading "## Conclusion" — this is REQUIRED, not optional: \
 without its own heading, the app's display logic will incorrectly \
 attach this text to the previous section instead of showing it as its \
@@ -218,8 +245,15 @@ English on first use — accessible through glossing, not through \
 avoiding the terms.
 2. FOR EACH THEME, OPEN with 1-2 sentences of brief plain-language prose \
 summarizing the main takeaway — no bolding, no chunking, just a short \
-lead-in. THEN follow with a three-part structure, IN THIS ORDER:
-    **What This Means:** Written FIRST. Break it into 2-4 short, \
+lead-in. THEN follow with a four-part structure, IN THIS ORDER:
+    **Summary:** Written FIRST, immediately after the 1-2 sentence \
+    lead-in and BEFORE "What This Means" — this ordering matters, the \
+    app relies on it. 2-4 plain-language sentences distilling this \
+    theme's real takeaway, standalone enough that a reader who sees \
+    ONLY this sentence and nothing else in the theme still gets the \
+    actual point. No jargon, no chunking, just the plain-language core \
+    of what this theme means for the person's life.
+    **What This Means:** Written SECOND. Break it into 2-4 short, \
     scannable chunks, each starting with a bolded claim stated as a \
     short phrase followed by a colon (e.g. "**Speaking and thinking are \
     central to your identity:**"). Within each chunk, you MAY name any \
@@ -259,7 +293,7 @@ lead-in. THEN follow with a three-part structure, IN THIS ORDER:
     of each chunk. This is where the interpretation and meaning for the \
     person's life lives, so don't just list placements — say what they \
     add up to.
-    **Advice:** Written SECOND, immediately after "What This Means" \
+    **Advice:** Written THIRD, immediately after "What This Means" \
     and BEFORE "Astrological Basis" — this ordering matters, the app \
     relies on it. A short paragraph (not chunked, no sub-labels). \
     Speak directly to the person in the imperative — concrete, \
@@ -270,7 +304,7 @@ lead-in. THEN follow with a three-part structure, IN THIS ORDER:
     overwork in pursuit of results." Mix warnings with encouragements. \
     No astrology at all in this block — it's pure direction. Keep it \
     to 2-4 sentences.
-    **Astrological Basis:** Written THIRD and LAST, 2-4 short chunks covering \
+    **Astrological Basis:** Written FOURTH and LAST, 2-4 short chunks covering \
     the more precise technical grounding that didn't fit naturally into \
     "What This Means" above — dignity conditions, additional supporting \
     placements, aspect relationships worth naming, and how tight or \
@@ -469,7 +503,7 @@ Here is the full computed chart data:
 {data_block}
 
 Now write the reading: opening overview, 2-4 themes each in the \
-three-part format above, then a closing conclusion. You don't \
+four-part format above, then a closing conclusion. You don't \
 need to follow a rigid template of "personality, then love, then \
 career" — let the chart's own emphases (strong patterns, dignified \
 planets, activated houses) determine which themes emerge and what gets \
@@ -557,13 +591,28 @@ longer "X, which governs Y" form only for points that need more \
 explaining, like "Chiron, a lesser-known body tied to old wounds and \
 the potential to turn them into wisdom." Do NOT paraphrase \
 placements into vague circumlocutions like "an old sensitivity" to \
-avoid naming them — name the actual point AND gloss it. Structure the \
-Overview's paragraphs like this:
-- OPEN WITH A PUNCHY DECLARATIVE THESIS — one or two short, confident \
-sentences stating what this chart is fundamentally about, with no \
-hedging and no astrology in them at all. Something with the shape of \
-"Your career is in a state of ambitious reconstruction." State it \
-plainly, then spend the rest of the Overview proving it.
+avoid naming them — name the actual point AND gloss it. GLOSS EVERY \
+SIGN THE FIRST TIME IT'S NAMED IN THE OVERVIEW — this is not optional \
+and not automatically inherited from the "What This Means" \
+instructions below, it applies directly here too. A brief 2-3 word \
+descriptor right after the sign name. Not "Your core identity (the \
+Sun) sits in Capricorn." — write "Your core identity (the Sun) sits \
+in Capricorn, disciplined and ambitious." Structure the Overview's \
+paragraphs like this:
+- OPEN WITH A PUNCHY DECLARATIVE THESIS, BUT ONE ACTUALLY GROUNDED IN \
+THIS SPECIFIC CHART — one or two short, confident sentences, with no \
+hedging and no astrology in them at all. The sentence must be \
+something that would be FALSE or at least not obviously true of a \
+random other person's chart — a real claim this specific data \
+supports, not a general truth about human psychology that could open \
+literally anyone's reading. "You don't experience yourself in \
+isolation — every part of who you are gets tested by whoever's \
+standing across from you" is NOT acceptable: it's true of everyone and \
+references nothing in this chart. "Your career is in a state of \
+ambitious reconstruction" IS acceptable, because it commits to a \
+specific claim the rest of the Overview then has to prove. If you \
+can't yet point to which placement justifies the sentence, don't write \
+it — figure out the real thesis from the data first, then state it.
 - NAME SPECIFIC CLUSTERS AND GROUPINGS DIRECTLY, each as its OWN \
 paragraph. If three or more points sit together in one sign (a \
 stellium), or several planets are conjunct each other, give that \
@@ -585,16 +634,28 @@ feature of the whole chart. Do the same for repeated ease (trines, \
 sextiles) if it's a genuine pattern. End with a short synthesizing \
 statement of what kind of chart this is overall.
 
+BEFORE all of the above, open the Overview with a **Summary:** block \
+— exactly that bolded label, then 2-4 plain-language sentences that \
+distill the single most important takeaway from the whole chart. This \
+must genuinely stand alone: someone who reads ONLY this and nothing \
+else in the entire reading should still walk away with the real \
+headline. No jargon, no hedging, no "let's explore" throat-clearing — \
+just the actual point. Everything from the punchy thesis onward comes \
+AFTER this Summary block and expands on it — the Summary is the short \
+version, everything below it is the long version.
+
 Then, identify the 2-4 biggest THEMES that emerge when you look at the \
 whole chart together. Format each theme's heading as a markdown H2 \
 heading — exactly "## Theme Name" (two hash symbols, one space, then \
 the name) — since the app displaying this reading relies on that exact \
-format to build a collapsible view. Then follow the three-part \
+format to build a collapsible view. Then follow the four-part \
 format described below for each one.
 
 End with a conclusion and summary of key points, but try not to repeat \
 the intro summary. Write the conclusion as flowing prose too, matching \
-the Overview's style — not chunked or bulleted. Head this section with \
+the Overview's style — not chunked or bulleted. Open the Conclusion \
+with its own **Summary:** block too (2-4 sentences), same rules as \
+above, followed by the fuller conclusion prose. Head this section with \
 the exact markdown heading "## Conclusion" — this is REQUIRED, not \
 optional: without its own heading, the app's display logic will \
 incorrectly attach this text to the previous section instead of \
@@ -607,9 +668,16 @@ chunking. They follow the same naming convention as everywhere else: \
 technical terms are welcome as long as each is glossed in plain \
 English on first use.
 2. FOR EACH THEME, OPEN with 1-2 sentences of brief plain-language prose \
-summarizing the main takeaway. THEN follow with a three-part \
+summarizing the main takeaway. THEN follow with a four-part \
 structure, IN THIS ORDER:
-    **What This Means:** Written FIRST, broken into 2-4 short, \
+    **Summary:** Written FIRST, immediately after the 1-2 sentence \
+    lead-in and BEFORE "What This Means" — this ordering matters, the \
+    app relies on it. 2-4 plain-language sentences distilling this \
+    theme's real takeaway, standalone enough that a reader who sees \
+    ONLY this sentence and nothing else in the theme still gets the \
+    actual point. No jargon, no chunking, just the plain-language core \
+    of what this theme means for the person's life.
+    **What This Means:** Written SECOND, broken into 2-4 short, \
     scannable chunks, each starting with a bolded claim stated as a \
     short phrase followed by a colon. Within each chunk, you MAY name \
     any point directly — planets, signs, Chiron, the Nodes, pattern \
@@ -640,7 +708,7 @@ structure, IN THIS ORDER:
     person experiences or acts in the world, not just what the \
     placement technically is. Claim, then the named-and-glossed \
     placements behind it, then the real-life payoff.
-    **Advice:** Written SECOND, immediately after "What This Means" \
+    **Advice:** Written THIRD, immediately after "What This Means" \
     and BEFORE "Astrological Basis" — this ordering matters, the app \
     relies on it. A short paragraph (not chunked, no sub-labels). \
     Speak directly to the person in the imperative — concrete, \
@@ -651,7 +719,7 @@ structure, IN THIS ORDER:
     overwork in pursuit of results." Mix warnings with encouragements. \
     No astrology at all in this block — it's pure direction. Keep it \
     to 2-4 sentences.
-    **Astrological Basis:** Written THIRD and LAST, 2-4 short chunks covering \
+    **Astrological Basis:** Written FOURTH and LAST, 2-4 short chunks covering \
     the more precise technical grounding that didn't fit naturally into \
     "What This Means" above — dignity conditions, additional supporting \
     placements, aspect relationships worth naming, and how tight or \
@@ -842,7 +910,7 @@ of those are reliable without an exact birth time):
 {data_block}
 
 Now write the reading: opening overview, 2-4 themes each in the \
-three-part format above, then a closing conclusion. Let the \
+four-part format above, then a closing conclusion. Let the \
 chart's own emphases (strong patterns, dignified planets) determine \
 which themes emerge.\
 """
