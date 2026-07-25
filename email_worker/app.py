@@ -51,6 +51,41 @@ HOUSE_SYSTEM_MAP = {
     "Campanus": b"C", "Regiomontanus": b"R", "Alcabitius": b"B",
 }
 
+
+def _ensure_chiron_ephemeris_file():
+    """
+    Chiron specifically requires an external ephemeris data file
+    (seas_18.se1) that isn't bundled with the pyswisseph pip package —
+    unlike the standard planets, which pyswisseph can approximate
+    internally (Moshier) without any extra files. Without this file,
+    swe.calc_ut(..., swe.CHIRON) raises a hard error rather than
+    falling back gracefully.
+
+    Downloads it once into a local ./ephe directory on first startup
+    and points swisseph at it — Render's servers have normal internet
+    access for this, even in environments (like this sandbox) that
+    don't. Safe to call on every startup: it's a no-op if the file's
+    already there from a previous deploy.
+    """
+    ephe_dir = os.path.join(os.path.dirname(__file__), "ephe")
+    ephe_file = os.path.join(ephe_dir, "seas_18.se1")
+    os.makedirs(ephe_dir, exist_ok=True)
+
+    if not os.path.exists(ephe_file):
+        print("[email_worker] Downloading Chiron ephemeris file (seas_18.se1)...")
+        url = "https://raw.githubusercontent.com/aloistr/swisseph/master/ephe/seas_18.se1"
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        with open(ephe_file, "wb") as f:
+            f.write(response.content)
+        print(f"[email_worker] Saved ephemeris file to {ephe_file}")
+
+    import swisseph as swe
+    swe.set_ephe_path(ephe_dir)
+
+
+_ensure_chiron_ephemeris_file()
+
 receiver = Receiver(
     current_signing_key=os.environ["QSTASH_CURRENT_SIGNING_KEY"],
     next_signing_key=os.environ["QSTASH_NEXT_SIGNING_KEY"],
