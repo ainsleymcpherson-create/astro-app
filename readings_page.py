@@ -145,6 +145,15 @@ def enqueue_full_reading_email(job_payload: dict) -> tuple[bool, str]:
             "is still yours, just not the emailed full version."
         )
     try:
+        # The qstash-py SDK reads a regional override via the
+        # QSTASH_URL environment variable, not a constructor argument
+        # — Streamlit's st.secrets does NOT automatically populate
+        # os.environ, so this needs to be bridged explicitly, or every
+        # request defaults to the EU region regardless of which region
+        # the account's token actually belongs to.
+        qstash_url = get_secret("QSTASH_URL") or "https://qstash-us-east-1.upstash.io"
+        os.environ["QSTASH_URL"] = qstash_url
+
         from qstash import QStash
         client = QStash(qstash_token)
         client.message.publish_json(url=worker_url, body=job_payload)
