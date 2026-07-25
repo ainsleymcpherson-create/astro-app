@@ -45,6 +45,8 @@ from synastry_engine import compute_full_synastry
 from prompt_builder import (
     build_interpretation_prompt,
     build_interpretation_prompt_no_time,
+    build_summary_only_prompt,
+    build_summary_only_prompt_no_time,
     build_career_interpretation_prompt,
     build_career_interpretation_prompt_no_time,
     build_transit_prompt,
@@ -105,6 +107,53 @@ def get_api_key():
     except Exception:
         pass
     return os.environ.get("ANTHROPIC_API_KEY")
+
+
+def get_secret(name: str):
+    """Same lookup pattern as get_api_key, generalized for any secret
+    name — used for the QStash token and the email worker's URL."""
+    try:
+        from google.colab import userdata
+        val = userdata.get(name)
+        if val:
+            return val
+    except Exception:
+        pass
+    try:
+        if name in st.secrets:
+            return st.secrets[name]
+    except Exception:
+        pass
+    return os.environ.get(name)
+
+
+def enqueue_full_reading_email(job_payload: dict) -> tuple[bool, str]:
+    """
+    Publishes a job to QStash, which will call the email worker (a
+    separate small Flask app, deployed independently — see
+    email_worker/) to generate the full reading and email it. Returns
+    (success, message) rather than raising, since a failure here
+    shouldn't block the fast summary that's already been generated —
+    the person still gets that either way.
+    """
+    qstash_token = get_secret("QSTASH_TOKEN")
+    worker_url = get_secret("EMAIL_WORKER_URL")
+    if not qstash_token or not worker_url:
+        return False, (
+            "Email delivery isn't configured yet (missing QSTASH_TOKEN "
+            "or EMAIL_WORKER_URL in secrets) — the quick summary above "
+            "is still yours, just not the emailed full version."
+        )
+    try:
+        from qstash import QStash
+        client = QStash(qstash_token)
+        client.message.publish_json(url=worker_url, body=job_payload)
+        return True, "The full reading is on its way — check your email in a few minutes."
+    except Exception as e:
+        return False, (
+            f"Couldn't queue the full reading for email ({type(e).__name__}: {e}). "
+            f"The quick summary above is still yours."
+        )
 
 
 st.title("🔭 Tenth House Readings")
@@ -344,14 +393,44 @@ if reading_type == "Transits":
 else:
     transit_date = date_type.today()  # unused placeholder for non-Transit readings
 
-generate_live = st.checkbox(
-    "🪙 Generate written interpretation with Claude (makes a real, billed API call)",
-    value=False,
-    help="Unchecked (default): you get the raw prompt to copy/paste into "
-         "Claude yourself, for free. Checked: this app calls the Claude "
-         "API directly and you're charged for that usage, every time "
-         "you click Compute Chart with this box checked.",
-)
+email_address = None
+want_email_full = False
+
+if reading_type == "General":
+    generation_mode = st.radio(
+        "Written interpretation",
+        options=[
+            "Don't generate (just show prompt)",
+            "🪙 Quick summary",
+            "🪙📧 Quick summary + email me the full reading",
+        ],
+        index=0,
+        help="Quick summary: a short, fast version generated live and "
+             "shown here immediately (billed API call, but a small one). "
+             "Quick summary + email: same fast summary shown here, PLUS "
+             "the full, in-depth reading gets generated separately and "
+             "emailed to you — usually within a few minutes — instead "
+             "of making you wait for it here.",
+    )
+    generate_live = generation_mode != "Don't generate (just show prompt)"
+    want_quick_summary = generation_mode != "Don't generate (just show prompt)"
+    want_email_full = generation_mode == "🪙📧 Quick summary + email me the full reading"
+    if want_email_full:
+        email_address = st.text_input(
+            "Email address",
+            placeholder="you@example.com",
+            help="The full reading gets sent here once it's ready.",
+        )
+else:
+    want_quick_summary = False
+    generate_live = st.checkbox(
+        "🪙 Generate written interpretation with Claude (makes a real, billed API call)",
+        value=False,
+        help="Unchecked (default): you get the raw prompt to copy/paste into "
+             "Claude yourself, for free. Checked: this app calls the Claude "
+             "API directly and you're charged for that usage, every time "
+             "you click Compute Chart with this box checked.",
+    )
 
 submitted = st.button(
     "Compute Chart", use_container_width=True,
@@ -890,6 +969,22 @@ if st.session_state.get("processing", False):
             else:
                 prompt = build_interpretation_prompt(chart, aspects, patterns, dignities, house_readings, person_name=person_name)
 
+        # For General readings in "Quick summary" mode, build the lean
+        # summary-only prompt too — this is what actually gets sent to
+        # the API for the fast in-app version. `prompt` (the full
+        # version) stays as-is for the Prompt tab and for the
+        # background worker's email job.
+        quick_summary_prompt = None
+        if reading_type == "General" and want_quick_summary:
+            if unknown_time:
+                quick_summary_prompt = build_summary_only_prompt_no_time(
+                    chart, aspects, patterns, dignities, person_name=person_name,
+                )
+            else:
+                quick_summary_prompt = build_summary_only_prompt(
+                    chart, aspects, patterns, dignities, house_readings, person_name=person_name,
+                )
+
         interpretation_text = None
         interpretation_error = None
 
@@ -940,10 +1035,12 @@ if st.session_state.get("processing", False):
                             accumulated_text = ""
                             thinking_chars = 0
                             update_counter = 0
+                            api_prompt = quick_summary_prompt if quick_summary_prompt else prompt
+                            api_max_tokens = 8000 if quick_summary_prompt else 32000
                             with client.messages.stream(
                                 model="claude-sonnet-5",
-                                max_tokens=32000,
-                                messages=[{"role": "user", "content": prompt}],
+                                max_tokens=api_max_tokens,
+                                messages=[{"role": "user", "content": api_prompt}],
                             ) as stream:
                                 for event in stream:
                                     if event.type != "content_block_delta":
@@ -1019,6 +1116,22 @@ if st.session_state.get("processing", False):
                             f"Full traceback:\n{traceback.format_exc()}"
                         )
 
+        email_job_status = None
+        if want_email_full:
+            if not email_address or "@" not in email_address:
+                email_job_status = (False, "Enter a valid email address to receive the full reading.")
+            else:
+                job_payload = {
+                    "reading_type": reading_type,
+                    "datetime_str": datetime_str,
+                    "location_str": location_str,
+                    "unknown_time": unknown_time,
+                    "house_system": house_system_label,
+                    "person_name": person_name,
+                    "email": email_address.strip(),
+                }
+                email_job_status = enqueue_full_reading_email(job_payload)
+
         # Persist everything needed for display in st.session_state.
         # Streamlit reruns the ENTIRE script on every widget interaction —
         # including clicking a download button — and `submitted` is only
@@ -1034,6 +1147,7 @@ if st.session_state.get("processing", False):
             "birth_date": birth_date,
             "transit_date": transit_date,
             "person_name": person_name,
+            "email_job_status": email_job_status,
             "person_name_b": person_name_b if reading_type in SYNASTRY_READING_TYPES else None,
             "datetime_str_b": datetime_str_b if reading_type in SYNASTRY_READING_TYPES else None,
             "location_str_b": location_str_b if reading_type in SYNASTRY_READING_TYPES else None,
@@ -1101,6 +1215,13 @@ if st.session_state.get("results"):
     tabs = st.tabs(["Interpretation", "Prompt", "Chart Wheel", "Points", "Aspects", "Patterns", "Dignity", "Houses"])
 
     with tabs[0]:
+        if r.get("email_job_status"):
+            success, message = r["email_job_status"]
+            if success:
+                st.success(f"📧 {message}")
+            else:
+                st.warning(f"📧 {message}")
+
         if r["interpretation_text"]:
             render_interpretation(r["interpretation_text"])
             st.divider()
