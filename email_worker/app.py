@@ -28,7 +28,6 @@ your service's Environment tab):
 
 import os
 import re
-import threading
 import traceback
 
 import requests
@@ -101,18 +100,14 @@ def send_email(to_address: str, subject: str, body_text: str) -> None:
     response.raise_for_status()
 
 
-def _process_reading_job(job: dict):
+def _process_reading_job(job: dict) -> tuple[bool, str]:
     """
     Does the actual work — chart computation, Claude generation, and
-    emailing — running in a background thread AFTER the HTTP response
-    to QStash has already been sent. This is what keeps QStash's
-    60-second response-time limit from being an issue: QStash only
-    needs to see a fast 200 OK confirming the job was received, not
-    wait for the (much longer) actual generation to finish.
-
-    Any error in here just gets logged to stdout (visible in Render's
-    logs) since there's no HTTP response left to report it through —
-    QStash already considers this delivery successful.
+    emailing. Runs synchronously as part of the request/response cycle
+    (see the note in generate_and_email() for why this is deliberate).
+    Returns (success, message) so the caller can respond to QStash
+    with the right status code — a non-2xx response tells QStash to
+    retry, which matters if something here fails transiently.
     """
     try:
         reading_type = job["reading_type"]
@@ -124,8 +119,9 @@ def _process_reading_job(job: dict):
         email_address = job["email"]
 
         if reading_type != "General":
-            print(f"[email_worker] Unsupported reading_type: {reading_type}")
-            return
+            msg = f"Unsupported reading_type: {reading_type}"
+            print(f"[email_worker] {msg}")
+            return False, msg
 
         birth = resolve_birth_data(datetime_str, location_str, verbose=False)
         house_system = HOUSE_SYSTEM_MAP.get(house_system_label, b"P")
@@ -162,16 +158,20 @@ def _process_reading_job(job: dict):
                 accumulated_text += text_chunk
 
         if not accumulated_text:
-            print("[email_worker] Claude returned no usable text")
-            return
+            msg = "Claude returned no usable text"
+            print(f"[email_worker] {msg}")
+            return False, msg
 
         subject = f"Your Full {reading_type} Reading — Tenth House Readings"
         send_email(email_address, subject, accumulated_text)
         print(f"[email_worker] Sent reading to {email_address}")
+        return True, "sent"
 
     except Exception as e:
-        print(f"[email_worker] Job failed: {type(e).__name__}: {e}")
+        msg = f"{type(e).__name__}: {e}"
+        print(f"[email_worker] Job failed: {msg}")
         print(traceback.format_exc())
+        return False, msg
 
 
 @app.route("/generate-and-email", methods=["POST"])
@@ -195,15 +195,24 @@ def generate_and_email():
     except Exception as e:
         return jsonify({"error": f"Invalid job payload: {e}"}), 400
 
-    # Kick off the actual work in a background thread, then respond
-    # immediately — QStash only needs a fast 2xx to consider this
-    # delivery successful. Without this split, QStash's 60-second
-    # response timeout would fire mid-generation (full readings can
-    # take several minutes) and retry, risking duplicate emails.
-    thread = threading.Thread(target=_process_reading_job, args=(job,), daemon=True)
-    thread.start()
-
-    return jsonify({"status": "accepted"}), 200
+    # Deliberately BLOCKING, not backgrounded. An earlier version of
+    # this endpoint responded immediately and did the real work in a
+    # background thread — that actually caused a worse bug: Render's
+    # free tier spins the service down after ~15 minutes with no
+    # ACTIVE incoming request, and it does this based on connection
+    # activity, not internal CPU usage. The fast-response design meant
+    # Render saw the request as "done" immediately, and could kill the
+    # container mid-generation with zero warning, silently dropping
+    # the job. Blocking here keeps the connection open and active for
+    # the whole generation, which Render does NOT treat as idle — and
+    # the corresponding `timeout="..."` set on the QStash publish call
+    # (see readings_page.py) tells QStash to actually wait that long
+    # rather than assuming failure and retrying early.
+    success, message = _process_reading_job(job)
+    if success:
+        return jsonify({"status": "sent"}), 200
+    else:
+        return jsonify({"error": message}), 500
 
 
 @app.route("/health", methods=["GET"])
