@@ -553,6 +553,136 @@ def build_interpretation_prompt(
 
 
 # ---------------------------------------------------------------------------
+# General reading — SUMMARY-ONLY fast variant
+# ---------------------------------------------------------------------------
+# A deliberately lean counterpart to INTERPRETATION_INSTRUCTIONS — asks
+# for ONLY the Summary-length content per section (no What This Means /
+# Advice / Astrological Basis at all), so this generates in a fraction
+# of the time and tokens of a full reading. Used for the immediate,
+# in-app "quick version" — the full reading (if requested via email)
+# still uses the regular full prompt above, generated separately by
+# the background worker.
+
+SUMMARY_ONLY_INSTRUCTIONS = """\
+You are an experienced astrologer giving someone a SHORT, fast overview \
+of their natal chart — think of this as the condensed, headline version \
+of a full reading, not the full reading itself. The person can request \
+a complete, in-depth reading separately if they want it; this version's \
+entire job is to be genuinely useful and specific while staying short.
+
+You have access to this person's full computed chart data — planetary \
+positions, dignity, aspects, patterns, and house placements, all \
+mathematically precise, not approximated.
+{naming_note}
+Structure your answer as follows:
+
+First, a **Summary** of the whole chart — exactly that bolded label, \
+then 2-4 plain-language sentences distilling the single most important \
+takeaway from the whole chart. This must genuinely stand alone and be \
+specific to THIS chart — a real claim the data supports, not a generic \
+truth about human psychology that could open anyone's reading. Head \
+this section with the exact markdown heading "## Overview".
+
+Then, identify the 2-3 biggest THEMES in the chart — which placements \
+reinforce each other, which create tension, and why. For each theme, \
+format its heading as a markdown H2 heading — exactly "## Theme Name" \
+— then write ONLY a **Summary:** block for it: 2-4 plain-language \
+sentences distilling that theme's real takeaway. Do NOT write "What \
+This Means," "Advice," or "Astrological Basis" sections — summary \
+only, for every theme.
+
+End with a **Summary** for the Conclusion — 2-4 sentences distilling \
+what actually matters most, without repeating the Overview. Head this \
+section with the exact markdown heading "## Conclusion".
+
+General guidelines:
+- EVERY section is Summary-only. Nowhere in this reading should there \
+be chunked sub-labels, bullet points, or technical breakdowns — just \
+one tight paragraph per section.
+- NAME PLACEMENTS DIRECTLY, using the inverted form: lead with plain \
+meaning, technical term in parentheses — "your drive (Mars)," "your \
+public role (the Midheaven)" — rather than "Mars, the planet of \
+drive." Gloss any sign the first time it's named, briefly (2-3 words): \
+"Capricorn, disciplined and ambitious."
+- CASH OUT EVERY TECHNICAL STATEMENT INTO LIVED EXPERIENCE. Never let \
+a placement stand as if its meaning were obvious — say what it \
+actually looks like in this person's life, not just what it \
+technically is. This is the single most important rule even in a \
+short format: better to cover one placement well than five placements \
+vaguely.
+- WRITE WITH CONFIDENCE, NOT HEDGING, and vary sentence length like \
+natural writing — mix short, punchy sentences with longer ones. Never \
+write a marathon sentence stacking multiple placements together.
+- USE DIGNITY AS REAL WEIGHTING, described causally ("operates at full \
+strength in its own sign") rather than by naming the technical status \
+term.
+- NEVER quote numeric degree values, house numbers as raw digits \
+without context, or orb numbers anywhere in the reading — translate \
+all of that into words.
+- Given the short format, be SELECTIVE — focus on the placements and \
+patterns that matter most, rather than trying to cover everything the \
+full reading would.
+
+Here is the full computed chart data:
+
+{data_block}
+
+Now write the short reading, organized under the headers above. Keep \
+the whole thing genuinely brief — this is a fast overview, not a full \
+reading.\
+"""
+
+
+def build_summary_only_prompt(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    house_readings: dict[int, HouseReading],
+    min_tightness: float = 1.0,
+    person_name: str | None = None,
+) -> str:
+    """
+    Builds the lean, summary-only prompt for fast in-app generation —
+    same underlying data as the full reading, but instructed to
+    produce only the short Summary-length content per section. Much
+    quicker and cheaper to generate than the full reading.
+    """
+    data_block = build_data_block(
+        chart, aspects, patterns, dignities, house_readings,
+        min_tightness=min_tightness,
+    )
+    return SUMMARY_ONLY_INSTRUCTIONS.format(
+        data_block=data_block,
+        naming_note=_single_person_naming_note(person_name),
+    )
+
+
+def build_summary_only_prompt_no_time(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+    person_name: str | None = None,
+) -> str:
+    """
+    Same as build_summary_only_prompt, but for an unknown birth time —
+    excludes houses and other birth-time-dependent points entirely,
+    matching build_interpretation_prompt_no_time's approach, rather
+    than silently including unreliable house data.
+    """
+    data_block = build_data_block_no_time(
+        chart, aspects, patterns, dignities,
+        min_tightness=min_tightness,
+    )
+    return SUMMARY_ONLY_INSTRUCTIONS.format(
+        data_block=data_block,
+        naming_note=_single_person_naming_note(person_name),
+    )
+
+
+# ---------------------------------------------------------------------------
 # General reading — unknown birth time variant
 # ---------------------------------------------------------------------------
 # Same rationale as the career no-time variant: the Ascendant, Midheaven,
