@@ -268,7 +268,7 @@ if reading_type in SYNASTRY_READING_TYPES:
     with colb1:
         birth_date_b = st.date_input(
             "Birth date",
-            value=date_type(1989, 7, 5),
+            value=date_type(1981, 12, 24),
             min_value=date_type(1900, 1, 1),
             max_value=date_type.today(),
             help="Tap to open the calendar picker.",
@@ -298,7 +298,7 @@ if reading_type in SYNASTRY_READING_TYPES:
     with colb3:
         location_str_b = st.text_input(
             "Birth location",
-            value="Washington, D.C., USA",
+            value="Brooklyn, New York, USA",
             help="Be specific — add state/country if the place name is common",
             key="location_str_b",
         )
@@ -620,6 +620,69 @@ def render_interpretation(text: str):
                     st.markdown(basis_content)
             else:
                 st.markdown(body)
+
+
+def format_full_text_for_export(text: str) -> str:
+    """
+    Prepares the full reading text for PDF/TXT export by inserting a
+    visible **In Full:** marker at the Summary/detail boundary for
+    sections that don't already have one — Overview and Conclusion,
+    which are flowing prose with only a Summary label and no further
+    bolded sub-sections. Without this, a static PDF/TXT export has no
+    visual way to show where the short summary ends and the expanded
+    detail begins — unlike the interactive app view, which uses an
+    actual "Read more" expander for this. Themed sections already have
+    "What This Means" as a natural transition marker and are left
+    untouched.
+    """
+    section_pattern = re.compile(r"(?m)^## (.+)$")
+    matches = list(section_pattern.finditer(text))
+    if not matches:
+        return text
+
+    summary_pattern = re.compile(r"\*\*Summary:?\*\*", re.IGNORECASE)
+    next_label_pattern = re.compile(
+        r"\*\*(What This Means|Advice|Astrological Basis):?\*\*", re.IGNORECASE
+    )
+
+    out_parts = []
+    if matches[0].start() > 0:
+        out_parts.append(text[:matches[0].start()].strip())
+
+    for i, match in enumerate(matches):
+        header = match.group(1).strip()
+        start = match.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        body = text[start:end].strip()
+
+        summary_match = summary_pattern.search(body)
+        if summary_match:
+            before_summary = body[:summary_match.start()].strip()
+            after_summary_start = summary_match.end()
+            next_label_match = next_label_pattern.search(body, after_summary_start)
+            if next_label_match:
+                # Themed section — already has a natural transition
+                # marker (What This Means), leave it untouched.
+                new_body = body
+            else:
+                after_summary = body[after_summary_start:]
+                para_break = re.search(r"\n\s*\n", after_summary)
+                if para_break:
+                    summary_content = after_summary[:para_break.start()].strip()
+                    rest_content = after_summary[para_break.end():].strip()
+                    new_body = (
+                        (before_summary + "\n\n" if before_summary else "")
+                        + "**Summary:** " + summary_content
+                        + ("\n\n**In Full:**\n\n" + rest_content if rest_content else "")
+                    )
+                else:
+                    new_body = body
+        else:
+            new_body = body
+
+        out_parts.append(f"## {header}\n\n{new_body}")
+
+    return "\n\n".join(out_parts)
 
 
 def extract_summary_only(text: str) -> str:
@@ -1048,7 +1111,7 @@ if st.session_state.get("results"):
                 title_who = label_a if label_a else r['datetime_str']
 
             summary_text = extract_summary_only(r["interpretation_text"])
-            full_text = r["interpretation_text"]
+            full_text = format_full_text_for_export(r["interpretation_text"])
             summary_pdf_bytes = markdown_to_pdf_bytes(
                 summary_text, f"{r['reading_type']} — Summary — {title_who}"
             )
