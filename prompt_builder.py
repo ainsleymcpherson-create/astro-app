@@ -396,6 +396,20 @@ lead-in. THEN follow with a four-part structure, IN THIS ORDER:
   "This suggests a period of structured revision" beats "this might \
   possibly indicate that there could be some revision." Trust the \
   reading and say what it says.
+  WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This reading is about \
+  a real person, not a case study — never refer to them with \
+  specimen-like distancing language: "this particular kid," "this \
+  individual," "the subject," "the native," "this person arrived \
+  with," "operating system," "wiring," "hardware," or any phrasing \
+  that describes them like an object being examined rather than a \
+  human being understood. BAD (real failure case): "None of this is a \
+  flaw to correct; it's the specific operating system this particular \
+  kid arrived with." GOOD: "None of this is a flaw to correct — it's \
+  simply who Soley is, and it's been true from the start." Use their \
+  name or "you"/"they" naturally, the way a warm, wise reader who \
+  cares about them would — the authority of the reading should come \
+  from its specificity and confidence, never from cold, analytical \
+  distance.
   USE OCCASIONAL ADJECTIVE TRIADS FOR TONE. Once or twice per theme, \
   characterize an energy with three adjectives in a row — "The energy \
   is intense, focused, and demanding." Used sparingly, this gives the \
@@ -828,6 +842,11 @@ vaguely.
 - WRITE WITH CONFIDENCE, NOT HEDGING, and vary sentence length like \
 natural writing — mix short, punchy sentences with longer ones. Never \
 write a marathon sentence stacking multiple placements together.
+- WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real person, \
+not a case study — never use specimen-like distancing language ("this \
+particular kid," "this individual," "the subject," "operating system," \
+"wiring," "arrived with"). Use their name or "you"/"they" naturally, \
+the way a warm, wise reader who cares about them would.
 - USE DIGNITY AS REAL WEIGHTING, described causally ("operates at full \
 strength in its own sign") rather than by naming the technical status \
 term.
@@ -1159,6 +1178,20 @@ structure, IN THIS ORDER:
   "This suggests a period of structured revision" beats "this might \
   possibly indicate that there could be some revision." Trust the \
   reading and say what it says.
+  WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This reading is about \
+  a real person, not a case study — never refer to them with \
+  specimen-like distancing language: "this particular kid," "this \
+  individual," "the subject," "the native," "this person arrived \
+  with," "operating system," "wiring," "hardware," or any phrasing \
+  that describes them like an object being examined rather than a \
+  human being understood. BAD (real failure case): "None of this is a \
+  flaw to correct; it's the specific operating system this particular \
+  kid arrived with." GOOD: "None of this is a flaw to correct — it's \
+  simply who Soley is, and it's been true from the start." Use their \
+  name or "you"/"they" naturally, the way a warm, wise reader who \
+  cares about them would — the authority of the reading should come \
+  from its specificity and confidence, never from cold, analytical \
+  distance.
   USE OCCASIONAL ADJECTIVE TRIADS FOR TONE. Once or twice per theme, \
   characterize an energy with three adjectives in a row — "The energy \
   is intense, focused, and demanding." Used sparingly, this gives the \
@@ -2124,6 +2157,11 @@ one astrological object, break it.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use \
 an occasional adjective triad for tone ("The energy is intense, \
 focused, and demanding") — once or twice per theme, not more.
+- WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real person, \
+not a case study — never use specimen-like distancing language ("this \
+particular kid," "this individual," "the subject," "operating system," \
+"wiring," "arrived with"). Use their name or "you"/"they" naturally, \
+the way a warm, wise reader who cares about them would.
 - USE DIGNITY AS CONTEXT. If a transiting planet is aspecting a natal \
 planet that's well-dignified (Rulership/Exaltation), that natal planet \
 can generally handle the activation more directly; if poorly dignified \
@@ -2217,6 +2255,11 @@ direction (transiting Saturn)." Gloss any sign the first time named.
 this transit actually look like in daily life right now.
 - WRITE WITH CONFIDENCE, vary sentence length, never stack multiple \
 placements in one sentence.
+- WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real person, \
+not a case study — never use specimen-like distancing language ("this \
+particular kid," "this individual," "the subject," "operating system," \
+"wiring," "arrived with"). Use their name or "you"/"they" naturally, \
+the way a warm, wise reader who cares about them would.
 - NEVER quote numeric degrees or orb values.
 - Be SELECTIVE — prioritize the tightest, most active transits.
 
@@ -2815,6 +2858,13 @@ pull (quincunx)," "a low-grade friction (semisquare)."
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use
 an occasional adjective triad for tone ("The connection is warm,
 intense, and immediate") — once or twice per section, not more.
+- WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. These are two real \
+people in a real relationship, not a case study — never use \
+specimen-like distancing language ("these two individuals," "the \
+subjects," "this particular pairing," "this dyad," "operating \
+system," "wiring"). Use their actual names or "you two"/"the two of \
+them" naturally, the way a warm, wise reader who genuinely cares about \
+this relationship would.
 - DIGNITY IS REAL WEIGHTING for both charts.
 - SYNASTRY CONTACTS ARE MUTUAL: a contact between Person A's Venus and
 Person B's Mars affects both people, even if experienced differently —
@@ -2917,6 +2967,13 @@ General guidelines:
 - NAME PLACEMENTS DIRECTLY using the inverted form, e.g. "Person A's \
 warmth (Venus)."
 - WRITE WITH CONFIDENCE, vary sentence length.
+- WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. These are two real \
+people in a real relationship, not a case study — never use \
+specimen-like distancing language ("these two individuals," "the \
+subjects," "this particular pairing," "this dyad," "operating \
+system," "wiring"). Use their actual names or "you two"/"the two of \
+them" naturally, the way a warm, wise reader who genuinely cares about \
+this relationship would.
 - This reading is about a romantic/emotional relationship specifically \
 — direct romantic and emotional language is correct and expected.
 - Be SELECTIVE — cover what matters most.
