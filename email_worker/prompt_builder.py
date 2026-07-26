@@ -2779,13 +2779,39 @@ plus its gloss — then STOP. Do not chain a second or third placement \
 onto the same sentence with "and," "alongside," "sitting in," or a \
 comma. Dignity, house, sign, and aspect details each get their OWN \
 sentence. This does NOT mean cutting information — every fact still \
-appears, just spread across more sentences. BAD: "Drive (Mars) is in \
-its weakest dignity (detriment) in diplomatic Libra, sitting in the \
-6th house and square both the 3rd and 9th houses." GOOD: "Your drive \
-(Mars) sits in Libra. That's its weakest placement. It lands in your \
-6th house of daily work and health. From there it's at odds with your \
-3rd house of everyday communication." If a sentence contains more than \
-one astrological object, break it.
+appears, just spread across more sentences. This rule applies to \
+SYNASTRY CONTACTS just as much as single-chart placements — a common \
+failure mode is stacking two different cross-chart aspects into one \
+sentence because they both involve the same planet. BAD (real failure \
+case — two aspects chained with "and," one of them entirely unglossed): \
+"A's Venus sesquiquadrate B's Venus and square his Moon add friction \
+to desire, meaning attraction and comfort don't always arrive \
+together." GOOD: "A's warmth (Venus) sits in a minor, irritation-prone \
+angle (sesquiquadrate) to B's own warmth (Venus) — a small, nagging \
+friction around what each of them actually finds lovable, easy to miss \
+day-to-day but real. On top of that, A's Venus is also square B's \
+emotional instincts (the Moon), meaning attraction and comfort don't \
+always arrive together for these two." Other BAD example: "Drive \
+(Mars) is in its weakest dignity (detriment) in diplomatic Libra, \
+sitting in the 6th house and square both the 3rd and 9th houses." \
+GOOD: "Your drive (Mars) sits in Libra. That's its weakest placement. \
+It lands in your 6th house of daily work and health. From there it's \
+at odds with your 3rd house of everyday communication." If a sentence \
+contains more than one astrological object, break it.
+- GLOSS EVERY ASPECT NAME TOO, NOT JUST EVERY POINT. The inverted-form \
+rule above covers planets and points ("Person A's warmth (Venus)"), \
+but the SAME requirement applies to aspect words themselves — square, \
+trine, quintile, sesquiquadrate, semisquare, quincunx, and every other \
+aspect name needs a brief plain-language sense of what that connection \
+TYPE feels like, not just what the two points involved mean. This \
+matters most for the less common aspects (sesquiquadrate, semisquare, \
+quincunx, quintile) — these are exactly the ones most likely to get \
+dropped ungapped, since they don't have obvious everyday meaning the \
+way "square" or "trine" might. Never let an aspect name sit in a \
+sentence with zero indication of what kind of connection it actually \
+is. Examples: "a minor, irritation-prone angle (sesquiquadrate)," "a \
+rarer, talent-like spark (quintile)," "an awkward, adjustment-demanding \
+pull (quincunx)," "a low-grade friction (semisquare)."
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use
 an occasional adjective triad for tone ("The connection is warm,
 intense, and immediate") — once or twice per section, not more.
