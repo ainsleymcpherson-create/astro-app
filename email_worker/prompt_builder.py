@@ -142,7 +142,7 @@ You are an experienced astrologer giving a natal chart reading to \
 someone who is not very well versed in astrology. You have access to \
 the exact computed placements, aspects, patterns, dignities, and house \
 conditions below — all mathematically precise, not approximated.
-{naming_note}
+{naming_note}{age_guidance}
 
 First, provide an overview of the chart and what the reading \
 uncovered — an orientation before the detailed themes, written as \
@@ -527,6 +527,216 @@ def _single_person_naming_note(person_name: str | None) -> str:
     )
 
 
+def _age_guidance(age: int | None, compact: bool = False) -> str:
+    """
+    Builds age-based emphasis guidance for the General reading — real
+    astrological theory, not generic advice: which placements carry
+    the most FELT weight tends to track actual planetary cycles, most
+    defensibly the Saturn return (~29-30, literally how long Saturn
+    takes to orbit back to its natal position) and the "midlife"
+    transit stack (~39-42, when Uranus opposes, Neptune squares, and
+    Pluto squares their own natal positions in rough succession).
+
+    This is ADDED EMPHASIS, never exclusion — every version of this
+    guidance explicitly says so, and the instructions elsewhere in the
+    prompt about not skipping placements still apply in full.
+
+    Returns an empty string if age is None, so this disappears cleanly
+    when the person's birth date isn't available for some reason.
+
+    compact=True produces a shorter version for the lean summary-only
+    prompt, keeping the same theory but without the full explanatory
+    detail — matching that prompt's own "be selective, stay brief" spirit.
+    """
+    if age is None:
+        return ""
+
+    if compact:
+        if age < 29:
+            stage = (
+                f"This person is {age}, before their Saturn return "
+                f"(~29-30). Emphasize the Moon, Ascendant, Mercury, the "
+                f"South Node, the personal planets, and the 1st/3rd/5th "
+                f"houses more than outer-planet or legacy themes — "
+                f"without ignoring anything genuinely significant."
+            )
+        elif age < 40:
+            stage = (
+                f"This person is {age}, past their Saturn return but "
+                f"before the ~39-42 midlife transit stack. Saturn and "
+                f"the North Node are becoming live, felt questions now "
+                f"rather than theoretical ones — weight them accordingly, "
+                f"alongside the personal planets that still matter."
+            )
+        else:
+            stage = (
+                f"This person is {age}, past the ~39-42 midlife transit "
+                f"stack (Uranus opposition, Neptune square, Pluto square "
+                f"to natal). Emphasize Saturn, the North Node, the "
+                f"Midheaven/10th house, the outer planets' natal "
+                f"placements, the 4th/8th/12th houses, and Chiron's "
+                f"integrated wisdom side more than early-life themes."
+            )
+        return f"\nAGE-BASED EMPHASIS: {stage} This is added emphasis, not exclusion.\n"
+
+    if age < 29:
+        stage = f"""\
+This person is {age} years old, before their Saturn return (Saturn's \
+~29-year orbit back to its natal position — the most defensible \
+astrological dividing line for this, not an arbitrary cutoff). Give \
+EXTRA WEIGHT to: the Moon (emotional patterns, family conditioning — \
+largely inherited rather than chosen at this stage), the Ascendant \
+(how they learned to present and survive, often before consciously \
+shaping a persona), Mercury (learning style), the South Node (old, \
+automatic, inherited patterns that dominate before conscious growth \
+work begins), the personal planets generally (Sun, Moon, Mercury, \
+Venus, Mars — the fast-moving, immediate, day-to-day identity-forming \
+layer), and the 1st, 3rd, and 5th houses (self, learning, play, \
+creative self-expression). Saturn, the North Node, and outer-planet \
+themes can still appear if genuinely significant, but shouldn't be \
+centered the way they would for someone older."""
+    elif age < 40:
+        stage = f"""\
+This person is {age} years old — past their Saturn return (~29-30) but \
+before the "midlife" transit stack (~39-42, when Uranus opposes, \
+Neptune squares, and Pluto squares their own natal positions in rough \
+succession). This is a genuine transitional stage: give EXTRA WEIGHT \
+to Saturn (structure, responsibility, mastery — no longer just \
+theoretical now that the Saturn return has actually been lived \
+through) and the North Node (the conscious growth direction becomes a \
+live, workable question rather than a distant idea). The personal \
+planets and Moon/Ascendant still matter and shouldn't be dropped, but \
+Saturn and the North Node deserve real, active attention here in a way \
+they wouldn't for someone younger."""
+    else:
+        stage = f"""\
+This person is {age} years old, past the "midlife" transit stack \
+(~39-42, when Uranus opposes, Neptune squares, and Pluto squares their \
+own natal positions in rough succession — a real, felt shift, not a \
+cultural cliché). Give EXTRA WEIGHT to: Saturn and the North Node in \
+full (both fully live by this point), the Midheaven/10th house \
+(public role and legacy, now that a career actually exists to reflect \
+on), the outer planets' natal placements (Jupiter, Saturn, Uranus, \
+Neptune, Pluto — now carrying real felt weight from having lived \
+through their slower cycles, not just generational background), the \
+4th, 8th, and 12th houses (roots and legacy, shared resources and \
+transformation, reflection), and Chiron's INTEGRATED side — turning \
+the old wound into something offered to others — rather than just the \
+rawer wound-focused reading more appropriate for a younger chart."""
+
+    return f"""\
+
+AGE-BASED EMPHASIS: {stage}
+
+This is ADDED EMPHASIS, not exclusion. A placement outside this \
+person's current life-stage focus can still matter and should still \
+be covered if it's genuinely significant — an exact conjunction, a \
+defining stellium, a pattern involving it — just don't center it as \
+heavily as you would for someone at a different life stage. Don't \
+mention the underlying theory (Saturn return, midlife transit stack) \
+explicitly in the reading itself unless it's genuinely relevant to \
+name — this guidance is about where you place emphasis, not something \
+to explain to the reader.
+"""
+
+
+def _relationship_stage_guidance(stage: str | None, compact: bool = False) -> str:
+    """
+    Builds relationship-stage emphasis guidance for Relationship
+    Synastry — real synastry theory: some cross-chart signal is felt
+    immediately (fast-moving personal planets, first-impression
+    angles), while other signal genuinely can't be assessed until real
+    time and real stakes have passed (Saturn, the Nodes, Pluto, shared-
+    life house overlays). stage should be "new" or "mature"; any other
+    value (including None) returns an empty string, so this disappears
+    cleanly for readings that don't specify a stage.
+
+    This is ADDED EMPHASIS, never exclusion — both versions say so
+    explicitly, same as _age_guidance above.
+
+    compact=True produces a shorter version for the lean summary-only
+    prompt, same rationale as _age_guidance's compact mode.
+    """
+    if stage not in ("new", "mature"):
+        return ""
+
+    if compact:
+        if stage == "new":
+            focus = (
+                "This is a NEW relationship. Emphasize Venus-Mars contacts "
+                "(the classic, immediately-felt attraction signal), "
+                "Sun-Moon and Moon-Moon contacts (whether you click and "
+                "feel understood right away), Mercury-Mercury contacts "
+                "(whether conversation flows from the start), angle "
+                "contacts (a planet landing on someone's Ascendant or "
+                "Descendant — first-impression energy), and Vertex "
+                "contacts (the 'fated encounter' marker) more than "
+                "long-term commitment signal."
+            )
+        else:
+            focus = (
+                "This is a MATURE, established relationship. Emphasize "
+                "Saturn contacts (commitment and staying power, only "
+                "legible once structure has actually been tested over "
+                "time), Node contacts (shared destiny or growth "
+                "direction, usually only clear in hindsight), Pluto "
+                "contacts (power dynamics and transformation, which "
+                "deepen with real intimacy), and the 4th/8th/10th house "
+                "overlays (shared home, shared resources, public "
+                "partnership role) more than first-impression signal."
+            )
+        return f"\nRELATIONSHIP-STAGE EMPHASIS: {focus} This is added emphasis, not exclusion.\n"
+
+    if stage == "new":
+        focus = """\
+This is a NEW relationship — early enough that only the fast, felt \
+layer of synastry signal is really testable yet. Give EXTRA WEIGHT to: \
+Venus-Mars contacts (the classic, immediately-felt attraction signal), \
+Sun-Moon and Moon-Moon contacts (whether you click and feel understood \
+right away), Mercury-Mercury contacts (whether conversation flows from \
+the start), angle contacts — a planet landing on someone's Ascendant \
+or Descendant (first-impression, "I noticed you immediately" energy), \
+and Vertex contacts (often described as the "fated encounter" marker, \
+felt as instant significance). These all involve fast-moving personal \
+planets or first-impression angles — exactly the layer that's visible \
+before real shared history exists. Saturn, Node, and Pluto contacts \
+can still appear if genuinely significant, but shouldn't be centered \
+the way they would for an established relationship, since staying \
+power and shared destiny genuinely can't be assessed this early."""
+    else:
+        focus = """\
+This is a MATURE, established relationship — enough real time and real \
+stakes have passed that the slower layer of synastry signal is now \
+genuinely legible. Give EXTRA WEIGHT to: Saturn contacts (commitment \
+and staying power don't reveal themselves until you've actually tested \
+whether structure feels grounding or restrictive over time), Node \
+contacts (a sense of shared destiny or growth direction usually only \
+becomes legible in hindsight, after years together), Pluto contacts \
+(power dynamics and transformation deepen with real intimacy — they \
+don't fully activate until the stakes are real), and the 4th, 8th, and \
+10th house overlays (shared home, shared resources, and public \
+partnership role only become relevant once you're actually building a \
+life together, not dating). Venus-Mars and other fast-impression \
+signal can still appear if genuinely significant, but shouldn't be \
+centered the way it would for a brand-new relationship — that layer \
+already did its job getting you here."""
+
+    return f"""\
+
+RELATIONSHIP-STAGE EMPHASIS: {focus}
+
+This is ADDED EMPHASIS, not exclusion. A contact outside this \
+relationship's current stage can still matter and should still be \
+covered if it's genuinely significant — an exact conjunction, a \
+defining pattern — just don't center it as heavily as you would for \
+the other stage. Don't mention the underlying theory (why fast signal \
+matters early vs. why slow signal matters later) explicitly in the \
+reading itself unless it's genuinely relevant to name — this guidance \
+is about where you place emphasis, not something to explain to the \
+reader.
+"""
+
+
 def build_interpretation_prompt(
     chart: dict[str, ChartPoint],
     aspects: list[Aspect],
@@ -535,12 +745,16 @@ def build_interpretation_prompt(
     house_readings: dict[int, HouseReading],
     min_tightness: float = 1.0,
     person_name: str | None = None,
+    age: int | None = None,
 ) -> str:
     """
     Builds the complete, ready-to-send prompt: instructions + full data
     block. Pass the resulting string straight to an LLM (paste into
     Claude.ai, or send via the Anthropic API). If person_name is given,
-    the reading will address them by name occasionally.
+    the reading will address them by name occasionally. If age is
+    given, the reading places extra emphasis on placements that carry
+    more felt weight at that life stage (see _age_guidance) — added
+    emphasis only, never exclusion.
     """
     data_block = build_data_block(
         chart, aspects, patterns, dignities, house_readings,
@@ -549,6 +763,7 @@ def build_interpretation_prompt(
     return INTERPRETATION_INSTRUCTIONS.format(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
+        age_guidance=_age_guidance(age),
     )
 
 
@@ -573,7 +788,7 @@ entire job is to be genuinely useful and specific while staying short.
 You have access to this person's full computed chart data — planetary \
 positions, dignity, aspects, patterns, and house placements, all \
 mathematically precise, not approximated.
-{naming_note}
+{naming_note}{age_guidance}
 Structure your answer as follows:
 
 First, a **Summary** of the whole chart — exactly that bolded label, \
@@ -641,6 +856,7 @@ def build_summary_only_prompt(
     house_readings: dict[int, HouseReading],
     min_tightness: float = 1.0,
     person_name: str | None = None,
+    age: int | None = None,
 ) -> str:
     """
     Builds the lean, summary-only prompt for fast in-app generation —
@@ -655,6 +871,7 @@ def build_summary_only_prompt(
     return SUMMARY_ONLY_INSTRUCTIONS.format(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
+        age_guidance=_age_guidance(age, compact=True),
     )
 
 
@@ -665,6 +882,7 @@ def build_summary_only_prompt_no_time(
     dignities: dict[str, DignityResult],
     min_tightness: float = 1.0,
     person_name: str | None = None,
+    age: int | None = None,
 ) -> str:
     """
     Same as build_summary_only_prompt, but for an unknown birth time —
@@ -679,6 +897,7 @@ def build_summary_only_prompt_no_time(
     return SUMMARY_ONLY_INSTRUCTIONS.format(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
+        age_guidance=_age_guidance(age, compact=True),
     )
 
 
@@ -701,7 +920,7 @@ either Arabic Part (Part of Fortune/Spirit), because all of those \
 require an exact birth time to calculate correctly and would be \
 unreliable guesses otherwise. Do not speculate about houses, rising \
 sign, or any of the excluded points — work entirely with what's given.
-{naming_note}
+{naming_note}{age_guidance}
 
 First, provide an overview of the chart and what the reading \
 uncovered — an orientation before the detailed themes, written as \
@@ -1053,13 +1272,15 @@ def build_interpretation_prompt_no_time(
     dignities: dict[str, DignityResult],
     min_tightness: float = 1.0,
     person_name: str | None = None,
+    age: int | None = None,
 ) -> str:
     """
     General reading prompt for when birth time is unknown or approximate.
     Filters out every birth-time-dependent point (Ascendant, Midheaven,
     houses, Vertex, both Arabic Parts) rather than silently including
     unreliable data. If person_name is given, the reading will address
-    them by name occasionally.
+    them by name occasionally. If age is given, places extra emphasis
+    on life-stage-relevant placements — added emphasis, never exclusion.
     """
     data_block = build_data_block_no_time(
         chart, aspects, patterns, dignities, min_tightness=min_tightness,
@@ -1067,6 +1288,7 @@ def build_interpretation_prompt_no_time(
     return GENERAL_NO_TIME_INSTRUCTIONS.format(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
+        age_guidance=_age_guidance(age),
     )
 
 
@@ -2099,20 +2321,36 @@ def build_synastry_data_block(
     dignities_a: dict[str, DignityResult],
     dignities_b: dict[str, DignityResult],
     min_tightness: float = 1.0,
+    include_house_overlays: bool = False,
 ) -> str:
-    # Note: house overlay data (whose planets fall in whose houses) is
-    # intentionally NOT included here — it's exactly the kind of
-    # mechanical astrology detail ("Person A's Mars falls in Person B's
-    # 10th house") that reads as astrology-plumbing rather than business
-    # insight. The raw overlay data still exists and is shown separately
-    # in the app's Houses tab for anyone who wants to see it directly.
-    return "\n\n".join([
+    # House overlay data (whose planets fall in whose houses) is
+    # excluded by default — for Professional Synastry specifically,
+    # it's exactly the kind of mechanical astrology detail ("Person A's
+    # Mars falls in Person B's 10th house") that reads as astrology-
+    # plumbing rather than business insight. Relationship Synastry
+    # explicitly opts back in (include_house_overlays=True), since
+    # house overlays are genuinely relevant there — mature-relationship
+    # emphasis specifically calls out the 4th/8th/10th houses (shared
+    # home, shared resources, public partnership role). The raw overlay
+    # data is also always shown separately in the app's Houses tab
+    # regardless of this setting.
+    sections = [
         format_synastry_points_section(synastry_result["filtered_chart_a"], "A"),
         format_synastry_points_section(synastry_result["filtered_chart_b"], "B"),
         "PERSON A'S DIGNITY:\n" + format_dignity_section(dignities_a),
         "PERSON B'S DIGNITY:\n" + format_dignity_section(dignities_b),
         format_synastry_aspects_section(synastry_result["aspects"], min_tightness=min_tightness),
-    ])
+    ]
+    if include_house_overlays:
+        sections.append(format_house_overlay_section(
+            synastry_result.get("overlay_a_in_b", []),
+            "PERSON A'S PLANETS IN PERSON B'S HOUSES",
+        ))
+        sections.append(format_house_overlay_section(
+            synastry_result.get("overlay_b_in_a", []),
+            "PERSON B'S PLANETS IN PERSON A'S HOUSES",
+        ))
+    return "\n\n".join(sections)
 
 
 PROFESSIONAL_SYNASTRY_INSTRUCTIONS = """\
@@ -2445,7 +2683,7 @@ BIRTH TIME STATUS: {birth_time_status} This affects what's reliable:
   since these depend only on planetary position, not time-of-day.
 - Note any of this briefly and matter-of-factly in the Overview — not
   as an apology, just accurate scope-setting.
-{naming_note}
+{naming_note}{relationship_stage_guidance}
 Romantic synastry signal traditionally concentrates in: Venus-Mars
 contacts (attraction and chemistry — the classic romantic signal),
 Moon-Moon and Moon-Venus contacts (emotional safety and how naturally
@@ -2577,6 +2815,7 @@ def build_relationship_synastry_prompt(
     min_tightness: float = 1.0,
     person_a_name: str | None = None,
     person_b_name: str | None = None,
+    relationship_stage: str | None = None,
 ) -> str:
     """
     Builds the complete traditional relationship (romantic) synastry
@@ -2584,6 +2823,9 @@ def build_relationship_synastry_prompt(
     Same underlying data block, opposite interpretive framing. If
     either name is provided, instructs the model to use it instead of
     the generic "Person A"/"Person B" labels throughout the reading.
+    If relationship_stage is "new" or "mature", places extra emphasis
+    on the synastry signal that's actually legible at that stage —
+    added emphasis, never exclusion (see _relationship_stage_guidance).
     """
     def _status(known: bool) -> str:
         return "known" if known else "unknown"
@@ -2606,11 +2848,13 @@ def build_relationship_synastry_prompt(
 
     data_block = build_synastry_data_block(
         synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
+        include_house_overlays=True,
     )
     return RELATIONSHIP_SYNASTRY_INSTRUCTIONS.format(
         birth_time_status=birth_time_status,
         naming_note=naming_note,
         data_block=data_block,
+        relationship_stage_guidance=_relationship_stage_guidance(relationship_stage),
     )
 
 
@@ -2625,7 +2869,7 @@ relationship synastry reading, not the full reading itself. Romantic \
 and emotional language is exactly right here.
 
 BIRTH TIME STATUS: {birth_time_status}
-{naming_note}
+{naming_note}{relationship_stage_guidance}
 Structure your answer as follows:
 
 First, a **Summary** of the connection between these two people — \
@@ -2666,6 +2910,7 @@ def build_relationship_synastry_summary_only_prompt(
     min_tightness: float = 1.0,
     person_a_name: str | None = None,
     person_b_name: str | None = None,
+    relationship_stage: str | None = None,
 ) -> str:
     """Lean, fast counterpart to build_relationship_synastry_prompt."""
     def _status(known: bool) -> str:
@@ -2687,9 +2932,11 @@ def build_relationship_synastry_summary_only_prompt(
 
     data_block = build_synastry_data_block(
         synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
+        include_house_overlays=True,
     )
     return RELATIONSHIP_SYNASTRY_SUMMARY_ONLY_INSTRUCTIONS.format(
         birth_time_status=birth_time_status,
         naming_note=naming_note,
         data_block=data_block,
+        relationship_stage_guidance=_relationship_stage_guidance(relationship_stage, compact=True),
     )
