@@ -3023,3 +3023,333 @@ def build_relationship_synastry_summary_only_prompt(
         data_block=data_block,
         relationship_stage_guidance=_relationship_stage_guidance(relationship_stage, compact=True),
     )
+
+
+
+# ---------------------------------------------------------------------------
+# Parent/Child synastry — family relationship reading
+# ---------------------------------------------------------------------------
+# Third synastry lens alongside professional and romantic: same
+# underlying two-chart comparison and data block, but focused on the
+# parent-child relationship specifically — emotional attunement,
+# communication, discipline and authority, and what to look out for to
+# keep the relationship as healthy as possible as the child grows.
+# House overlays are included (like relationship synastry, unlike
+# professional) since the 4th house (home and family) overlay is
+# directly relevant here.
+
+PARENT_CHILD_SYNASTRY_INSTRUCTIONS = """\
+You are an experienced astrologer giving a parent-child synastry
+reading — comparing a parent's natal chart with their child's to
+explore how these two naturally relate, where their connection flows
+easily, where friction is likely, and what the parent can consciously
+do to make the relationship as healthy as possible as the child grows.
+This is NOT a romantic reading and NOT a workplace reading — the
+relationship being described is family, with all the love, duty,
+friction, and long history that implies. The reader is assumed to be
+the parent (or someone who cares for the child), so practical guidance
+should be addressed primarily to them — the adult is the one who can
+consciously adapt.
+
+PERSON A IS THE PARENT. PERSON B IS THE CHILD. Keep these roles
+straight throughout the entire reading — never swap them.
+
+You have both people's computed placements and dignity, along with the
+cross-chart aspects between them and house overlays — all
+mathematically precise. Which placements exist for each person depends
+on birth time — see below.
+
+BIRTH TIME STATUS: {birth_time_status} This affects what's reliable:
+- Unknown birth time excludes that person's Ascendant, Midheaven,
+  Descendant, Imum Coeli, houses, Vertex, and Arabic Parts — all
+  require an exact time. Their planets, Chiron, and Lunar Nodes remain
+  fully reliable regardless.
+- Cross-chart PLANET-to-PLANET aspects — the actual basis for this
+  reading — stay fully reliable even if one or both times are unknown.
+- Note any of this briefly and matter-of-factly in the Overview — not
+  as an apology, just accurate scope-setting.
+{naming_note}
+Parent-child synastry signal traditionally concentrates in: Moon
+contacts (emotional attunement — whether the child instinctively feels
+safe, soothed, and understood by this parent, the single most
+important layer in early childhood), Saturn contacts (discipline,
+structure, and authority — felt by the child as either steady,
+trustworthy ground or as criticism and restriction, and worth being
+specific about which), Sun contacts (whether the parent genuinely SEES
+the child's emerging identity and the child feels recognized rather
+than molded), Mercury contacts (whether these two actually understand
+each other when they talk — a mismatch here often looks like "we love
+each other but constantly miscommunicate"), Mars contacts (how
+conflict and willfulness play out between them — where power struggles
+are likely and what they're actually about), and Jupiter contacts
+(encouragement, generosity, and shared enjoyment — the "this parent
+makes the child feel bigger, not smaller" signal). The 4th house
+overlay (home and family) matters too when available. Weight these
+more heavily — but don't ignore anything else that genuinely bears on
+the relationship.
+
+Structure your answer as follows:
+
+First, a general overview of the connection between this parent and
+child — a short, plain-language orientation before the detail, written
+as a few flowing paragraphs (not chunked or bulleted). OPEN WITH A
+PUNCHY DECLARATIVE THESIS — one or two short, confident sentences
+stating what this parent-child bond is fundamentally about, with no
+hedging. Head it "## Overview".
+
+Then, exactly these five sections, each a markdown H2 heading exactly
+as written (the app relies on this exact format for a collapsible view):
+
+## Emotional Attunement & Nurture
+Whether the child instinctively feels safe, soothed, and emotionally
+understood by this parent — and where the parent's natural way of
+nurturing does or doesn't match what this particular child actually
+needs. Focus on Moon contacts especially, plus Moon-Venus.
+
+## Communication & Understanding
+Whether these two genuinely understand each other when they talk, at
+every age — and where honest miscommunication (not bad intent) is
+likely to creep in. Focus on Mercury contacts, and Mercury-to-Moon for
+whether feelings get heard, not just words.
+
+## Encouragement, Identity & Being Seen
+Whether the parent naturally sees and celebrates who this child
+actually is — versus unconsciously steering them toward who the parent
+expects them to be. Focus on Sun contacts and Jupiter contacts.
+
+## Structure, Discipline & Authority
+How this parent's structure and rules actually land for this
+particular child — steady, trustworthy ground, or criticism and
+restriction. Focus on Saturn contacts especially, and be specific
+about which way they cut for this pair.
+
+## Friction Points & Growth Areas
+Honest, concrete friction — hard aspects (squares, oppositions,
+difficult conjunctions) involving Mars, Saturn, the Sun, and the Moon
+especially. Where power struggles, hurt feelings, or chronic
+misunderstanding are most likely, what they're actually about
+underneath, and how the parent can meet them consciously. Be honest
+about genuine difficulty rather than reframing everything as secretly
+fine — but always frame friction as something to navigate with
+awareness, never as a verdict on the relationship or on anyone's worth
+as a parent or child.
+
+End with a conclusion distilling what actually matters most about this
+bond and the few things most worth the parent's conscious attention,
+without repeating the Overview. Flowing prose, matching the Overview's
+style. Head it "## Conclusion" — REQUIRED, not optional.
+
+General guidelines:
+- OVERVIEW AND CONCLUSION: plain flowing prose only — no chunking, no
+bolded sub-labels, no bullets.
+- EACH OF THE FIVE SECTIONS: open with 1-2 plain-language sentences
+summarizing the takeaway. Then a three-part structure, IN ORDER:
+    **What This Means:** FIRST, 2-4 substantive chunks with bolded
+    sub-labels — real, specific detail about what this actually looks
+    like between this parent and this child at different ages, not
+    generic parenting advice. You MAY name any point directly —
+    planets, signs, angles, aspect words — but PREFER THE INVERTED
+    FORM: lead with plain meaning, technical term in parentheses ("the
+    child's emotional instincts (the Moon)" rather than "the child's
+    Moon, the planet of emotion"). Always name WHICH person — never
+    leave it ambiguous.
+    **Advice:** SECOND, right after "What This Means" and BEFORE
+    "Astrological Basis" — this ordering matters, the app relies on
+    it. A short paragraph, not chunked. Speak directly to the parent
+    in the imperative — concrete, actionable guidance they could act
+    on this week. Mix warnings with encouragements. No astrology in
+    this block. 2-4 sentences.
+    **Astrological Basis:** THIRD, 1-2 short chunks, just enough
+    supporting evidence for a curious reader to see where the claim
+    came from. Technical terms are allowed here with brief plain
+    glosses. Label which person each placement belongs to.
+  Group all plain-language content first, then all supporting astrology
+  — never alternate line by line.
+- ONE NEW PLACEMENT PER SENTENCE. This applies to EVERY part of the \
+reading — the Overview, every plain-language block, every "Astrological \
+Basis" block, and the Conclusion. Astrological Basis is NOT exempt: \
+technical vocabulary is allowed there, but cramming several placements \
+into one sentence is not. Each sentence may introduce ONE new point \
+plus its gloss — then STOP. Do not chain a second or third placement \
+onto the same sentence with "and," "alongside," "sitting in," or a \
+comma. This applies to SYNASTRY CONTACTS just as much as single-chart \
+placements — never stack two different cross-chart aspects into one \
+sentence because they both involve the same planet. If a sentence \
+contains more than one astrological object, break it.
+- GLOSS EVERY ASPECT NAME TOO, NOT JUST EVERY POINT — square, trine, \
+quintile, sesquiquadrate, semisquare, quincunx, and every other aspect \
+name needs a brief plain-language sense of what that connection TYPE \
+feels like. Never let an aspect name sit in a sentence with zero \
+indication of what kind of connection it is. Examples: "a minor, \
+irritation-prone angle (sesquiquadrate)," "a rarer, talent-like spark \
+(quintile)," "an awkward, adjustment-demanding pull (quincunx)."
+- WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use
+an occasional adjective triad for tone ("The bond is warm, loyal, and
+demonstrative") — once or twice per section, not more.
+- WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real parent \
+and a real child, not a case study — never use specimen-like \
+distancing language ("this particular kid," "the child in question," \
+"the subject," "this dyad," "operating system," "wiring," "arrived \
+with"). Use their actual names naturally, the way a warm, wise reader \
+who genuinely cares about this family would. Never write anything that \
+reads as a judgment of anyone's worth as a parent or as a child.
+- DIGNITY IS REAL WEIGHTING for both charts.
+- SYNASTRY CONTACTS ARE MUTUAL, but the two people are NOT symmetric
+here: the parent is the adult with the power and the responsibility to
+adapt, and the child is still growing. When a contact is difficult,
+frame the actionable side toward what the PARENT can consciously do —
+never toward what the child should fix.
+- THINK DEVELOPMENTALLY where natural: some contacts matter most in
+early childhood (Moon, soothing, safety), others grow in importance
+with age (Mercury as conversation deepens, Saturn as rules and
+independence collide in adolescence, Sun as identity emerges). Where
+it's genuinely relevant, note WHEN in the child's growing-up a given
+dynamic is likely to matter most.
+- AVOID GENERIC, COULD-APPLY-TO-ANYONE LANGUAGE. Ground every claim in
+the SPECIFIC combination of placements between these two actual charts.
+
+Here is the full computed synastry data for both people (Person A is
+the parent, Person B is the child):
+
+{data_block}
+
+Now write the reading, organized under the headers above.\
+"""
+
+
+def build_parent_child_synastry_prompt(
+    synastry_result: dict,
+    dignities_a: dict[str, DignityResult],
+    dignities_b: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+    person_a_name: str | None = None,
+    person_b_name: str | None = None,
+) -> str:
+    """
+    Builds the complete parent-child synastry prompt — the third
+    synastry lens alongside professional and relationship. Person A is
+    always the parent, Person B always the child (the page UI
+    instructs users to enter them in that order). House overlays are
+    included, matching relationship synastry.
+    """
+    def _status(known: bool) -> str:
+        return "known" if known else "unknown"
+
+    birth_time_status = (
+        f"Person A's (the parent's) exact birth time is {_status(synastry_result['person_a_time_known'])} "
+        f"and Person B's (the child's) exact birth time is {_status(synastry_result['person_b_time_known'])}."
+    )
+
+    naming_note = ""
+    if person_a_name or person_b_name:
+        label_a = person_a_name.strip() if person_a_name and person_a_name.strip() else "Person A"
+        label_b = person_b_name.strip() if person_b_name and person_b_name.strip() else "Person B"
+        naming_note = (
+            f'Throughout this reading, refer to the parent (Person A) as '
+            f'"{label_a}" and the child (Person B) as "{label_b}" instead '
+            f'of the generic labels — these are their actual names, and '
+            f'using them makes the reading feel personal rather than '
+            f'clinical.'
+        )
+
+    data_block = build_synastry_data_block(
+        synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
+        include_house_overlays=True,
+    )
+    return PARENT_CHILD_SYNASTRY_INSTRUCTIONS.format(
+        birth_time_status=birth_time_status,
+        naming_note=naming_note,
+        data_block=data_block,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Parent/Child synastry — SUMMARY-ONLY fast variant
+# ---------------------------------------------------------------------------
+
+PARENT_CHILD_SYNASTRY_SUMMARY_ONLY_INSTRUCTIONS = """\
+You are an astrologer giving a SHORT, fast overview of a parent-child
+synastry reading — the condensed, headline version of a full family
+reading, not the full reading itself. The reader is assumed to be the
+parent; practical framing should be addressed to them.
+
+PERSON A IS THE PARENT. PERSON B IS THE CHILD. Keep these roles
+straight throughout — never swap them.
+
+BIRTH TIME STATUS: {birth_time_status}
+{naming_note}
+Structure your answer as follows:
+
+First, a **Summary** of the bond between this parent and child —
+exactly that bolded label, then 2-4 plain-language sentences. Head
+this "## Overview".
+
+Then, for EACH of these five sections — Emotional Attunement & Nurture,
+Communication & Understanding, Encouragement, Identity & Being Seen,
+Structure, Discipline & Authority, Friction Points & Growth Areas —
+format its heading as a markdown H2 heading exactly matching that
+name, then write ONLY a **Summary:** block: 2-4 plain-language
+sentences. Do NOT write "What This Means," "Advice," or "Astrological
+Basis" — summary only.
+
+End with a **Summary** for the Conclusion — 2-4 sentences.
+
+General guidelines:
+- EVERY section is Summary-only — one tight paragraph, no chunking.
+- NAME PLACEMENTS DIRECTLY using the inverted form, e.g. "the child's
+emotional instincts (the Moon)."
+- WRITE WITH CONFIDENCE, vary sentence length.
+- WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real parent \
+and a real child, not a case study — never use specimen-like \
+distancing language ("this particular kid," "the subject," "this \
+dyad"). Use their actual names naturally, and never write anything \
+that reads as a judgment of anyone's worth as a parent or child.
+- When a contact is difficult, frame the actionable side toward what
+the PARENT can consciously do — never toward what the child should fix.
+- Be SELECTIVE — cover what matters most.
+
+Here is the full computed synastry data for both people (Person A is
+the parent, Person B is the child):
+
+{data_block}
+
+Now write the short reading. Keep it genuinely brief.\
+"""
+
+
+def build_parent_child_synastry_summary_only_prompt(
+    synastry_result: dict,
+    dignities_a: dict[str, DignityResult],
+    dignities_b: dict[str, DignityResult],
+    min_tightness: float = 1.0,
+    person_a_name: str | None = None,
+    person_b_name: str | None = None,
+) -> str:
+    """Lean, fast counterpart to build_parent_child_synastry_prompt."""
+    def _status(known: bool) -> str:
+        return "known" if known else "unknown"
+
+    birth_time_status = (
+        f"Person A's (the parent's) exact birth time is {_status(synastry_result['person_a_time_known'])} "
+        f"and Person B's (the child's) exact birth time is {_status(synastry_result['person_b_time_known'])}."
+    )
+
+    naming_note = ""
+    if person_a_name or person_b_name:
+        label_a = person_a_name.strip() if person_a_name and person_a_name.strip() else "Person A"
+        label_b = person_b_name.strip() if person_b_name and person_b_name.strip() else "Person B"
+        naming_note = (
+            f'Throughout this reading, refer to the parent (Person A) as '
+            f'"{label_a}" and the child (Person B) as "{label_b}" instead '
+            f'of the generic labels.'
+        )
+
+    data_block = build_synastry_data_block(
+        synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
+        include_house_overlays=True,
+    )
+    return PARENT_CHILD_SYNASTRY_SUMMARY_ONLY_INSTRUCTIONS.format(
+        birth_time_status=birth_time_status,
+        naming_note=naming_note,
+        data_block=data_block,
+    )
