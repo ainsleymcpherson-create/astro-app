@@ -50,6 +50,7 @@ from prompt_builder import (
     build_transit_prompt,
     build_professional_synastry_prompt,
     build_relationship_synastry_prompt,
+    build_parent_child_synastry_prompt,
 )
 
 app = Flask(__name__)
@@ -196,7 +197,7 @@ def _process_reading_job(job: dict) -> tuple[bool, str]:
                 transiting_points, transit_aspects, dignities, person_name=person_name,
             )
 
-        elif reading_type in ("Professional Synastry", "Relationship Synastry"):
+        elif reading_type in ("Professional Synastry", "Relationship Synastry", "Parent/Child Synastry"):
             datetime_str_b = job["datetime_str_b"]
             location_str_b = job["location_str_b"]
             unknown_time_b = job.get("unknown_time_b", False)
@@ -214,6 +215,11 @@ def _process_reading_job(job: dict) -> tuple[bool, str]:
 
             if reading_type == "Professional Synastry":
                 prompt = build_professional_synastry_prompt(
+                    synastry_result, dignities, dignities_b,
+                    person_a_name=person_name, person_b_name=person_name_b,
+                )
+            elif reading_type == "Parent/Child Synastry":
+                prompt = build_parent_child_synastry_prompt(
                     synastry_result, dignities, dignities_b,
                     person_a_name=person_name, person_b_name=person_name_b,
                 )
