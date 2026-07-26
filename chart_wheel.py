@@ -579,13 +579,22 @@ def draw_bi_wheel(
         label_x, label_y = _to_xy(mid_lon, asc_lon, (zodiac_outer_r + zodiac_inner_r) / 2)
         ax.text(label_x, label_y, SIGN_GLYPHS[i], ha="center", va="center", fontsize=15)
 
-    def _draw_house_ring(chart, ring_outer_r, ring_inner_r, angle_color, num_color, num_fontsize, label_r, label_fontsize):
+    def _draw_house_ring(chart, ring_outer_r, ring_inner_r, angle_color, num_color, num_fontsize, label_r, label_fontsize, inner_overshoot=0.0, outer_overshoot=0.0):
         """Draws one person's house-cusp spokes and angle labels within
-        the given radius band."""
+        the given radius band. inner_overshoot/outer_overshoot extend
+        just the LINE's endpoints slightly past ring_inner_r/
+        ring_outer_r (where the boundary circles are drawn), so the
+        spokes clearly overlap the circles rather than merely touching
+        them at one exact mathematical point — real gaps can otherwise
+        be visible once line width and anti-aliasing are factored in.
+        House-number label positions are unaffected, based on the true
+        (non-overshot) band."""
+        line_inner_r = max(ring_inner_r - inner_overshoot, 0.0)
+        line_outer_r = ring_outer_r + outer_overshoot
         for house_num in range(1, 13):
             cusp_lon = chart[f"House {house_num}"].longitude
-            x1, y1 = _to_xy(cusp_lon, asc_lon, ring_inner_r)
-            x2, y2 = _to_xy(cusp_lon, asc_lon, ring_outer_r)
+            x1, y1 = _to_xy(cusp_lon, asc_lon, line_inner_r)
+            x2, y2 = _to_xy(cusp_lon, asc_lon, line_outer_r)
             is_angle = house_num in (1, 4, 7, 10)
             ax.plot([x1, x2], [y1, y2],
                     color=angle_color if is_angle else "#bbbbbb",
@@ -602,9 +611,20 @@ def draw_bi_wheel(
             ax.text(lx, ly, label, ha="center", va="center", fontsize=label_fontsize,
                     fontweight="bold", color=angle_color)
 
-    # --- Outer house ring (Person A's, unless only B has a known time) ---
-    outer_ring_outer_r = zodiac_inner_r
-    outer_ring_inner_r = 0.85
+    # Three boundary circles total, from the center outward: innermost
+    # (aspect hub), second (shared meeting point between the two house
+    # rings), outermost (zodiac ring's inner edge). The INNER house
+    # ring's lines run from the innermost circle to the second circle;
+    # the OUTER house ring's lines run from the second circle to the
+    # outermost circle — the two rings share that middle circle rather
+    # than leaving a gap between them.
+    innermost_r = 0.42
+    second_r = 0.85
+    outermost_r = zodiac_inner_r
+
+    # --- Outer house ring: second circle to outermost circle ---
+    outer_ring_outer_r = outermost_r
+    outer_ring_inner_r = second_r
     if outer_chart is not None:
         _draw_house_ring(
             outer_chart, outer_ring_outer_r, outer_ring_inner_r,
@@ -612,17 +632,23 @@ def draw_bi_wheel(
             label_r=zodiac_outer_r + 0.08, label_fontsize=9,
         )
 
-    # --- Inner house ring (the other person's) — a visually separate,
-    #     smaller nested ring, matching the reference bi-wheel layout,
-    #     distinguished by color from the outer ring ---
-    inner_ring_outer_r = 0.72
-    inner_ring_inner_r = 0.42
+    # --- Inner house ring: innermost circle to second circle ---
+    inner_ring_outer_r = second_r
+    inner_ring_inner_r = innermost_r
     if inner_chart is not None and inner_has_houses:
         _draw_house_ring(
             inner_chart, inner_ring_outer_r, inner_ring_inner_r,
             angle_color="#2266aa", num_color="#7aa3cc", num_fontsize=7,
-            label_r=inner_ring_outer_r + 0.06, label_fontsize=8,
+            label_r=(inner_ring_outer_r + inner_ring_inner_r) / 2 - 0.02, label_fontsize=8,
         )
+
+    # --- Second circle (shared boundary between the two rings) ---
+    if outer_chart is not None:
+        second_boundary_circle = plt.Circle(
+            (0, 0), second_r, fill=False, color="#cccccc",
+            linewidth=0.8, zorder=1,
+        )
+        ax.add_patch(second_boundary_circle)
 
     if outer_chart is None:
         ax.text(0, 0, "Houses unavailable\n(both birth times unknown)",
@@ -657,6 +683,17 @@ def draw_bi_wheel(
     else:
         _draw_planets(chart_b, outer_ring_inner_r + (outer_ring_outer_r - outer_ring_inner_r) * 0.4, "#dbe9ff")
         _draw_planets(chart_a, inner_ring_inner_r + (inner_ring_outer_r - inner_ring_inner_r) * 0.4, "white")
+
+    # --- Boundary circle framing the aspect-line hub — without this,
+    #     the crisscrossing aspect lines sprawl unbounded across the
+    #     whole canvas with no visual frame, which is what made the
+    #     first version of this chart hard to read. Drawn at the same
+    #     radius as the inner house ring's own inner edge, so the two
+    #     read as one continuous boundary. Matches the same pattern
+    #     draw_chart_wheel() already uses for its own aspect circle.
+    aspect_hub_r = inner_ring_inner_r
+    inner_circle = plt.Circle((0, 0), aspect_hub_r, fill=False, color="#cccccc", linewidth=0.8, zorder=1)
+    ax.add_patch(inner_circle)
 
     # --- Cross-chart aspect lines ---
     a_planet_r = (outer_ring_inner_r + (outer_ring_outer_r - outer_ring_inner_r) * 0.4) if outer_chart is chart_a \
