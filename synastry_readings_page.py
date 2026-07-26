@@ -232,6 +232,27 @@ reading_type = st.selectbox(
          "page.",
 )
 
+relationship_stage = None
+if reading_type == "Relationship Synastry":
+    stage_choice = st.radio(
+        "Relationship stage",
+        options=["Not specified", "New relationship", "Established / mature relationship"],
+        index=0,
+        horizontal=True,
+        help="New relationships run on the fast, felt layer — "
+             "Venus-Mars, Sun-Moon, Mercury-Mercury, angle and Vertex "
+             "contacts. Established relationships run on the slower, "
+             "tested layer — Saturn, the Nodes, Pluto, and the "
+             "4th/8th/10th house overlays — signal that genuinely can't "
+             "be assessed until real time and real stakes have passed. "
+             "Picking a stage places extra emphasis on what's actually "
+             "legible right now, without leaving anything else out.",
+    )
+    if stage_choice == "New relationship":
+        relationship_stage = "new"
+    elif stage_choice == "Established / mature relationship":
+        relationship_stage = "mature"
+
 # Read the checkbox's stored value BEFORE the checkbox widget itself is
 # defined further down (it's rendered after the birth time fields, to
 # match the requested layout). This works because Streamlit updates a
@@ -968,6 +989,7 @@ if st.session_state.get("processing", False):
                     prompt = build_relationship_synastry_prompt(
                         synastry_result, dignities, dignities_b,
                         person_a_name=person_name, person_b_name=person_name_b,
+                        relationship_stage=relationship_stage,
                     )
             elif reading_type == "Career / Work" and unknown_time:
                 prompt = build_career_interpretation_prompt_no_time(
@@ -1000,6 +1022,7 @@ if st.session_state.get("processing", False):
                 quick_summary_prompt = build_relationship_synastry_summary_only_prompt(
                     synastry_result, dignities, dignities_b,
                     person_a_name=person_name, person_b_name=person_name_b,
+                    relationship_stage=relationship_stage,
                 )
             elif reading_type == "Career / Work" and unknown_time:
                 quick_summary_prompt = build_career_summary_only_prompt_no_time(
