@@ -2784,12 +2784,12 @@ SYNASTRY CONTACTS just as much as single-chart placements — a common \
 failure mode is stacking two different cross-chart aspects into one \
 sentence because they both involve the same planet. BAD (real failure \
 case — two aspects chained with "and," one of them entirely unglossed): \
-"A's Venus sesquiquadrate B's Venus and square his Moon add friction \
+"A's Venus sesquiquadrate Hoss's Venus and square his Moon add friction \
 to desire, meaning attraction and comfort don't always arrive \
 together." GOOD: "A's warmth (Venus) sits in a minor, irritation-prone \
-angle (sesquiquadrate) to B's own warmth (Venus) — a small, nagging \
+angle (sesquiquadrate) to Hoss's own warmth (Venus) — a small, nagging \
 friction around what each of them actually finds lovable, easy to miss \
-day-to-day but real. On top of that, A's Venus is also square B's \
+day-to-day but real. On top of that, A's Venus is also square Hoss's \
 emotional instincts (the Moon), meaning attraction and comfort don't \
 always arrive together for these two." Other BAD example: "Drive \
 (Mars) is in its weakest dignity (detriment) in diplomatic Libra, \
@@ -2965,4 +2965,4 @@ def build_relationship_synastry_summary_only_prompt(
         naming_note=naming_note,
         data_block=data_block,
         relationship_stage_guidance=_relationship_stage_guidance(relationship_stage, compact=True),
-    )
+    
