@@ -57,7 +57,7 @@ st.markdown(
 )
 
 personal_readings = st.Page("personal_readings_page.py", title="Personal Readings", icon="🔭")
-synastry_readings = st.Page("synastry_readings_page.py", title="Synastry Readings", icon="💞")
+synastry_readings = st.Page("synastry_readings_page.py", title="Synastry Readings", icon="👥")
 resources = st.Page("resources_page.py", title="Resources", icon="📖")
 
 pg = st.navigation([personal_readings, synastry_readings, resources])
