@@ -407,29 +407,28 @@ else:
 email_address = None
 want_email_full = False
 
-GEN_DONT = "Don't generate (just show prompt)"
-GEN_QUICK_ONLY = "🪙 Quick summary only (fast, in-app, no email)"
-GEN_FULL_NOW = "🪙 Generate full reading now (on-screen, collapsible sections, both Summary & Full downloads)"
+GEN_DONT = "Show Prompt"
+GEN_QUICK_ONLY = "Generate Summary (fast, in-app)"
+GEN_FULL_NOW = "Generate Full Reading (can take up to 5 minutes)"
 GEN_QUICK_EMAIL = (
-    "🪙📧 Quick summary + email me the full reading (navigate away from "
-    "this page while your reading is generated! Full reading available "
-    "in your email inbox; takes approximately 10 minutes)"
+    "Generate Summary and Email Full Reading (navigate away from this "
+    "page while your reading is being generated; can take up to 10 "
+    "minutes to appear in your inbox)"
 )
 
 generation_mode = st.radio(
     "Written interpretation",
     options=[GEN_DONT, GEN_QUICK_ONLY, GEN_FULL_NOW, GEN_QUICK_EMAIL],
     index=0,
-    help="Quick summary only: a short, fast version shown here "
+    help="Generate Summary: a short, fast version shown here "
          "immediately (a small billed API call), nothing emailed. "
-         "Generate full reading now: the complete, in-depth reading "
-         "shown here on screen with collapsible sections — this is the "
-         "original full experience, so it takes the same 1-3+ minutes "
-         "it always did, and you get both Summary and Full downloads. "
-         "Quick summary + email: the fast summary shows here right "
-         "away, while the full reading generates separately in the "
-         "background and gets emailed to you — no need to keep this "
-         "page open while you wait.",
+         "Generate Full Reading: the complete, in-depth reading shown "
+         "here on screen with collapsible sections, plus both Summary "
+         "and Full downloads — this is the original full experience, "
+         "so it takes several minutes. Generate Summary and Email Full "
+         "Reading: the fast summary shows here right away, while the "
+         "full reading generates separately in the background and gets "
+         "emailed to you — no need to keep this page open while you wait.",
 )
 generate_live = generation_mode != GEN_DONT
 want_quick_summary = generation_mode in (GEN_QUICK_ONLY, GEN_QUICK_EMAIL)
@@ -876,10 +875,6 @@ if submitted:
 
 if st.session_state.get("processing", False):
     try:
-        st.caption(f"🐛 Debug: generate_live={generate_live}, "
-                   f"ANTHROPIC_AVAILABLE={ANTHROPIC_AVAILABLE}, "
-                   f"api_key_found={bool(get_api_key())}")
-
         # Combine the two separate picker widgets into the plain-language
         # string resolve_birth_data() expects (e.g. "December 24, 1981
         # 01:30 PM") — keeps birth_input.py's parsing logic unchanged.
