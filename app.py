@@ -2,14 +2,24 @@
 app.py
 
 Entrypoint for the Tenth House Readings app. Uses Streamlit's native
-multi-page navigation (st.navigation + st.Page) to switch between the
-"Readings" page (the full chart calculator — everything the app has
-always done, unchanged, living in readings_page.py) and the new
-"Resources" page (a signs/planets/houses glossary, in
-resources_page.py).
+multi-page navigation (st.navigation + st.Page) to switch between
+three pages:
+  - "Personal Readings" (General, Career/Work, Transits — single-
+    person readings), in personal_readings_page.py
+  - "Synastry Readings" (Professional and Relationship Synastry —
+    two-person readings), in synastry_readings_page.py
+  - "Resources" (signs/planets/houses glossary, unchanged), in
+    resources_page.py
+
+The two readings pages are near-identical copies of what used to be a
+single readings_page.py — same shared logic throughout, just with each
+page's "Reading focus" dropdown restricted to its own subset of
+reading types. Any change to shared logic (tabs, downloads, the email
+pipeline, etc.) needs to be made in BOTH personal_readings_page.py and
+synastry_readings_page.py to stay in sync.
 
 This file itself stays intentionally small — it's just the router.
-All the actual logic lives in the two page files.
+All the actual logic lives in the page files.
 """
 
 import streamlit as st
@@ -46,8 +56,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-readings = st.Page("readings_page.py", title="Readings", icon="🔭")
+personal_readings = st.Page("personal_readings_page.py", title="Personal Readings", icon="🔭")
+synastry_readings = st.Page("synastry_readings_page.py", title="Synastry Readings", icon="💞")
 resources = st.Page("resources_page.py", title="Resources", icon="📖")
 
-pg = st.navigation([readings, resources])
+pg = st.navigation([personal_readings, synastry_readings, resources])
 pg.run()
