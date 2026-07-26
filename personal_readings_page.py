@@ -897,6 +897,18 @@ if st.session_state.get("processing", False):
             dignities = compute_chart_dignities(chart)
             house_readings = build_house_readings(chart)
 
+            # Current age, used to weight the General reading's
+            # age-based emphasis (see prompt_builder.py's
+            # _age_guidance) — added emphasis only, never exclusion.
+            # Computed from the birth date directly rather than the
+            # resolved birth time, since only the year/month/day matter
+            # here, not the exact moment.
+            _today = date_type.today()
+            current_age = (
+                _today.year - birth_date.year
+                - ((_today.month, _today.day) < (birth_date.month, birth_date.day))
+            )
+
             # Placeholders so these always exist, even for reading types
             # that don't use a second person.
             chart_b = aspects_b = patterns_b = dignities_b = house_readings_b = None
@@ -975,9 +987,9 @@ if st.session_state.get("processing", False):
             elif reading_type == "Career / Work":
                 prompt = build_career_interpretation_prompt(chart, aspects, patterns, dignities, house_readings, person_name=person_name)
             elif unknown_time:
-                prompt = build_interpretation_prompt_no_time(chart, aspects, patterns, dignities, person_name=person_name)
+                prompt = build_interpretation_prompt_no_time(chart, aspects, patterns, dignities, person_name=person_name, age=current_age)
             else:
-                prompt = build_interpretation_prompt(chart, aspects, patterns, dignities, house_readings, person_name=person_name)
+                prompt = build_interpretation_prompt(chart, aspects, patterns, dignities, house_readings, person_name=person_name, age=current_age)
 
         # Build the lean summary-only prompt too, for any reading type
         # in "Quick summary" mode — this is what actually gets sent to
@@ -1010,11 +1022,11 @@ if st.session_state.get("processing", False):
                 )
             elif unknown_time:
                 quick_summary_prompt = build_summary_only_prompt_no_time(
-                    chart, aspects, patterns, dignities, person_name=person_name,
+                    chart, aspects, patterns, dignities, person_name=person_name, age=current_age,
                 )
             else:
                 quick_summary_prompt = build_summary_only_prompt(
-                    chart, aspects, patterns, dignities, house_readings, person_name=person_name,
+                    chart, aspects, patterns, dignities, house_readings, person_name=person_name, age=current_age,
                 )
 
         interpretation_text = None
