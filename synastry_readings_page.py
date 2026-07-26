@@ -170,10 +170,12 @@ def enqueue_full_reading_email(job_payload: dict) -> tuple[bool, str]:
         )
 
 
-st.title("🔭 Tenth House Readings")
-st.caption("Computes birth charts with full support for Part of Fortune, "
-           "Nodes, Vertex, Chiron, dignity, and house-ruler interpretation "
-           "of empty houses — not just the standard 10 planets.")
+st.caption("🔭 Tenth House Readings")
+st.title("Synastry Readings")
+st.caption("Compares two people's charts — for a professional working "
+           "dynamic or a traditional romantic compatibility reading — "
+           "with full support for Part of Fortune, Nodes, Vertex, "
+           "Chiron, and dignity.")
 
 COFFEE_URL = "https://buymeacoffee.com/tenthhousereadings"
 
