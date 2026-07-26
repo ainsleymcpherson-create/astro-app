@@ -410,24 +410,34 @@ else:
 email_address = None
 want_email_full = False
 
+GEN_DONT = "Don't generate (just show prompt)"
+GEN_QUICK_ONLY = "🪙 Quick summary only (fast, in-app, no email)"
+GEN_FULL_NOW = "🪙 Generate full reading now (on-screen, collapsible sections, both Summary & Full downloads)"
+GEN_QUICK_EMAIL = (
+    "🪙📧 Quick summary + email me the full reading (navigate away from "
+    "this page while your reading is generated! Full reading available "
+    "in your email inbox; takes approximately 10 minutes)"
+)
+
 generation_mode = st.radio(
     "Written interpretation",
-    options=[
-        "Don't generate (just show prompt)",
-        "🪙 Quick summary",
-        "🪙📧 Quick summary + email me the full reading",
-    ],
+    options=[GEN_DONT, GEN_QUICK_ONLY, GEN_FULL_NOW, GEN_QUICK_EMAIL],
     index=0,
-    help="Quick summary: a short, fast version generated live and "
-         "shown here immediately (billed API call, but a small one). "
-         "Quick summary + email: same fast summary shown here, PLUS "
-         "the full, in-depth reading gets generated separately and "
-         "emailed to you — usually within a few minutes — instead "
-         "of making you wait for it here.",
+    help="Quick summary only: a short, fast version shown here "
+         "immediately (a small billed API call), nothing emailed. "
+         "Generate full reading now: the complete, in-depth reading "
+         "shown here on screen with collapsible sections — this is the "
+         "original full experience, so it takes the same 1-3+ minutes "
+         "it always did, and you get both Summary and Full downloads. "
+         "Quick summary + email: the fast summary shows here right "
+         "away, while the full reading generates separately in the "
+         "background and gets emailed to you — no need to keep this "
+         "page open while you wait.",
 )
-generate_live = generation_mode != "Don't generate (just show prompt)"
-want_quick_summary = generation_mode != "Don't generate (just show prompt)"
-want_email_full = generation_mode == "🪙📧 Quick summary + email me the full reading"
+generate_live = generation_mode != GEN_DONT
+want_quick_summary = generation_mode in (GEN_QUICK_ONLY, GEN_QUICK_EMAIL)
+want_full_now = generation_mode == GEN_FULL_NOW
+want_email_full = generation_mode == GEN_QUICK_EMAIL
 if want_email_full:
     email_address = st.text_input(
         "Email address",
@@ -1186,6 +1196,7 @@ if st.session_state.get("processing", False):
             "transit_date": transit_date,
             "person_name": person_name,
             "email_job_status": email_job_status,
+            "want_full_now": want_full_now,
             "person_name_b": person_name_b if reading_type in SYNASTRY_READING_TYPES else None,
             "datetime_str_b": datetime_str_b if reading_type in SYNASTRY_READING_TYPES else None,
             "location_str_b": location_str_b if reading_type in SYNASTRY_READING_TYPES else None,
@@ -1268,46 +1279,102 @@ if st.session_state.get("results"):
                 title_who = f"{label_a or 'Person A'} & {label_b or 'Person B'}"
             else:
                 title_who = label_a if label_a else r['datetime_str']
-
-            # interpretation_text is always the quick-summary content
-            # now — every reading type routes through the lean
-            # summary-only prompt for live in-app generation, with the
-            # full, in-depth version handled separately by email (see
-            # the "Quick summary + email" mode above). So there's just
-            # one document to offer here, not a separate summary/full
-            # split producing two near-identical downloads.
-            pdf_bytes = markdown_to_pdf_bytes(
-                r["interpretation_text"], f"{r['reading_type']} — {title_who}"
-            )
             date_str = r['birth_date'].isoformat()
 
-            dl_col1, dl_col2 = st.columns(2)
-            with dl_col1:
-                st.download_button(
-                    "📄 Download as .pdf",
-                    data=pdf_bytes,
-                    file_name=f"reading_{date_str}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    key="reading_pdf_dl",
+            if r.get("want_full_now"):
+                # "Generate full reading now" mode: interpretation_text
+                # is the complete, in-depth reading (same full prompt
+                # the email worker uses), so both a Summary extract and
+                # the Full document are genuinely different documents
+                # here, worth offering separately.
+                summary_text = extract_summary_only(r["interpretation_text"])
+                full_text = format_full_text_for_export(r["interpretation_text"])
+                summary_pdf_bytes = markdown_to_pdf_bytes(
+                    summary_text, f"{r['reading_type']} — Summary — {title_who}"
                 )
-            with dl_col2:
-                st.download_button(
-                    "Download as .txt",
-                    data=r["interpretation_text"],
-                    file_name=f"reading_{date_str}.txt",
-                    mime="text/plain",
-                    use_container_width=True,
-                    key="reading_txt_dl",
+                full_pdf_bytes = markdown_to_pdf_bytes(
+                    full_text, f"{r['reading_type']} Reading — {title_who}"
                 )
-            with st.expander("Copy as plain text"):
-                st.text_area(
-                    "Reading (tap inside, select all, copy)",
-                    value=r["interpretation_text"],
-                    height=300,
-                    label_visibility="collapsed",
-                    key="reading_copy",
+
+                st.subheader("Summary Version")
+                sum_col1, sum_col2 = st.columns(2)
+                with sum_col1:
+                    st.download_button(
+                        "📄 Download as .pdf", data=summary_pdf_bytes,
+                        file_name=f"reading_summary_{date_str}.pdf",
+                        mime="application/pdf", use_container_width=True,
+                        key="summary_pdf_dl",
+                    )
+                with sum_col2:
+                    st.download_button(
+                        "Download as .txt", data=summary_text,
+                        file_name=f"reading_summary_{date_str}.txt",
+                        mime="text/plain", use_container_width=True,
+                        key="summary_txt_dl",
+                    )
+                with st.expander("Copy summary as plain text"):
+                    st.text_area(
+                        "Summary (tap inside, select all, copy)",
+                        value=summary_text, height=250,
+                        label_visibility="collapsed", key="summary_copy",
+                    )
+
+                st.subheader("Full Version")
+                full_col1, full_col2 = st.columns(2)
+                with full_col1:
+                    st.download_button(
+                        "📄 Download as .pdf", data=full_pdf_bytes,
+                        file_name=f"reading_full_{date_str}.pdf",
+                        mime="application/pdf", use_container_width=True,
+                        key="full_pdf_dl",
+                    )
+                with full_col2:
+                    st.download_button(
+                        "Download as .txt", data=full_text,
+                        file_name=f"reading_full_{date_str}.txt",
+                        mime="text/plain", use_container_width=True,
+                        key="full_txt_dl",
+                    )
+                with st.expander("Copy full reading as plain text"):
+                    st.text_area(
+                        "Full reading (tap inside, select all, copy)",
+                        value=full_text, height=400,
+                        label_visibility="collapsed", key="full_copy",
+                    )
+            else:
+                # Quick-summary modes: interpretation_text is already
+                # short summary content, so there's just one document
+                # to offer, not a redundant summary/full split.
+                pdf_bytes = markdown_to_pdf_bytes(
+                    r["interpretation_text"], f"{r['reading_type']} — {title_who}"
                 )
+                dl_col1, dl_col2 = st.columns(2)
+                with dl_col1:
+                    st.download_button(
+                        "📄 Download as .pdf",
+                        data=pdf_bytes,
+                        file_name=f"reading_{date_str}.pdf",
+                        mime="application/pdf",
+                        use_container_width=True,
+                        key="reading_pdf_dl",
+                    )
+                with dl_col2:
+                    st.download_button(
+                        "Download as .txt",
+                        data=r["interpretation_text"],
+                        file_name=f"reading_{date_str}.txt",
+                        mime="text/plain",
+                        use_container_width=True,
+                        key="reading_txt_dl",
+                    )
+                with st.expander("Copy as plain text"):
+                    st.text_area(
+                        "Reading (tap inside, select all, copy)",
+                        value=r["interpretation_text"],
+                        height=300,
+                        label_visibility="collapsed",
+                        key="reading_copy",
+                    )
         elif r["interpretation_error"]:
             st.warning("Something went wrong generating the live interpretation:")
             st.code(r["interpretation_error"])
