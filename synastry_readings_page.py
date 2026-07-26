@@ -57,6 +57,8 @@ from prompt_builder import (
     build_professional_synastry_summary_only_prompt,
     build_relationship_synastry_prompt,
     build_relationship_synastry_summary_only_prompt,
+    build_parent_child_synastry_prompt,
+    build_parent_child_synastry_summary_only_prompt,
 )
 from birth_input import resolve_birth_data
 from chart_wheel import (
@@ -216,21 +218,28 @@ st.markdown(
 # structure, tab logic), as distinct from "which specific synastry
 # type" checks (which prompt to build) — see the reading_type
 # if/elif branches further down for the latter.
-SYNASTRY_READING_TYPES = ("Professional Synastry", "Relationship Synastry")
+SYNASTRY_READING_TYPES = ("Professional Synastry", "Relationship Synastry", "Parent/Child Synastry")
 
 # --- Input form ---
 reading_type = st.selectbox(
     "Reading focus",
-    options=["Professional Synastry", "Relationship Synastry"],
+    options=["Professional Synastry", "Relationship Synastry", "Parent/Child Synastry"],
     index=0,
     help="Professional Synastry compares TWO people's charts to "
          "analyze their working dynamic — not romantic compatibility. "
          "Relationship Synastry compares two people's charts for "
          "traditional romantic compatibility — attraction, emotional "
-         "connection, and long-term potential. Looking for a reading "
-         "about just one person instead? Head to the Personal Readings "
-         "page.",
+         "connection, and long-term potential. Parent/Child Synastry "
+         "compares a parent's chart with their child's — emotional "
+         "attunement, communication, discipline, and what to look out "
+         "for to keep the relationship healthy as the child grows. "
+         "Looking for a reading about just one person instead? Head to "
+         "the Personal Readings page.",
 )
+
+if reading_type == "Parent/Child Synastry":
+    st.caption("👪 For this reading, enter the **parent** as Person A "
+               "and the **child** as Person B.")
 
 relationship_stage = None
 if reading_type == "Relationship Synastry":
@@ -986,6 +995,26 @@ if st.session_state.get("processing", False):
                         person_a_name=person_name, person_b_name=person_name_b,
                         relationship_stage=relationship_stage,
                     )
+            elif reading_type == "Parent/Child Synastry":
+                with st.spinner("Resolving Person B's location and computing their chart..."):
+                    datetime_str_b = f"{birth_date_b.strftime('%B %d, %Y')} {birth_hour_b:02d}:{birth_minute_b} {birth_ampm_b}"
+                    birth_b = resolve_birth_data(datetime_str_b, location_str_b, verbose=False)
+                    chart_b = compute_full_chart(birth_b, house_system=house_system)
+                    aspects_b = compute_aspects(chart_b, speeds=extract_speeds(chart_b))
+                    patterns_b = find_all_patterns(chart_b, aspects_b)
+                    dignities_b = compute_chart_dignities(chart_b)
+                    house_readings_b = build_house_readings(chart_b)
+
+                with st.spinner("Computing synastry between the two charts..."):
+                    synastry_result = compute_full_synastry(
+                        chart, chart_b,
+                        person_a_time_known=not unknown_time,
+                        person_b_time_known=not unknown_time_b,
+                    )
+                    prompt = build_parent_child_synastry_prompt(
+                        synastry_result, dignities, dignities_b,
+                        person_a_name=person_name, person_b_name=person_name_b,
+                    )
             elif reading_type == "Career / Work" and unknown_time:
                 prompt = build_career_interpretation_prompt_no_time(
                     chart, aspects, patterns, dignities, person_name=person_name,
@@ -1018,6 +1047,11 @@ if st.session_state.get("processing", False):
                     synastry_result, dignities, dignities_b,
                     person_a_name=person_name, person_b_name=person_name_b,
                     relationship_stage=relationship_stage,
+                )
+            elif reading_type == "Parent/Child Synastry":
+                quick_summary_prompt = build_parent_child_synastry_summary_only_prompt(
+                    synastry_result, dignities, dignities_b,
+                    person_a_name=person_name, person_b_name=person_name_b,
                 )
             elif reading_type == "Career / Work" and unknown_time:
                 quick_summary_prompt = build_career_summary_only_prompt_no_time(
