@@ -170,7 +170,8 @@ def enqueue_full_reading_email(job_payload: dict) -> tuple[bool, str]:
         )
 
 
-st.title("🔭 Tenth House Readings")
+st.caption("🔭 Tenth House Readings")
+st.title("Personal Readings")
 st.caption("Computes birth charts with full support for Part of Fortune, "
            "Nodes, Vertex, Chiron, dignity, and house-ruler interpretation "
            "of empty houses — not just the standard 10 planets.")
