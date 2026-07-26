@@ -2965,4 +2965,4 @@ def build_relationship_synastry_summary_only_prompt(
         naming_note=naming_note,
         data_block=data_block,
         relationship_stage_guidance=_relationship_stage_guidance(relationship_stage, compact=True),
-    
+    )
