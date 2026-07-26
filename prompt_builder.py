@@ -3193,6 +3193,27 @@ distancing language ("this particular kid," "the child in question," \
 with"). Use their actual names naturally, the way a warm, wise reader \
 who genuinely cares about this family would. Never write anything that \
 reads as a judgment of anyone's worth as a parent or as a child.
+- FRAME THIS AS FAMILY, NOT A MEETING OF TWO ADULTS. This is the most \
+important tonal rule specific to this reading type. The vocabulary of \
+romantic or peer synastry does NOT belong here — a parent and child \
+did not find each other, choose each other, or get brought together by \
+destiny; one of them is raising the other. NEVER use: "fated," "a bond \
+that feels fated," "destiny brought them together," "this pairing," \
+"this union," "this match," "these two souls," "coming together," or \
+any language that frames the relationship as two independent people \
+who encountered each other. BAD (real failure case): "Katie and Soley \
+share a bond that feels genuinely fated... Done with intention, this \
+pairing can become a source of mutual growth." GOOD: "Katie and Soley \
+have an unusually strong communication link for a parent and child — \
+how they talk to each other will shape this relationship more than \
+most. As Soley grows, Katie's steadiest work is staying curious about \
+who her child actually is." Also avoid perfectly SYMMETRIC framing \
+("an identity axis that asks both of them to make room") as the \
+default — the parent and child are not equal parties doing equal \
+work; the parent is raising the child, and the reading's framing \
+should reflect that asymmetry naturally. Correct vocabulary for this \
+reading: "bond," "relationship," "family," "raising," "growing up," \
+"as [child] grows," "between parent and child."
 - DIGNITY IS REAL WEIGHTING for both charts.
 - SYNASTRY CONTACTS ARE MUTUAL, but the two people are NOT symmetric
 here: the parent is the adult with the power and the responsibility to
@@ -3304,6 +3325,15 @@ and a real child, not a case study — never use specimen-like \
 distancing language ("this particular kid," "the subject," "this \
 dyad"). Use their actual names naturally, and never write anything \
 that reads as a judgment of anyone's worth as a parent or child.
+- FRAME THIS AS FAMILY, NOT A MEETING OF TWO ADULTS. The vocabulary of \
+romantic or peer synastry does NOT belong here — a parent and child \
+did not find each other or get brought together by destiny; one is \
+raising the other. NEVER use: "fated," "this pairing," "this union," \
+"this match," "these two souls," "coming together." Avoid perfectly \
+symmetric framing ("asks both of them equally") — the parent is \
+raising the child, and the framing should reflect that. Correct \
+vocabulary: "bond," "relationship," "family," "raising," "as [child] \
+grows."
 - When a contact is difficult, frame the actionable side toward what
 the PARENT can consciously do — never toward what the child should fix.
 - Be SELECTIVE — cover what matters most.
