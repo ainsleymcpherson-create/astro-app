@@ -132,6 +132,13 @@ def send_email(to_address: str, subject: str, body_text: str) -> None:
         },
         timeout=30,
     )
+    if not response.ok:
+        # requests' raise_for_status() only reports the status code,
+        # not Resend's actual error message — logging the real
+        # response body here is what actually tells us WHY a 4xx
+        # happened (unverified domain, bad key, disallowed recipient,
+        # etc.) instead of just that it happened.
+        print(f"[email_worker] Resend rejected the send: {response.status_code} {response.text}")
     response.raise_for_status()
 
 
