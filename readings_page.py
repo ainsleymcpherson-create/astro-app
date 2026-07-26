@@ -49,9 +49,14 @@ from prompt_builder import (
     build_summary_only_prompt_no_time,
     build_career_interpretation_prompt,
     build_career_interpretation_prompt_no_time,
+    build_career_summary_only_prompt,
+    build_career_summary_only_prompt_no_time,
     build_transit_prompt,
+    build_transit_summary_only_prompt,
     build_professional_synastry_prompt,
+    build_professional_synastry_summary_only_prompt,
     build_relationship_synastry_prompt,
+    build_relationship_synastry_summary_only_prompt,
 )
 from birth_input import resolve_birth_data
 from chart_wheel import (
@@ -405,40 +410,29 @@ else:
 email_address = None
 want_email_full = False
 
-if reading_type == "General":
-    generation_mode = st.radio(
-        "Written interpretation",
-        options=[
-            "Don't generate (just show prompt)",
-            "🪙 Quick summary",
-            "🪙📧 Quick summary + email me the full reading",
-        ],
-        index=0,
-        help="Quick summary: a short, fast version generated live and "
-             "shown here immediately (billed API call, but a small one). "
-             "Quick summary + email: same fast summary shown here, PLUS "
-             "the full, in-depth reading gets generated separately and "
-             "emailed to you — usually within a few minutes — instead "
-             "of making you wait for it here.",
-    )
-    generate_live = generation_mode != "Don't generate (just show prompt)"
-    want_quick_summary = generation_mode != "Don't generate (just show prompt)"
-    want_email_full = generation_mode == "🪙📧 Quick summary + email me the full reading"
-    if want_email_full:
-        email_address = st.text_input(
-            "Email address",
-            placeholder="you@example.com",
-            help="The full reading gets sent here once it's ready.",
-        )
-else:
-    want_quick_summary = False
-    generate_live = st.checkbox(
-        "🪙 Generate written interpretation with Claude (makes a real, billed API call)",
-        value=False,
-        help="Unchecked (default): you get the raw prompt to copy/paste into "
-             "Claude yourself, for free. Checked: this app calls the Claude "
-             "API directly and you're charged for that usage, every time "
-             "you click Compute Chart with this box checked.",
+generation_mode = st.radio(
+    "Written interpretation",
+    options=[
+        "Don't generate (just show prompt)",
+        "🪙 Quick summary",
+        "🪙📧 Quick summary + email me the full reading",
+    ],
+    index=0,
+    help="Quick summary: a short, fast version generated live and "
+         "shown here immediately (billed API call, but a small one). "
+         "Quick summary + email: same fast summary shown here, PLUS "
+         "the full, in-depth reading gets generated separately and "
+         "emailed to you — usually within a few minutes — instead "
+         "of making you wait for it here.",
+)
+generate_live = generation_mode != "Don't generate (just show prompt)"
+want_quick_summary = generation_mode != "Don't generate (just show prompt)"
+want_email_full = generation_mode == "🪙📧 Quick summary + email me the full reading"
+if want_email_full:
+    email_address = st.text_input(
+        "Email address",
+        placeholder="you@example.com",
+        help="The full reading gets sent here once it's ready.",
     )
 
 submitted = st.button(
@@ -978,14 +972,36 @@ if st.session_state.get("processing", False):
             else:
                 prompt = build_interpretation_prompt(chart, aspects, patterns, dignities, house_readings, person_name=person_name)
 
-        # For General readings in "Quick summary" mode, build the lean
-        # summary-only prompt too — this is what actually gets sent to
+        # Build the lean summary-only prompt too, for any reading type
+        # in "Quick summary" mode — this is what actually gets sent to
         # the API for the fast in-app version. `prompt` (the full
         # version) stays as-is for the Prompt tab and for the
         # background worker's email job.
         quick_summary_prompt = None
-        if reading_type == "General" and want_quick_summary:
-            if unknown_time:
+        if want_quick_summary:
+            if reading_type == "Transits":
+                quick_summary_prompt = build_transit_summary_only_prompt(
+                    transiting_points, transit_aspects, dignities, person_name=person_name,
+                )
+            elif reading_type == "Professional Synastry":
+                quick_summary_prompt = build_professional_synastry_summary_only_prompt(
+                    synastry_result, dignities, dignities_b,
+                    person_a_name=person_name, person_b_name=person_name_b,
+                )
+            elif reading_type == "Relationship Synastry":
+                quick_summary_prompt = build_relationship_synastry_summary_only_prompt(
+                    synastry_result, dignities, dignities_b,
+                    person_a_name=person_name, person_b_name=person_name_b,
+                )
+            elif reading_type == "Career / Work" and unknown_time:
+                quick_summary_prompt = build_career_summary_only_prompt_no_time(
+                    chart, aspects, patterns, dignities, person_name=person_name,
+                )
+            elif reading_type == "Career / Work":
+                quick_summary_prompt = build_career_summary_only_prompt(
+                    chart, aspects, patterns, dignities, house_readings, person_name=person_name,
+                )
+            elif unknown_time:
                 quick_summary_prompt = build_summary_only_prompt_no_time(
                     chart, aspects, patterns, dignities, person_name=person_name,
                 )
@@ -1129,6 +1145,10 @@ if st.session_state.get("processing", False):
         if want_email_full:
             if not email_address or "@" not in email_address:
                 email_job_status = (False, "Enter a valid email address to receive the full reading.")
+            elif reading_type in SYNASTRY_READING_TYPES and (
+                not location_str_b or not birth_date_b
+            ):
+                email_job_status = (False, "Person B's details are needed for the full emailed reading.")
             else:
                 job_payload = {
                     "reading_type": reading_type,
@@ -1139,6 +1159,15 @@ if st.session_state.get("processing", False):
                     "person_name": person_name,
                     "email": email_address.strip(),
                 }
+                if reading_type == "Transits":
+                    job_payload["transit_date"] = transit_date.isoformat()
+                if reading_type in SYNASTRY_READING_TYPES:
+                    job_payload["datetime_str_b"] = (
+                        f"{birth_date_b.strftime('%B %d, %Y')} {birth_hour_b:02d}:{birth_minute_b} {birth_ampm_b}"
+                    )
+                    job_payload["location_str_b"] = location_str_b
+                    job_payload["unknown_time_b"] = unknown_time_b
+                    job_payload["person_name_b"] = person_name_b
                 email_job_status = enqueue_full_reading_email(job_payload)
 
         # Persist everything needed for display in st.session_state.
@@ -1240,72 +1269,44 @@ if st.session_state.get("results"):
             else:
                 title_who = label_a if label_a else r['datetime_str']
 
-            summary_text = extract_summary_only(r["interpretation_text"])
-            full_text = format_full_text_for_export(r["interpretation_text"])
-            summary_pdf_bytes = markdown_to_pdf_bytes(
-                summary_text, f"{r['reading_type']} — Summary — {title_who}"
-            )
-            full_pdf_bytes = markdown_to_pdf_bytes(
-                full_text, f"{r['reading_type']} Reading — {title_who}"
+            # interpretation_text is always the quick-summary content
+            # now — every reading type routes through the lean
+            # summary-only prompt for live in-app generation, with the
+            # full, in-depth version handled separately by email (see
+            # the "Quick summary + email" mode above). So there's just
+            # one document to offer here, not a separate summary/full
+            # split producing two near-identical downloads.
+            pdf_bytes = markdown_to_pdf_bytes(
+                r["interpretation_text"], f"{r['reading_type']} — {title_who}"
             )
             date_str = r['birth_date'].isoformat()
 
-            st.subheader("Summary Version")
-            sum_col1, sum_col2 = st.columns(2)
-            with sum_col1:
+            dl_col1, dl_col2 = st.columns(2)
+            with dl_col1:
                 st.download_button(
                     "📄 Download as .pdf",
-                    data=summary_pdf_bytes,
-                    file_name=f"reading_summary_{date_str}.pdf",
+                    data=pdf_bytes,
+                    file_name=f"reading_{date_str}.pdf",
                     mime="application/pdf",
                     use_container_width=True,
-                    key="summary_pdf_dl",
+                    key="reading_pdf_dl",
                 )
-            with sum_col2:
+            with dl_col2:
                 st.download_button(
                     "Download as .txt",
-                    data=summary_text,
-                    file_name=f"reading_summary_{date_str}.txt",
+                    data=r["interpretation_text"],
+                    file_name=f"reading_{date_str}.txt",
                     mime="text/plain",
                     use_container_width=True,
-                    key="summary_txt_dl",
+                    key="reading_txt_dl",
                 )
-            with st.expander("Copy summary as plain text"):
+            with st.expander("Copy as plain text"):
                 st.text_area(
-                    "Summary (tap inside, select all, copy)",
-                    value=summary_text,
-                    height=250,
+                    "Reading (tap inside, select all, copy)",
+                    value=r["interpretation_text"],
+                    height=300,
                     label_visibility="collapsed",
-                    key="summary_copy",
-                )
-
-            st.subheader("Full Version")
-            full_col1, full_col2 = st.columns(2)
-            with full_col1:
-                st.download_button(
-                    "📄 Download as .pdf",
-                    data=full_pdf_bytes,
-                    file_name=f"reading_full_{date_str}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    key="full_pdf_dl",
-                )
-            with full_col2:
-                st.download_button(
-                    "Download as .txt",
-                    data=full_text,
-                    file_name=f"reading_full_{date_str}.txt",
-                    mime="text/plain",
-                    use_container_width=True,
-                    key="full_txt_dl",
-                )
-            with st.expander("Copy full reading as plain text"):
-                st.text_area(
-                    "Full reading (tap inside, select all, copy)",
-                    value=full_text,
-                    height=400,
-                    label_visibility="collapsed",
-                    key="full_copy",
+                    key="reading_copy",
                 )
         elif r["interpretation_error"]:
             st.warning("Something went wrong generating the live interpretation:")
