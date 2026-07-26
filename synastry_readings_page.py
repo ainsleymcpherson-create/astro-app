@@ -1062,8 +1062,7 @@ if st.session_state.get("processing", False):
                     try:
                         client = anthropic.Anthropic(api_key=api_key)
                         with st.spinner("Generating interpretation with Claude "
-                                         "(this makes a billed API call — may take "
-                                         "a couple minutes for a full reading). "
+                                         "(this may take a couple minutes). "
                                          "Keep this tab open and in the foreground "
                                          "until it finishes."):
                             # Streaming is required here rather than a plain
