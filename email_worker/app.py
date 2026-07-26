@@ -29,6 +29,7 @@ your service's Environment tab):
 import os
 import re
 import traceback
+from datetime import datetime, timezone
 
 import requests
 from flask import Flask, request, jsonify
@@ -39,9 +40,16 @@ from aspect_engine import compute_aspects, find_all_patterns
 from dignity import compute_chart_dignities
 from house_interpretation import build_house_readings
 from birth_input import resolve_birth_data
+from synastry_engine import compute_full_synastry
+from transit_engine import compute_transiting_points, assign_transit_houses, compute_transit_aspects
 from prompt_builder import (
     build_interpretation_prompt,
     build_interpretation_prompt_no_time,
+    build_career_interpretation_prompt,
+    build_career_interpretation_prompt_no_time,
+    build_transit_prompt,
+    build_professional_synastry_prompt,
+    build_relationship_synastry_prompt,
 )
 
 app = Flask(__name__)
@@ -159,22 +167,71 @@ def _process_reading_job(job: dict) -> tuple[bool, str]:
         house_system_label = job.get("house_system", "Placidus")
         person_name = job.get("person_name") or None
         email_address = job["email"]
-
-        if reading_type != "General":
-            msg = f"Unsupported reading_type: {reading_type}"
-            print(f"[email_worker] {msg}")
-            return False, msg
-
-        birth = resolve_birth_data(datetime_str, location_str, verbose=False)
         house_system = HOUSE_SYSTEM_MAP.get(house_system_label, b"P")
 
+        birth = resolve_birth_data(datetime_str, location_str, verbose=False)
         chart = compute_full_chart(birth, house_system=house_system)
         aspects = compute_aspects(chart, speeds=extract_speeds(chart))
         patterns = find_all_patterns(chart, aspects)
         dignities = compute_chart_dignities(chart)
         house_readings = build_house_readings(chart)
 
-        if unknown_time:
+        if reading_type == "Transits":
+            transit_date_str = job.get("transit_date")
+            if transit_date_str:
+                transit_dt = datetime.strptime(transit_date_str, "%Y-%m-%d")
+            else:
+                transit_dt = datetime.utcnow()
+            transit_dt_utc = transit_dt.replace(
+                hour=12, minute=0, second=0, tzinfo=timezone.utc
+            )
+            transiting_points = compute_transiting_points(transit_dt_utc)
+            natal_house_cusps = [chart[f"House {i}"] for i in range(1, 13)]
+            assign_transit_houses(transiting_points, natal_house_cusps)
+            transit_aspects = compute_transit_aspects(
+                chart, transiting_points,
+                transiting_speeds=extract_speeds(transiting_points),
+            )
+            prompt = build_transit_prompt(
+                transiting_points, transit_aspects, dignities, person_name=person_name,
+            )
+
+        elif reading_type in ("Professional Synastry", "Relationship Synastry"):
+            datetime_str_b = job["datetime_str_b"]
+            location_str_b = job["location_str_b"]
+            unknown_time_b = job.get("unknown_time_b", False)
+            person_name_b = job.get("person_name_b") or None
+
+            birth_b = resolve_birth_data(datetime_str_b, location_str_b, verbose=False)
+            chart_b = compute_full_chart(birth_b, house_system=house_system)
+
+            synastry_result = compute_full_synastry(
+                chart, chart_b,
+                person_a_time_known=not unknown_time,
+                person_b_time_known=not unknown_time_b,
+            )
+            dignities_b = compute_chart_dignities(chart_b)
+
+            if reading_type == "Professional Synastry":
+                prompt = build_professional_synastry_prompt(
+                    synastry_result, dignities, dignities_b,
+                    person_a_name=person_name, person_b_name=person_name_b,
+                )
+            else:
+                prompt = build_relationship_synastry_prompt(
+                    synastry_result, dignities, dignities_b,
+                    person_a_name=person_name, person_b_name=person_name_b,
+                )
+
+        elif reading_type == "Career / Work" and unknown_time:
+            prompt = build_career_interpretation_prompt_no_time(
+                chart, aspects, patterns, dignities, person_name=person_name,
+            )
+        elif reading_type == "Career / Work":
+            prompt = build_career_interpretation_prompt(
+                chart, aspects, patterns, dignities, house_readings, person_name=person_name,
+            )
+        elif unknown_time:
             prompt = build_interpretation_prompt_no_time(
                 chart, aspects, patterns, dignities, person_name=person_name,
             )
