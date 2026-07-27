@@ -86,6 +86,7 @@ POINT_ONE_LINE = {
     "Neptune": "Imagination, idealism, and a dissolving of boundaries.",
     "Pluto": "Deep transformation and what must be faced rather than avoided.",
     "Chiron": "The 'wounded healer' — a core sensitivity that becomes a source of insight.",
+    "Lilith": "Raw instinct and desire — what's been repressed or shamed rather than owned.",
     "North Node": "The direction of growth this person is meant to develop toward.",
     "South Node": "Familiar, innate patterns this person naturally falls back on.",
     "Ascendant": "How this person initiates and comes across to others.",
