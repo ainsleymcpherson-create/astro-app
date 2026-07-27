@@ -67,7 +67,7 @@ ORB_MULTIPLIER = {
     "North Node": 0.6, "South Node": 0.6,
     "Part of Fortune": 0.4, "Part of Spirit": 0.4,
     "Vertex": 0.4, "Anti-Vertex": 0.4,
-    "Chiron": 0.6,
+    "Chiron": 0.6, "Lilith": 0.6,
 }
 DEFAULT_MULTIPLIER = 0.5  # for anything not listed (e.g. house cusps)
 
