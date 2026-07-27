@@ -2739,6 +2739,55 @@ chart), and Mercury contacts (how easily the two actually talk to each
 other). Weight these more heavily — but don't ignore anything else that
 genuinely bears on the relationship.
 
+HOW TO WEIGH AND SYNTHESIZE THE DATA — these method rules govern how
+you read everything below, and they matter as much as what you say:
+- READ EACH PERSON'S NATAL BASELINE FIRST. Before interpreting any
+cross-chart contact, check how that planet operates natally for its
+owner — its dignity and its own-chart condition are the context that
+determines how the contact actually lands. You cannot accurately read
+how one partner's Mars triggers the other person without knowing how
+that person handles their own natal Mars: a partner's Saturn pressing
+on a dignified, well-supported Moon lands as steadying; the same
+contact to a Moon in Detriment can land as criticism that confirms an
+existing wound. Use both people's dignity data this way throughout —
+as the baseline each cross-contact filters through, not just as
+standalone facts.
+- USE HOUSE OVERLAYS AS THE "WHERE." Overlays — whose planets fall
+into which houses of the other person's chart — show the practical,
+everyday arenas where a dynamic actually plays out: home, career,
+intimacy, shared resources. When you name a cross-contact, use the
+overlay data to say WHERE in the couple's real life it shows up, not
+just what it feels like in the abstract.
+- WEIGHT HIERARCHICALLY. The personal planets (Sun, Moon, Mercury,
+Venus, Mars) and the angles (Ascendant, Descendant, Midheaven, IC)
+are the primary drivers of daily chemistry, mutual understanding, and
+emotional resonance — center the reading on contacts involving them.
+Treat the outer planets (Jupiter, Saturn, Uranus, Neptune, Pluto) as
+structural containers and longer-arc backdrop: real, but secondary —
+UNLESS an outer planet tightly contacts a personal planet or angle,
+which promotes that specific contact to primary significance.
+- WEIGHT TIGHT ORBS HEAVILY. The orb and tightness data provided
+below is real signal — an essentially exact contact to a personal
+point carries far more lived, day-to-day weight than a wide one.
+Prioritize the tightest contacts when deciding what the reading is
+actually about; mention wide contacts only when they reinforce a
+theme the tight ones establish.
+- LOOK BEYOND "GOOD" VS. "BAD" ASPECTS. Hard aspects (squares,
+oppositions, difficult conjunctions) create friction — but friction
+is also what maintains growth, passion, and resilience over time.
+Soft aspects (trines, sextiles) offer ease — but an overabundance of
+ease with no productive tension can drift into stagnation or taking
+each other for granted. Read each aspect's actual role in THIS
+relationship rather than sorting them into positive and negative
+piles.
+- SYNTHESIZE, NEVER COOKBOOK. Do not read any aspect in a vacuum, as
+a standalone dictionary entry — every claim should reflect how the
+whole two-chart picture converses: the natal baselines, the overlay
+arenas, the hierarchy, and the repeating themes across multiple
+contacts. If three separate contacts all point at the same tension,
+say that — a repeated theme is the real finding, not three isolated
+line items.
+
 Structure your answer as follows:
 
 First, a general overview of the connection between these two people —
@@ -2976,6 +3025,15 @@ them" naturally, the way a warm, wise reader who genuinely cares about \
 this relationship would.
 - This reading is about a romantic/emotional relationship specifically \
 — direct romantic and emotional language is correct and expected.
+- METHOD: read each cross-contact through the receiving person's natal \
+baseline (their own dignity and condition for that planet); use house \
+overlays to say WHERE in daily life a dynamic plays out; center the \
+reading on personal planets (Sun through Mars) and angles, treating \
+outer planets as backdrop unless tightly contacting a personal point; \
+weight the tightest orbs most heavily; treat hard aspects as sources \
+of growth and passion (not just problems) and note that all-ease can \
+stagnate; and synthesize repeating themes rather than listing isolated \
+aspects.
 - Be SELECTIVE — cover what matters most.
 
 Here is the full computed synastry data for both people:
