@@ -23,7 +23,7 @@ from matplotlib.lines import Line2D
 PLANET_GLYPHS = {
     "Sun": "☉", "Moon": "☽", "Mercury": "☿", "Venus": "♀", "Mars": "♂",
     "Jupiter": "♃", "Saturn": "♄", "Uranus": "♅", "Neptune": "♆", "Pluto": "♇",
-    "Chiron": "⚷", "North Node": "☊", "South Node": "☋",
+    "Chiron": "⚷", "North Node": "☊", "South Node": "☋", "Lilith": "⚸",
 }
 FALLBACK_LABELS = {
     "Part of Fortune": "PoF", "Part of Spirit": "PoS",
@@ -51,7 +51,7 @@ ASPECT_COLORS = {
 TABLE_POINTS = [
     "Ascendant", "Sun", "Moon", "Mercury", "Venus", "Mars",
     "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto",
-    "Chiron", "North Node", "South Node",
+    "Chiron", "North Node", "South Node", "Lilith",
     "Part of Fortune", "Part of Spirit", "Vertex", "Anti-Vertex",
 ]
 TABLE_GLYPHS = {**PLANET_GLYPHS, **FALLBACK_LABELS, "Ascendant": "↑"}
