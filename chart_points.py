@@ -8,8 +8,8 @@ Covers standard planets plus commonly-neglected points:
   - House cusps (any house system) + house placement for every point
   - Vertex / Anti-Vertex
   - Chiron
-  - (Further extensible to Black Moon Lilith, other Arabic Parts — see
-    NOTES at bottom)
+  - Black Moon Lilith (mean or true/osculating)
+  - (Further extensible to other Arabic Parts — see NOTES at bottom)
 
 Install:
     pip install pyswisseph
@@ -264,6 +264,38 @@ def compute_chiron(birth: BirthData) -> ChartPoint:
     return ChartPoint("Chiron", lon, sign, deg, retrograde=(speed < 0), speed=speed)
 
 
+def compute_lilith(
+    birth: BirthData,
+    lilith_type: Literal["mean", "true"] = "mean",
+) -> ChartPoint:
+    """
+    Black Moon Lilith — not a physical body, but the mathematical point
+    marking the apogee (farthest point from Earth) of the Moon's
+    elliptical orbit. Associated with raw, unedited instinct and desire
+    — particularly whatever's been repressed, shamed, or rejected
+    rather than integrated. Widely used in modern psychological and
+    feminist-influenced astrology despite (like Chiron) being absent
+    from classical texts.
+
+    lilith_type:
+      "mean" - smoothed average apogee; more stable and predictable,
+                and what most astrology software defaults to.
+      "true" (osculating) - the actual, perturbation-accounting apogee;
+                more volatile, can occasionally shift direction abruptly
+                since it's tracking a real oscillating orbital point
+                rather than a smoothed average.
+
+    No special ephemeris file is needed for either variant — both are
+    supported by pyswisseph's built-in Moshier approximation.
+    """
+    jd = _to_julian_day(birth.dt_utc)
+    lilith_id = swe.MEAN_APOG if lilith_type == "mean" else swe.OSCU_APOG
+    pos, _ = swe.calc_ut(jd, lilith_id)
+    lon, speed = pos[0], pos[3]
+    sign, deg = _longitude_to_sign(lon)
+    return ChartPoint("Lilith", lon, sign, deg, retrograde=(speed < 0), speed=speed)
+
+
 def compute_part_of_fortune(
     birth: BirthData,
     planets: dict[str, ChartPoint] | None = None,
@@ -342,6 +374,7 @@ def compute_full_chart(
     birth: BirthData,
     node_type: Literal["mean", "true"] = "true",
     house_system: bytes = b"P",
+    lilith_type: Literal["mean", "true"] = "mean",
 ) -> dict[str, ChartPoint]:
     """
     Convenience function: returns every point this module supports, merged,
@@ -353,6 +386,7 @@ def compute_full_chart(
     fortune = compute_part_of_fortune(birth, planets, angles)
     spirit = compute_part_of_spirit(birth, planets, angles)
     chiron = compute_chiron(birth)
+    lilith = compute_lilith(birth, lilith_type)
     house_cusps = compute_houses(birth, house_system)
 
     chart: dict[str, ChartPoint] = {}
@@ -362,6 +396,7 @@ def compute_full_chart(
     chart["Part of Fortune"] = fortune
     chart["Part of Spirit"] = spirit
     chart["Chiron"] = chiron
+    chart["Lilith"] = lilith
 
     angle_names = {"Ascendant", "Descendant", "Midheaven", "Imum Coeli"}
     for name, point in chart.items():
@@ -406,7 +441,6 @@ def extract_speeds(chart: dict[str, ChartPoint]) -> dict[str, float]:
 #       points rather than "applying to" something.
 #
 # Other lesser-used points worth adding later:
-#   - Black Moon Lilith (mean or osculating): swe.MEAN_APOG / swe.OSCU_APOG
 #   - Other Arabic Parts (Part of Marriage, Part of Death, etc.) all follow
 #       the same Asc + X - Y day/night pattern as Fortune/Spirit above.
 #   - Other asteroids some astrologers track: Ceres, Pallas, Juno, Vesta
