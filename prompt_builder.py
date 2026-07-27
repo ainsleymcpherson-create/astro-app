@@ -483,7 +483,29 @@ Peregrine especially, instead of: "None of these three is strongly or \
 weakly dignified by sign — all are Peregrine." — write: "None of these \
 three gets much help or hindrance from the sign it's in. The sign \
 isn't the story here. What matters is where they sit and what they \
-connect to." Then say what that means in practice.
+connect to." Then say what that means in practice. NEVER GLUE A RAW \
+DIGNITY WORD ONTO A VAGUE QUALITY PHRASE — "sits exalted in \
+confidence" is a real failure case: "exalted" is a technical term, and \
+tacking "in confidence" onto it doesn't explain anything, it just \
+sounds impressive without meaning. Either fully translate the dignity \
+into plain language, or name the technical term and gloss it clearly \
+and SEPARATELY, in its own sentence. USE ONLY THE DIGNITY STATUS \
+ACTUALLY GIVEN IN THE DATA — never describe a planet as being in two \
+different dignities at once (e.g. both "rules its own sign" AND \
+"exalted"); a placement has exactly one dignity status, check the data \
+and use that one. And don't stack the dignity claim, a sign gloss, a \
+house placement, and the payoff into a single sentence — that's the \
+ONE NEW PLACEMENT PER SENTENCE rule above, and dignity claims are not \
+exempt from it. Real failure case, all in one sentence: "your \
+messenger (Mercury) rules its own sign (Gemini, the communicator) and \
+sits exalted in confidence right at your career point, making you a \
+fluent, quick thinking presence in professional settings." Rewritten \
+correctly, across separate sentences: "Your messenger (Mercury) rules \
+its own sign here, Gemini, the communicator — so it operates at full \
+strength. It also sits right at your career point (the Midheaven), \
+putting communication at the center of how you're seen professionally. \
+Together, that makes you a fluent, quick-thinking presence in \
+professional settings."
 4. TREAT PATTERNS AS UNITS. A Grand Trine, T-Square, or Yod is not just \
 "three aspects" — explain what the pattern as a whole represents (ease vs. \
 tension vs. a specific pressure point demanding resolution), and name \
@@ -1263,7 +1285,18 @@ instead of: "None of these three is strongly or weakly dignified by \
 sign — all are Peregrine." — write: "None of these three gets much \
 help or hindrance from the sign it's in. The sign isn't the story \
 here. What matters is what they connect to." Then say what that means \
-in practice.
+in practice. NEVER GLUE A RAW DIGNITY WORD ONTO A VAGUE QUALITY PHRASE \
+— "sits exalted in confidence" is a real failure case: "exalted" is a \
+technical term, and tacking "in confidence" onto it doesn't explain \
+anything, it just sounds impressive without meaning. Either fully \
+translate the dignity into plain language, or name the technical term \
+and gloss it clearly and SEPARATELY, in its own sentence. USE ONLY THE \
+DIGNITY STATUS ACTUALLY GIVEN IN THE DATA — never describe a planet as \
+being in two different dignities at once (e.g. both "rules its own \
+sign" AND "exalted"); a placement has exactly one dignity status, \
+check the data and use that one. Don't stack the dignity claim, a sign \
+gloss, and the payoff into a single sentence — that's the ONE NEW \
+PLACEMENT PER SENTENCE rule above, and dignity claims are not exempt.
 4. TREAT PATTERNS AS UNITS. A Grand Trine, T-Square, or Yod is not just \
 "three aspects" — explain what the pattern as a whole represents (ease vs. \
 tension vs. a specific pressure point demanding resolution), and name \
@@ -1539,7 +1572,27 @@ Focus on the most important items, not the entire list. Where possible, \
 avoid repeating across sections — pick the section where each piece of \
 information makes the most sense to include, rather than restating it \
 everywhere it could theoretically apply.
-- USE DIGNITY AS REAL WEIGHTING throughout.
+- USE DIGNITY AS REAL WEIGHTING throughout. DESCRIBE DIGNITY IN PLAIN \
+LANGUAGE, not technical shorthand — "dignified by sign," "essentially \
+dignified," and similar phrases mean nothing to most readers. Talk \
+about whether the sign HELPS the planet or gets in its way. NEVER GLUE \
+A RAW DIGNITY WORD ONTO A VAGUE QUALITY PHRASE — this is a real \
+failure case, verbatim from this reading: "your messenger (Mercury) \
+rules its own sign (Gemini, the communicator) and sits exalted in \
+confidence right at your career point, making you a fluent, quick \
+thinking presence in professional settings." Two things are wrong with \
+it: "exalted in confidence" mashes a technical term into a vague \
+quality phrase that explains nothing, AND Mercury can't be in \
+Rulership (ruling its own sign) and Exalted at the same time — a \
+placement has exactly one dignity status; check the data and use that \
+one. It also crams four separate claims — rulership, a sign gloss, a \
+house placement, and the payoff — into a single sentence, breaking the \
+ONE NEW PLACEMENT PER SENTENCE rule above. Correctly rewritten, across \
+separate sentences: "Your messenger (Mercury) rules its own sign here, \
+Gemini, the communicator — so it operates at full strength. It also \
+sits right at your career point (the Midheaven), putting communication \
+at the center of how you're seen professionally. Together, that makes \
+you a fluent, quick-thinking presence in professional settings."
 - TREAT PATTERNS AS UNITS where they touch career-relevant points.
 - DON'T SKIP EMPTY HOUSES — if the 6th, 10th, or 2nd house has no \
 occupants, use the ruler-based interpretation already provided.
@@ -1890,7 +1943,15 @@ focused, and demanding") — once or twice per section, not more.
 to create each point, rather than listing them one by one. Avoid \
 repeating the same point across multiple sections.
 - USE DIGNITY AS REAL WEIGHTING throughout — it carries extra weight in \
-this time-unknown format since fewer other signals are available.
+this time-unknown format since fewer other signals are available. \
+NEVER GLUE A RAW DIGNITY WORD ONTO A VAGUE QUALITY PHRASE — "sits \
+exalted in confidence" is a real failure case: "exalted" is a \
+technical term, and tacking a vague quality phrase onto it explains \
+nothing. Either fully translate the dignity into plain language, or \
+name the technical term and gloss it clearly and separately. USE ONLY \
+THE DIGNITY STATUS ACTUALLY GIVEN IN THE DATA — never describe a \
+planet as being in two different dignities at once; a placement has \
+exactly one dignity status.
 - TREAT PATTERNS AS UNITS where they touch career-relevant planets.
 - Avoid generic, could-apply-to-anyone language. Ground every claim in \
 the SPECIFIC combination of placements you're given.
@@ -2172,7 +2233,12 @@ the way a warm, wise reader who cares about them would.
 planet that's well-dignified (Rulership/Exaltation), that natal planet \
 can generally handle the activation more directly; if poorly dignified \
 (Detriment/Fall), the transit may bring the underlying difficulty more \
-sharply into focus.
+sharply into focus. NEVER GLUE A RAW DIGNITY WORD ONTO A VAGUE QUALITY \
+PHRASE — "sits exalted in confidence" is a real failure case: name the \
+technical term and gloss it clearly and separately, or translate it \
+fully into plain language, never both mashed together. USE ONLY THE \
+DIGNITY STATUS ACTUALLY GIVEN IN THE DATA — a placement has exactly \
+one dignity status, never describe it as two at once.
 - PRIORITIZE TIGHT AND APPLYING TRANSITS. A transit that's applying \
 (still building toward exact) and has a small orb is far more currently \
 relevant than one that's wide or separating — lead with what matters \
@@ -2545,7 +2611,14 @@ one astrological object, break it.
 an occasional adjective triad for tone ("The dynamic here is direct,
 fast-moving, and occasionally blunt") — once or twice per section, not
 more.
-- DIGNITY IS REAL WEIGHTING for both charts.
+- DIGNITY IS REAL WEIGHTING for both charts. NEVER GLUE A RAW \
+DIGNITY WORD ONTO A VAGUE QUALITY PHRASE — "sits exalted in \
+confidence" is a real failure case: name the technical term and gloss \
+it clearly and separately, or translate it fully into plain language, \
+never both mashed together. USE ONLY THE DIGNITY STATUS ACTUALLY \
+GIVEN IN THE DATA — a placement has exactly one dignity status, never \
+describe it as two at once. Always specify WHICH person's chart a \
+dignity claim belongs to.
 - SYNASTRY CONTACTS ARE MUTUAL: a contact between Person A's Saturn and
 Person B's Sun affects both people, even if experienced differently —
 cover both sides.
@@ -2920,7 +2993,14 @@ subjects," "this particular pairing," "this dyad," "operating \
 system," "wiring"). Use their actual names or "you two"/"the two of \
 them" naturally, the way a warm, wise reader who genuinely cares about \
 this relationship would.
-- DIGNITY IS REAL WEIGHTING for both charts.
+- DIGNITY IS REAL WEIGHTING for both charts. NEVER GLUE A RAW \
+DIGNITY WORD ONTO A VAGUE QUALITY PHRASE — "sits exalted in \
+confidence" is a real failure case: name the technical term and gloss \
+it clearly and separately, or translate it fully into plain language, \
+never both mashed together. USE ONLY THE DIGNITY STATUS ACTUALLY \
+GIVEN IN THE DATA — a placement has exactly one dignity status, never \
+describe it as two at once. Always specify WHICH person's chart a \
+dignity claim belongs to.
 - SYNASTRY CONTACTS ARE MUTUAL: a contact between Person A's Venus and
 Person B's Mars affects both people, even if experienced differently —
 cover both sides where relevant.
@@ -3278,7 +3358,14 @@ work; the parent is raising the child, and the reading's framing \
 should reflect that asymmetry naturally. Correct vocabulary for this \
 reading: "bond," "relationship," "family," "raising," "growing up," \
 "as [child] grows," "between parent and child."
-- DIGNITY IS REAL WEIGHTING for both charts.
+- DIGNITY IS REAL WEIGHTING for both charts. NEVER GLUE A RAW \
+DIGNITY WORD ONTO A VAGUE QUALITY PHRASE — "sits exalted in \
+confidence" is a real failure case: name the technical term and gloss \
+it clearly and separately, or translate it fully into plain language, \
+never both mashed together. USE ONLY THE DIGNITY STATUS ACTUALLY \
+GIVEN IN THE DATA — a placement has exactly one dignity status, never \
+describe it as two at once. Always specify WHICH person's chart a \
+dignity claim belongs to.
 - SYNASTRY CONTACTS ARE MUTUAL, but the two people are NOT symmetric
 here: the parent is the adult with the power and the responsibility to
 adapt, and the child is still growing. When a contact is difficult,
