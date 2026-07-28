@@ -3,20 +3,23 @@ app.py
 
 Entrypoint for the Tenth House Readings app. Uses Streamlit's native
 multi-page navigation (st.navigation + st.Page) to switch between
-three pages:
+four pages:
   - "Personal Readings" (General, Career/Work, Transits — single-
     person readings), in personal_readings_page.py
-  - "Synastry Readings" (Professional and Relationship Synastry —
-    two-person readings), in synastry_readings_page.py
+  - "Synastry Readings" (Professional, Relationship, and Parent/Child
+    Synastry — two-person readings), in synastry_readings_page.py
+  - "Deep Dive Readings" (focused single-point readings, e.g. Lilith
+    — more topics to be added over time), in deep_dive_readings_page.py
   - "Resources" (signs/planets/houses glossary, unchanged), in
     resources_page.py
 
-The two readings pages are near-identical copies of what used to be a
-single readings_page.py — same shared logic throughout, just with each
-page's "Reading focus" dropdown restricted to its own subset of
-reading types. Any change to shared logic (tabs, downloads, the email
-pipeline, etc.) needs to be made in BOTH personal_readings_page.py and
-synastry_readings_page.py to stay in sync.
+The readings pages are near-identical copies of what used to be a
+single readings_page.py — same shared logic throughout (birth input,
+tabs, downloads, the email pipeline), just with each page's dropdown
+restricted to its own subset of reading types. Any change to shared
+logic needs to be made across ALL of personal_readings_page.py,
+synastry_readings_page.py, AND deep_dive_readings_page.py to stay in
+sync.
 
 This file itself stays intentionally small — it's just the router.
 All the actual logic lives in the page files.
@@ -58,7 +61,8 @@ st.markdown(
 
 personal_readings = st.Page("personal_readings_page.py", title="Personal Readings", icon="🔭")
 synastry_readings = st.Page("synastry_readings_page.py", title="Synastry Readings", icon="👥")
+deep_dive_readings = st.Page("deep_dive_readings_page.py", title="Deep Dive Readings", icon="🔍")
 resources = st.Page("resources_page.py", title="Resources", icon="📖")
 
-pg = st.navigation([personal_readings, synastry_readings, resources])
+pg = st.navigation([personal_readings, synastry_readings, deep_dive_readings, resources])
 pg.run()
