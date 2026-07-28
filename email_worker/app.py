@@ -51,6 +51,7 @@ from prompt_builder import (
     build_professional_synastry_prompt,
     build_relationship_synastry_prompt,
     build_parent_child_synastry_prompt,
+    build_lilith_deep_dive_prompt,
 )
 
 app = Flask(__name__)
@@ -177,7 +178,12 @@ def _process_reading_job(job: dict) -> tuple[bool, str]:
         dignities = compute_chart_dignities(chart)
         house_readings = build_house_readings(chart)
 
-        if reading_type == "Transits":
+        if reading_type == "Lilith Deep Dive":
+            prompt = build_lilith_deep_dive_prompt(
+                chart, aspects, patterns, dignities, house_readings, person_name=person_name,
+            )
+
+        elif reading_type == "Transits":
             transit_date_str = job.get("transit_date")
             if transit_date_str:
                 transit_dt = datetime.strptime(transit_date_str, "%Y-%m-%d")
