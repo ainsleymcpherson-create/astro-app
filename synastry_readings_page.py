@@ -1614,8 +1614,33 @@ if st.session_state.get("results"):
             house_lines = []
             for num, reading in house_readings.items():
                 st.subheader(f"House {num} ({reading.sign_on_cusp})")
+                st.caption(f"Theme: {reading.theme}")
+
+                text_parts = [f"House {num} ({reading.sign_on_cusp}) — {reading.theme}"]
+
+                if reading.occupants:
+                    occ_str = ", ".join(reading.occupants)
+                    st.write(f"**Occupants:** {occ_str}")
+                    text_parts.append(f"Occupants: {occ_str}")
+                else:
+                    st.write("**Occupants:** *Empty*")
+                    text_parts.append("Occupants: Empty")
+                    if reading.ruler_placements:
+                        ruler_lines = []
+                        for rp in reading.ruler_placements:
+                            if not rp.get("found"):
+                                line = f"{rp['planet']} (position unavailable)"
+                            else:
+                                line = f"{rp['planet']} — {rp['sign']}, House {rp['house']}"
+                            ruler_lines.append(line)
+                        ruler_str = "; ".join(ruler_lines)
+                        st.write(f"**Ruled by:** {ruler_str}")
+                        text_parts.append(f"Ruled by: {ruler_str}")
+
                 st.write(reading.interpretation)
-                house_lines.append(f"House {num} ({reading.sign_on_cusp}):\n{reading.interpretation}\n")
+                text_parts.append(reading.interpretation)
+                house_lines.append("\n".join(text_parts) + "\n")
+                st.divider()
             text_download_and_copy("\n".join(house_lines), filename, key_prefix)
 
         if r["reading_type"] in SYNASTRY_READING_TYPES:
