@@ -10,6 +10,7 @@ should import resolve_birth_data from here rather than reimplementing it.
 """
 
 import os
+import concurrent.futures
 
 # Disable numba's JIT compilation before timezonefinder imports it.
 # timezonefinder uses numba to speed up its lookups, but numba's JIT
@@ -83,7 +84,35 @@ def resolve_birth_data(datetime_str: str, location_str: str, verbose: bool = Tru
             timeout=10,
         )
         try:
-            location = _geocode_with_retry(geolocator, location_str)
+            # Run the (already-retrying) geocode call in a worker thread
+            # with a hard outer timeout. geopy's own timeout=10 above is
+            # meant to bound each individual attempt, but some real-world
+            # network conditions (DNS resolution hanging, certain
+            # connection-establishment phases) aren't reliably covered by
+            # that parameter on every platform — the underlying call can
+            # end up blocking far longer than 10s with no exception ever
+            # raised, which previously meant the whole app would hang
+            # indefinitely with zero error and zero log output.
+            #
+            # Deliberately NOT using ThreadPoolExecutor as a context
+            # manager here — `with ThreadPoolExecutor() as executor:`
+            # calls shutdown(wait=True) on exit, which blocks until the
+            # background thread finishes, even after .result(timeout=...)
+            # already gave up on it. If the geocode call is genuinely
+            # stuck, that would just move the hang from one line to the
+            # next. shutdown(wait=False) lets this function actually
+            # return once the deadline passes, leaving the background
+            # thread to leak harmlessly rather than blocking anything.
+            executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+            future = executor.submit(_geocode_with_retry, geolocator, location_str)
+            try:
+                location = future.result(timeout=75)
+            except concurrent.futures.TimeoutError:
+                raise TimeoutError(
+                    "Location lookup did not respond within 75 seconds"
+                )
+            finally:
+                executor.shutdown(wait=False)
         except Exception as e:
             raise ValueError(
                 f"The location lookup service is temporarily rate-limited "
