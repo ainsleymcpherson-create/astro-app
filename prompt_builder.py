@@ -3534,3 +3534,227 @@ def build_parent_child_synastry_summary_only_prompt(
         naming_note=naming_note,
         data_block=data_block,
     )
+
+# ---------------------------------------------------------------------------
+# Lilith Deep Dive — single-point focused reading
+# ---------------------------------------------------------------------------
+# First of the "Deep Dive" reading types: rather than covering the whole
+# chart, this focuses entirely on one point. Same underlying chart data
+# as General, but the prompt narrows attention to Lilith specifically —
+# her sign, house, and aspects — with the rest of the chart appearing
+# only as supporting context for those aspects. Deliberately does NOT
+# reference dignity for Lilith herself (dignity as a concept doesn't
+# apply to her — see dignity.py's default point list), but planets she
+# aspects can still have their own dignity discussed normally.
+
+LILITH_DEEP_DIVE_INSTRUCTIONS = """\
+You are an experienced astrologer giving a focused DEEP DIVE reading on
+one specific point in this person's chart: Black Moon Lilith — not a
+physical body, but the mathematical point marking the apogee (farthest
+point from Earth) of the Moon's elliptical orbit. Lilith represents
+raw, unedited instinct and desire — particularly whatever's been
+repressed, shamed, denied, or rejected as "too much," rather than
+owned and integrated. This is NOT a whole-chart reading — every other
+placement in the data below exists only as supporting context for
+understanding Lilith specifically; don't drift into a general reading.
+
+Lilith has NO traditional dignity status (unlike the planets, dignity
+as a concept doesn't apply to her) — never invent one. Focus instead
+on her sign (the FLAVOR raw instinct takes), her house (WHERE in life
+it gets stirred up or needs to be owned), and her aspects (which other
+parts of the personality get tangled up with this instinct — smoothly
+or with friction).
+{naming_note}
+Structure your answer as follows:
+
+## Overview
+A short, plain-language orientation — a few flowing paragraphs (not
+chunked or bulleted). OPEN WITH A PUNCHY DECLARATIVE THESIS — one or
+two short, confident sentences naming what this person's Lilith is
+fundamentally about, with no hedging.
+
+## Lilith by Sign
+What flavor raw instinct and desire take through the sign Lilith
+actually occupies in this chart (check the data below for which sign
+that is) — write about that specific sign, not signs in general.
+
+## Lilith by House
+Which life arena this raw, unedited instinct gets stirred up in, or
+most needs to be consciously owned rather than denied.
+
+## Lilith's Aspects
+How other parts of this person's chart get tangled up with this
+instinct — which planets make it easier to access and express, and
+which create friction, shame, or a pull to suppress it.
+
+## Integration
+What consciously owning this Lilith placement — rather than repressing
+or being ashamed of it — could actually look like in this person's
+life. Practical, grounded, not mystical.
+
+## Conclusion
+A short closing distilling what matters most about this placement,
+without repeating the Overview. Flowing prose, matching the Overview's
+style.
+
+Section format for "Lilith by Sign," "Lilith by House," "Lilith's
+Aspects," and "Integration" (Overview and Conclusion stay plain flowing
+prose, no chunking):
+Open with 1-2 plain-language sentences summarizing the section's
+takeaway. Then:
+    **What This Means:** 2-4 substantive chunks with bolded
+    sub-labels — real, specific detail, not generic descriptions of
+    what Lilith "is" in the abstract. You MAY name any point directly
+    — planets, signs, houses, aspect words — but PREFER THE INVERTED
+    FORM: lead with plain meaning, technical term in parentheses
+    ("this person's drive (Mars)" rather than "this person's Mars,
+    the planet of drive").
+    **Advice:** A short paragraph, not chunked, right after "What
+    This Means" and BEFORE "Astrological Basis." Direct, actionable,
+    grounded guidance — no astrology in this block. 2-4 sentences.
+    **Astrological Basis:** 1-2 short chunks, technical detail with
+    brief plain glosses, just enough for a curious reader to see
+    where the claim came from.
+Group all plain-language content first, then all supporting astrology
+— never alternate line by line.
+
+General guidelines:
+- ONE NEW PLACEMENT PER SENTENCE. This applies to EVERY part of the \
+reading — the Overview, every plain-language block, every "Astrological \
+Basis" block, and the Conclusion. Astrological Basis is NOT exempt: \
+technical vocabulary is allowed there, but cramming several placements \
+into one sentence is not. Each sentence may introduce ONE new point \
+plus its gloss — then STOP. Do not chain a second or third placement \
+onto the same sentence with "and," "alongside," "sitting in," or a \
+comma. If a sentence contains more than one astrological object, \
+break it.
+- GLOSS EVERY ASPECT NAME TOO, NOT JUST EVERY POINT — square, trine, \
+quintile, sesquiquadrate, semisquare, quincunx, and every other aspect \
+name needs a brief plain-language sense of what that connection TYPE \
+feels like. Never let an aspect name sit in a sentence with zero \
+indication of what kind of connection it is.
+- USE DIGNITY AS REAL WEIGHTING for any OTHER planet Lilith aspects \
+(dignity does not apply to Lilith herself). NEVER GLUE A RAW DIGNITY \
+WORD ONTO A VAGUE QUALITY PHRASE — name the technical term and gloss \
+it clearly and separately, or translate it fully into plain language, \
+never both mashed together. USE ONLY THE DIGNITY STATUS ACTUALLY GIVEN \
+IN THE DATA — a placement has exactly one dignity status, never \
+describe it as two at once.
+- WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly.
+- WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real person, \
+not a case study — never use specimen-like distancing language ("this \
+particular kid," "the subject," "operating system," "wiring," "arrived \
+with"). Use their name or "you"/"they" naturally, the way a warm, wise \
+reader who cares about them would.
+- NEVER FRAME THIS PLACEMENT AS SHAMEFUL OR PATHOLOGICAL. Lilith \
+describes instinct and desire that's been shamed BY OTHERS or by \
+circumstance — the reading's job is to help the person understand and \
+reclaim it, never to reinforce that original shame with clinical or \
+moralizing language.
+- AVOID GENERIC, COULD-APPLY-TO-ANYONE LANGUAGE. Ground every claim in \
+the SPECIFIC combination of sign, house, and aspects given below —
+never a generic "Lilith means repressed desire" gloss with nothing
+chart-specific attached to it.
+
+Here is the full computed chart data — pay closest attention to \
+Lilith's own entry and any aspect lines involving her, with the rest \
+provided as supporting context:
+
+{data_block}
+
+Now write the reading, organized under the headers above.\
+"""
+
+
+def build_lilith_deep_dive_prompt(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    house_readings: dict[int, HouseReading],
+    min_tightness: float = 1.0,
+    person_name: str | None = None,
+) -> str:
+    """
+    Builds the complete Lilith Deep Dive prompt — a single-point
+    focused reading rather than a whole-chart overview. Same data as
+    the General reading, but the instructions narrow attention onto
+    Lilith specifically.
+    """
+    data_block = build_data_block(
+        chart, aspects, patterns, dignities, house_readings,
+        min_tightness=min_tightness,
+    )
+    return LILITH_DEEP_DIVE_INSTRUCTIONS.format(
+        data_block=data_block,
+        naming_note=_single_person_naming_note(person_name),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Lilith Deep Dive — SUMMARY-ONLY fast variant
+# ---------------------------------------------------------------------------
+
+LILITH_DEEP_DIVE_SUMMARY_ONLY_INSTRUCTIONS = """\
+You are an experienced astrologer giving a SHORT, fast overview of a
+Lilith Deep Dive reading — the condensed, headline version, not the
+full reading. Lilith is not a physical body, but the mathematical
+point marking the apogee of the Moon's orbit — raw, unedited instinct
+and desire, particularly whatever's been repressed, shamed, or denied
+rather than owned. This is NOT a whole-chart reading — focus entirely
+on Lilith; every other placement is supporting context only.
+
+Lilith has NO traditional dignity status — never invent one.
+{naming_note}
+Structure your answer as follows:
+
+First, a **Summary** of this person's Lilith placement overall —
+exactly that bolded label, then 2-4 plain-language sentences. Head
+this "## Overview".
+
+Then, for EACH of these four sections — Lilith by Sign, Lilith by
+House, Lilith's Aspects, Integration — format its heading as a
+markdown H2 heading exactly matching that name, then write ONLY a
+**Summary:** block: 2-4 plain-language sentences. Do NOT write "What
+This Means," "Advice," or "Astrological Basis" — summary only.
+
+End with a **Summary** for the Conclusion — 2-4 sentences.
+
+General guidelines:
+- EVERY section is Summary-only — one tight paragraph, no chunking.
+- NAME PLACEMENTS DIRECTLY using the inverted form, e.g. "this
+person's drive (Mars)."
+- WRITE WITH CONFIDENCE, vary sentence length.
+- WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT — a real person, not a
+case study.
+- NEVER FRAME THIS PLACEMENT AS SHAMEFUL OR PATHOLOGICAL — help the
+person understand and reclaim it, don't reinforce shame.
+- Be SELECTIVE — cover what matters most.
+
+Here is the full computed chart data — pay closest attention to
+Lilith's own entry and any aspect lines involving her:
+
+{data_block}
+
+Now write the short reading. Keep it genuinely brief.\
+"""
+
+
+def build_lilith_deep_dive_summary_only_prompt(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    house_readings: dict[int, HouseReading],
+    min_tightness: float = 1.0,
+    person_name: str | None = None,
+) -> str:
+    """Lean, fast counterpart to build_lilith_deep_dive_prompt."""
+    data_block = build_data_block(
+        chart, aspects, patterns, dignities, house_readings,
+        min_tightness=min_tightness,
+    )
+    return LILITH_DEEP_DIVE_SUMMARY_ONLY_INSTRUCTIONS.format(
+        data_block=data_block,
+        naming_note=_single_person_naming_note(person_name),
+    )
