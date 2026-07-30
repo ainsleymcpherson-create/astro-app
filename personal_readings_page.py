@@ -442,7 +442,7 @@ if want_email_full:
     )
 
 submitted = st.button(
-    "Compute Chart", use_container_width=True,
+    "Compute Chart", width="stretch",
     disabled=st.session_state.get("processing", False),
 )
 
@@ -828,7 +828,7 @@ def dataframe_download_and_copy(df: pd.DataFrame, filename: str, key_prefix: str
         data=csv_data,
         file_name=filename,
         mime="text/csv",
-        use_container_width=True,
+        width="stretch",
         key=f"{key_prefix}_download",
     )
     with st.expander("Copy as plain text"):
@@ -849,7 +849,7 @@ def text_download_and_copy(text: str, filename: str, key_prefix: str):
         data=text,
         file_name=filename,
         mime="text/plain",
-        use_container_width=True,
+        width="stretch",
         key=f"{key_prefix}_download",
     )
     with st.expander("Copy as plain text"):
@@ -1305,14 +1305,14 @@ if st.session_state.get("results"):
                     st.download_button(
                         "📄 Download as .pdf", data=summary_pdf_bytes,
                         file_name=f"reading_summary_{date_str}.pdf",
-                        mime="application/pdf", use_container_width=True,
+                        mime="application/pdf", width="stretch",
                         key="summary_pdf_dl",
                     )
                 with sum_col2:
                     st.download_button(
                         "Download as .txt", data=summary_text,
                         file_name=f"reading_summary_{date_str}.txt",
-                        mime="text/plain", use_container_width=True,
+                        mime="text/plain", width="stretch",
                         key="summary_txt_dl",
                     )
                 with st.expander("Copy summary as plain text"):
@@ -1328,14 +1328,14 @@ if st.session_state.get("results"):
                     st.download_button(
                         "📄 Download as .pdf", data=full_pdf_bytes,
                         file_name=f"reading_full_{date_str}.pdf",
-                        mime="application/pdf", use_container_width=True,
+                        mime="application/pdf", width="stretch",
                         key="full_pdf_dl",
                     )
                 with full_col2:
                     st.download_button(
                         "Download as .txt", data=full_text,
                         file_name=f"reading_full_{date_str}.txt",
-                        mime="text/plain", use_container_width=True,
+                        mime="text/plain", width="stretch",
                         key="full_txt_dl",
                     )
                 with st.expander("Copy full reading as plain text"):
@@ -1358,7 +1358,7 @@ if st.session_state.get("results"):
                         data=pdf_bytes,
                         file_name=f"reading_{date_str}.pdf",
                         mime="application/pdf",
-                        use_container_width=True,
+                        width="stretch",
                         key="reading_pdf_dl",
                     )
                 with dl_col2:
@@ -1367,7 +1367,7 @@ if st.session_state.get("results"):
                         data=r["interpretation_text"],
                         file_name=f"reading_{date_str}.txt",
                         mime="text/plain",
-                        use_container_width=True,
+                        width="stretch",
                         key="reading_txt_dl",
                     )
                 with st.expander("Copy as plain text"):
@@ -1395,12 +1395,12 @@ if st.session_state.get("results"):
             data=r["prompt"],
             file_name="interpretation_prompt.txt",
             mime="text/plain",
-            use_container_width=True,
+            width="stretch",
         )
 
     with tabs[2]:
         def show_wheel_with_download(fig, filename_suffix):
-            st.pyplot(fig, use_container_width=True)
+            st.pyplot(fig, width="stretch")
             buf = io.BytesIO()
             fig.savefig(buf, format="png", dpi=150, facecolor="white", bbox_inches="tight")
             st.download_button(
@@ -1408,7 +1408,7 @@ if st.session_state.get("results"):
                 data=buf.getvalue(),
                 file_name=f"chart_wheel_{filename_suffix}_{r['birth_date'].isoformat()}.png",
                 mime="image/png",
-                use_container_width=True,
+                width="stretch",
                 key=f"wheel_dl_{filename_suffix}",
             )
 
@@ -1468,16 +1468,16 @@ if st.session_state.get("results"):
         if r["reading_type"] in SYNASTRY_READING_TYPES:
             st.subheader("Person A")
             points_df_a = points_to_dataframe(r["chart"])
-            st.dataframe(points_df_a, use_container_width=True, hide_index=True)
+            st.dataframe(points_df_a, width="stretch", hide_index=True)
             dataframe_download_and_copy(points_df_a, f"points_a_{r['birth_date'].isoformat()}.csv", "points_a")
 
             st.subheader("Person B")
             points_df_b = points_to_dataframe(r["chart_b"])
-            st.dataframe(points_df_b, use_container_width=True, hide_index=True)
+            st.dataframe(points_df_b, width="stretch", hide_index=True)
             dataframe_download_and_copy(points_df_b, f"points_b_{r['birth_date'].isoformat()}.csv", "points_b")
         else:
             points_df = points_to_dataframe(r["chart"])
-            st.dataframe(points_df, use_container_width=True, hide_index=True)
+            st.dataframe(points_df, width="stretch", hide_index=True)
             dataframe_download_and_copy(points_df, f"points_{r['birth_date'].isoformat()}.csv", "points")
 
     with tabs[4]:
@@ -1488,14 +1488,14 @@ if st.session_state.get("results"):
             single-chart and synastry aspect formatters."""
             st.subheader("Major Aspects")
             major_df = df_builder(category="major")
-            st.dataframe(major_df, use_container_width=True, hide_index=True)
+            st.dataframe(major_df, width="stretch", hide_index=True)
             dataframe_download_and_copy(
                 major_df, f"{filename_prefix}_major_{r['birth_date'].isoformat()}.csv",
                 f"{key_prefix}_major",
             )
             st.subheader("Minor Aspects")
             minor_df = df_builder(category="minor")
-            st.dataframe(minor_df, use_container_width=True, hide_index=True)
+            st.dataframe(minor_df, width="stretch", hide_index=True)
             dataframe_download_and_copy(
                 minor_df, f"{filename_prefix}_minor_{r['birth_date'].isoformat()}.csv",
                 f"{key_prefix}_minor",
@@ -1535,7 +1535,7 @@ if st.session_state.get("results"):
             if df.empty:
                 st.info("No aspect patterns detected within the configured orbs.")
             else:
-                st.dataframe(df, use_container_width=True, hide_index=True)
+                st.dataframe(df, width="stretch", hide_index=True)
                 dataframe_download_and_copy(df, filename, key_prefix)
 
         if r["reading_type"] in SYNASTRY_READING_TYPES:
@@ -1568,33 +1568,8 @@ if st.session_state.get("results"):
             house_lines = []
             for num, reading in house_readings.items():
                 st.subheader(f"House {num} ({reading.sign_on_cusp})")
-                st.caption(f"Theme: {reading.theme}")
-
-                text_parts = [f"House {num} ({reading.sign_on_cusp}) — {reading.theme}"]
-
-                if reading.occupants:
-                    occ_str = ", ".join(reading.occupants)
-                    st.write(f"**Occupants:** {occ_str}")
-                    text_parts.append(f"Occupants: {occ_str}")
-                else:
-                    st.write("**Occupants:** *Empty*")
-                    text_parts.append("Occupants: Empty")
-                    if reading.ruler_placements:
-                        ruler_lines = []
-                        for rp in reading.ruler_placements:
-                            if not rp.get("found"):
-                                line = f"{rp['planet']} (position unavailable)"
-                            else:
-                                line = f"{rp['planet']} — {rp['sign']}, House {rp['house']}"
-                            ruler_lines.append(line)
-                        ruler_str = "; ".join(ruler_lines)
-                        st.write(f"**Ruled by:** {ruler_str}")
-                        text_parts.append(f"Ruled by: {ruler_str}")
-
                 st.write(reading.interpretation)
-                text_parts.append(reading.interpretation)
-                house_lines.append("\n".join(text_parts) + "\n")
-                st.divider()
+                house_lines.append(f"House {num} ({reading.sign_on_cusp}):\n{reading.interpretation}\n")
             text_download_and_copy("\n".join(house_lines), filename, key_prefix)
 
         if r["reading_type"] in SYNASTRY_READING_TYPES:
