@@ -59,6 +59,10 @@ from prompt_builder import (
     build_relationship_synastry_summary_only_prompt,
     build_lilith_deep_dive_prompt,
     build_lilith_deep_dive_summary_only_prompt,
+    build_chiron_deep_dive_prompt,
+    build_chiron_deep_dive_summary_only_prompt,
+    build_lunar_nodes_deep_dive_prompt,
+    build_lunar_nodes_deep_dive_summary_only_prompt,
 )
 from birth_input import resolve_birth_data
 from chart_wheel import (
@@ -222,12 +226,17 @@ SYNASTRY_READING_TYPES = ("Professional Synastry", "Relationship Synastry")
 # --- Input form ---
 reading_type = st.selectbox(
     "Deep dive topic",
-    options=["Lilith Deep Dive"],
+    options=["Lilith", "Chiron", "North/South Node"],
     index=0,
-    help="A focused reading on one specific point in your chart, "
-         "rather than the whole chart at once. More deep-dive topics "
-         "will be added here over time. Looking for a whole-chart "
-         "reading instead? Head to the Personal Readings page.",
+    help="A focused reading on one specific point (or axis) in your "
+         "chart, rather than the whole chart at once. Lilith: raw "
+         "instinct and desire, particularly what's been repressed or "
+         "shamed. Chiron: the 'wounded healer' — core wounding and the "
+         "capacity to heal through it. North/South Node: the pull "
+         "between old, inherited patterns (South Node) and your "
+         "conscious growth direction (North Node). More topics will be "
+         "added here over time. Looking for a whole-chart reading "
+         "instead? Head to the Personal Readings page.",
 )
 
 # Read the checkbox's stored value BEFORE the checkbox widget itself is
@@ -441,7 +450,7 @@ if want_email_full:
     )
 
 submitted = st.button(
-    "Compute Chart", use_container_width=True,
+    "Compute Chart", width="stretch",
     disabled=st.session_state.get("processing", False),
 )
 
@@ -827,7 +836,7 @@ def dataframe_download_and_copy(df: pd.DataFrame, filename: str, key_prefix: str
         data=csv_data,
         file_name=filename,
         mime="text/csv",
-        use_container_width=True,
+        width="stretch",
         key=f"{key_prefix}_download",
     )
     with st.expander("Copy as plain text"):
@@ -848,7 +857,7 @@ def text_download_and_copy(text: str, filename: str, key_prefix: str):
         data=text,
         file_name=filename,
         mime="text/plain",
-        use_container_width=True,
+        width="stretch",
         key=f"{key_prefix}_download",
     )
     with st.expander("Copy as plain text"):
@@ -908,8 +917,16 @@ if st.session_state.get("processing", False):
             chart_b = aspects_b = patterns_b = dignities_b = house_readings_b = None
             synastry_result = None
 
-            if reading_type == "Lilith Deep Dive":
+            if reading_type == "Lilith":
                 prompt = build_lilith_deep_dive_prompt(
+                    chart, aspects, patterns, dignities, house_readings, person_name=person_name,
+                )
+            elif reading_type == "Chiron":
+                prompt = build_chiron_deep_dive_prompt(
+                    chart, aspects, patterns, dignities, house_readings, person_name=person_name,
+                )
+            elif reading_type == "North/South Node":
+                prompt = build_lunar_nodes_deep_dive_prompt(
                     chart, aspects, patterns, dignities, house_readings, person_name=person_name,
                 )
             elif reading_type == "Transits":
@@ -996,8 +1013,16 @@ if st.session_state.get("processing", False):
         # background worker's email job.
         quick_summary_prompt = None
         if want_quick_summary:
-            if reading_type == "Lilith Deep Dive":
+            if reading_type == "Lilith":
                 quick_summary_prompt = build_lilith_deep_dive_summary_only_prompt(
+                    chart, aspects, patterns, dignities, house_readings, person_name=person_name,
+                )
+            elif reading_type == "Chiron":
+                quick_summary_prompt = build_chiron_deep_dive_summary_only_prompt(
+                    chart, aspects, patterns, dignities, house_readings, person_name=person_name,
+                )
+            elif reading_type == "North/South Node":
+                quick_summary_prompt = build_lunar_nodes_deep_dive_summary_only_prompt(
                     chart, aspects, patterns, dignities, house_readings, person_name=person_name,
                 )
             elif reading_type == "Transits":
@@ -1312,14 +1337,14 @@ if st.session_state.get("results"):
                     st.download_button(
                         "📄 Download as .pdf", data=summary_pdf_bytes,
                         file_name=f"reading_summary_{date_str}.pdf",
-                        mime="application/pdf", use_container_width=True,
+                        mime="application/pdf", width="stretch",
                         key="summary_pdf_dl",
                     )
                 with sum_col2:
                     st.download_button(
                         "Download as .txt", data=summary_text,
                         file_name=f"reading_summary_{date_str}.txt",
-                        mime="text/plain", use_container_width=True,
+                        mime="text/plain", width="stretch",
                         key="summary_txt_dl",
                     )
                 with st.expander("Copy summary as plain text"):
@@ -1335,14 +1360,14 @@ if st.session_state.get("results"):
                     st.download_button(
                         "📄 Download as .pdf", data=full_pdf_bytes,
                         file_name=f"reading_full_{date_str}.pdf",
-                        mime="application/pdf", use_container_width=True,
+                        mime="application/pdf", width="stretch",
                         key="full_pdf_dl",
                     )
                 with full_col2:
                     st.download_button(
                         "Download as .txt", data=full_text,
                         file_name=f"reading_full_{date_str}.txt",
-                        mime="text/plain", use_container_width=True,
+                        mime="text/plain", width="stretch",
                         key="full_txt_dl",
                     )
                 with st.expander("Copy full reading as plain text"):
@@ -1365,7 +1390,7 @@ if st.session_state.get("results"):
                         data=pdf_bytes,
                         file_name=f"reading_{date_str}.pdf",
                         mime="application/pdf",
-                        use_container_width=True,
+                        width="stretch",
                         key="reading_pdf_dl",
                     )
                 with dl_col2:
@@ -1374,7 +1399,7 @@ if st.session_state.get("results"):
                         data=r["interpretation_text"],
                         file_name=f"reading_{date_str}.txt",
                         mime="text/plain",
-                        use_container_width=True,
+                        width="stretch",
                         key="reading_txt_dl",
                     )
                 with st.expander("Copy as plain text"):
@@ -1402,12 +1427,12 @@ if st.session_state.get("results"):
             data=r["prompt"],
             file_name="interpretation_prompt.txt",
             mime="text/plain",
-            use_container_width=True,
+            width="stretch",
         )
 
     with tabs[2]:
         def show_wheel_with_download(fig, filename_suffix):
-            st.pyplot(fig, use_container_width=True)
+            st.pyplot(fig, width="stretch")
             buf = io.BytesIO()
             fig.savefig(buf, format="png", dpi=150, facecolor="white", bbox_inches="tight")
             st.download_button(
@@ -1415,7 +1440,7 @@ if st.session_state.get("results"):
                 data=buf.getvalue(),
                 file_name=f"chart_wheel_{filename_suffix}_{r['birth_date'].isoformat()}.png",
                 mime="image/png",
-                use_container_width=True,
+                width="stretch",
                 key=f"wheel_dl_{filename_suffix}",
             )
 
@@ -1475,16 +1500,16 @@ if st.session_state.get("results"):
         if r["reading_type"] in SYNASTRY_READING_TYPES:
             st.subheader("Person A")
             points_df_a = points_to_dataframe(r["chart"])
-            st.dataframe(points_df_a, use_container_width=True, hide_index=True)
+            st.dataframe(points_df_a, width="stretch", hide_index=True)
             dataframe_download_and_copy(points_df_a, f"points_a_{r['birth_date'].isoformat()}.csv", "points_a")
 
             st.subheader("Person B")
             points_df_b = points_to_dataframe(r["chart_b"])
-            st.dataframe(points_df_b, use_container_width=True, hide_index=True)
+            st.dataframe(points_df_b, width="stretch", hide_index=True)
             dataframe_download_and_copy(points_df_b, f"points_b_{r['birth_date'].isoformat()}.csv", "points_b")
         else:
             points_df = points_to_dataframe(r["chart"])
-            st.dataframe(points_df, use_container_width=True, hide_index=True)
+            st.dataframe(points_df, width="stretch", hide_index=True)
             dataframe_download_and_copy(points_df, f"points_{r['birth_date'].isoformat()}.csv", "points")
 
     with tabs[4]:
@@ -1495,14 +1520,14 @@ if st.session_state.get("results"):
             single-chart and synastry aspect formatters."""
             st.subheader("Major Aspects")
             major_df = df_builder(category="major")
-            st.dataframe(major_df, use_container_width=True, hide_index=True)
+            st.dataframe(major_df, width="stretch", hide_index=True)
             dataframe_download_and_copy(
                 major_df, f"{filename_prefix}_major_{r['birth_date'].isoformat()}.csv",
                 f"{key_prefix}_major",
             )
             st.subheader("Minor Aspects")
             minor_df = df_builder(category="minor")
-            st.dataframe(minor_df, use_container_width=True, hide_index=True)
+            st.dataframe(minor_df, width="stretch", hide_index=True)
             dataframe_download_and_copy(
                 minor_df, f"{filename_prefix}_minor_{r['birth_date'].isoformat()}.csv",
                 f"{key_prefix}_minor",
@@ -1542,7 +1567,7 @@ if st.session_state.get("results"):
             if df.empty:
                 st.info("No aspect patterns detected within the configured orbs.")
             else:
-                st.dataframe(df, use_container_width=True, hide_index=True)
+                st.dataframe(df, width="stretch", hide_index=True)
                 dataframe_download_and_copy(df, filename, key_prefix)
 
         if r["reading_type"] in SYNASTRY_READING_TYPES:
