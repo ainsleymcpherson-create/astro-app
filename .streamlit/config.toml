@@ -1,0 +1,22 @@
+# Raises the window Streamlit keeps a disconnected session's state
+# alive, waiting for a possible reconnect, from the 120-second default
+# to comfortably exceed the app's longest operation ("Generate Full
+# Reading," which the UI itself labels as up to 5 minutes / 300s).
+#
+# Why this matters: if a websocket connection blips (common on mobile,
+# e.g. screen lock or a brief network handoff) early in a long
+# generation, and the server cleans up the session before generation
+# finishes, even a successful reconnect from the browser has nothing
+# left to reconnect to -- the result can't be delivered and the UI
+# hangs/grays out. A longer TTL gives real reconnect attempts a
+# window that actually covers the generation time.
+#
+# This does NOT guarantee every disconnect recovers cleanly -- brief
+# blips get a real chance to reconnect, but a connection that's truly
+# gone (e.g. tab closed, phone put to sleep for an extended period)
+# still won't resume. For guaranteed delivery regardless of connection
+# stability, "Generate Summary and Email Full Reading" remains the
+# more resilient choice, since it doesn't depend on the live
+# connection surviving the full generation window at all.
+[server]
+disconnectedSessionTTL = 600
