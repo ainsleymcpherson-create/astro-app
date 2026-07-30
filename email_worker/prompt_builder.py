@@ -398,6 +398,18 @@ lead-in. THEN follow with a four-part structure, IN THIS ORDER:
   "This suggests a period of structured revision" beats "this might \
   possibly indicate that there could be some revision." Trust the \
   reading and say what it says.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
   WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This reading is about \
   a real person, not a case study — never refer to them with \
   specimen-like distancing language: "this particular kid," "this \
@@ -866,6 +878,18 @@ vaguely.
 - WRITE WITH CONFIDENCE, NOT HEDGING, and vary sentence length like \
 natural writing — mix short, punchy sentences with longer ones. Never \
 write a marathon sentence stacking multiple placements together.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real person, \
 not a case study — never use specimen-like distancing language ("this \
 particular kid," "this individual," "the subject," "operating system," \
@@ -1206,6 +1230,18 @@ structure, IN THIS ORDER:
   "This suggests a period of structured revision" beats "this might \
   possibly indicate that there could be some revision." Trust the \
   reading and say what it says.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
   WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This reading is about \
   a real person, not a case study — never refer to them with \
   specimen-like distancing language: "this particular kid," "this \
@@ -1566,6 +1602,18 @@ one astrological object, break it.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use \
 an occasional adjective triad for tone ("The energy here is intense, \
 focused, and demanding") — once or twice per section, not more.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - SYNTHESIZE within each section — don't just list placements one by \
 one, identify how 2-3 placements combine to create each point you make. \
 Focus on the most important items, not the entire list. Where possible, \
@@ -1687,6 +1735,18 @@ sign the first time it's named, briefly (2-3 words).
 it looks like at work, not just what it technically is.
 - WRITE WITH CONFIDENCE, vary sentence length, never stack multiple \
 placements in one sentence.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - USE DIGNITY AS REAL WEIGHTING, described causally.
 - NEVER quote numeric degrees, raw house numbers without context, or \
 orb values.
@@ -1939,6 +1999,18 @@ one astrological object, break it.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use \
 an occasional adjective triad for tone ("The energy here is intense, \
 focused, and demanding") — once or twice per section, not more.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - SYNTHESIZE within each section — identify how 2-3 placements combine \
 to create each point, rather than listing them one by one. Avoid \
 repeating the same point across multiple sections.
@@ -2025,6 +2097,18 @@ first time it's named, briefly.
 - CASH OUT EVERY TECHNICAL STATEMENT INTO LIVED EXPERIENCE.
 - WRITE WITH CONFIDENCE, vary sentence length, never stack multiple \
 placements in one sentence.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - USE DIGNITY AS REAL WEIGHTING, described causally — it carries extra \
 weight here since fewer other signals are available.
 - NEVER quote numeric degrees or orb values.
@@ -2224,6 +2308,18 @@ one astrological object, break it.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use \
 an occasional adjective triad for tone ("The energy is intense, \
 focused, and demanding") — once or twice per theme, not more.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real person, \
 not a case study — never use specimen-like distancing language ("this \
 particular kid," "this individual," "the subject," "operating system," \
@@ -2327,6 +2423,18 @@ direction (transiting Saturn)." Gloss any sign the first time named.
 this transit actually look like in daily life right now.
 - WRITE WITH CONFIDENCE, vary sentence length, never stack multiple \
 placements in one sentence.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real person, \
 not a case study — never use specimen-like distancing language ("this \
 particular kid," "this individual," "the subject," "operating system," \
@@ -2608,6 +2716,18 @@ its weakest dignity (detriment) in diplomatic Libra, sitting in the \
 3rd house of everyday communication." If a sentence contains more than \
 one astrological object, break it.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 an occasional adjective triad for tone ("The dynamic here is direct,
 fast-moving, and occasionally blunt") — once or twice per section, not
 more.
@@ -2725,6 +2845,18 @@ General guidelines:
 - Keep it business language throughout — cite astrology as your \
 method, don't let it dominate the output.
 - WRITE WITH CONFIDENCE, vary sentence length.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - Be SELECTIVE — cover what matters most.
 
 Here is the full computed synastry data for both people:
@@ -2984,6 +3116,18 @@ is. Examples: "a minor, irritation-prone angle (sesquiquadrate)," "a \
 rarer, talent-like spark (quintile)," "an awkward, adjustment-demanding \
 pull (quincunx)," "a low-grade friction (semisquare)."
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 an occasional adjective triad for tone ("The connection is warm,
 intense, and immediate") — once or twice per section, not more.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. These are two real \
@@ -3102,6 +3246,18 @@ General guidelines:
 - NAME PLACEMENTS DIRECTLY using the inverted form, e.g. "Person A's \
 warmth (Venus)."
 - WRITE WITH CONFIDENCE, vary sentence length.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. These are two real \
 people in a real relationship, not a case study — never use \
 specimen-like distancing language ("these two individuals," "the \
@@ -3328,6 +3484,18 @@ indication of what kind of connection it is. Examples: "a minor, \
 irritation-prone angle (sesquiquadrate)," "a rarer, talent-like spark \
 (quintile)," "an awkward, adjustment-demanding pull (quincunx)."
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 an occasional adjective triad for tone ("The bond is warm, loyal, and
 demonstrative") — once or twice per section, not more.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real parent \
@@ -3355,7 +3523,19 @@ who her child actually is." Also avoid perfectly SYMMETRIC framing \
 ("an identity axis that asks both of them to make room") as the \
 default — the parent and child are not equal parties doing equal \
 work; the parent is raising the child, and the reading's framing \
-should reflect that asymmetry naturally. Correct vocabulary for this \
+should reflect that asymmetry naturally. Also avoid INDIVIDUATION \
+language borrowed from adult-relationship advice — "make room to be \
+himself, separate from her," "space to be their own person," "room to \
+individuate" — this is the vocabulary of two adults navigating \
+codependency, not a parent raising a child. A child naturally \
+differentiating from a parent is normal development, not something \
+requiring "separateness" the way two adults in a relationship might. \
+BAD (real failure case): "This is a relationship built for deep \
+loyalty, but Debbie will need to consciously make room for Sean to be \
+himself, separate from her." GOOD: "This bond runs deep, and the real \
+work ahead is developmental: as Sean grows, Debbie's task is to keep \
+making room for who he's becoming, rather than letting her own \
+expectations define him." Correct vocabulary for this \
 reading: "bond," "relationship," "family," "raising," "growing up," \
 "as [child] grows," "between parent and child."
 - DIGNITY IS REAL WEIGHTING for both charts. NEVER GLUE A RAW \
@@ -3471,6 +3651,18 @@ General guidelines:
 - NAME PLACEMENTS DIRECTLY using the inverted form, e.g. "the child's
 emotional instincts (the Moon)."
 - WRITE WITH CONFIDENCE, vary sentence length.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real parent \
 and a real child, not a case study — never use specimen-like \
 distancing language ("this particular kid," "the subject," "this \
@@ -3482,7 +3674,10 @@ did not find each other or get brought together by destiny; one is \
 raising the other. NEVER use: "fated," "this pairing," "this union," \
 "this match," "these two souls," "coming together." Avoid perfectly \
 symmetric framing ("asks both of them equally") — the parent is \
-raising the child, and the framing should reflect that. Correct \
+raising the child, and the framing should reflect that. Also avoid \
+individuation language borrowed from adult relationships ("space to \
+be their own person," "separate from her") — a child differentiating \
+from a parent is normal development, not "separateness." Correct \
 vocabulary: "bond," "relationship," "family," "raising," "as [child] \
 grows."
 - When a contact is difficult, frame the actionable side toward what
@@ -3641,6 +3836,18 @@ never both mashed together. USE ONLY THE DIGNITY STATUS ACTUALLY GIVEN \
 IN THE DATA — a placement has exactly one dignity status, never \
 describe it as two at once.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real person, \
 not a case study — never use specimen-like distancing language ("this \
 particular kid," "the subject," "operating system," "wiring," "arrived \
@@ -3725,6 +3932,18 @@ General guidelines:
 - NAME PLACEMENTS DIRECTLY using the inverted form, e.g. "this
 person's drive (Mars)."
 - WRITE WITH CONFIDENCE, vary sentence length.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT — a real person, not a
 case study.
 - NEVER FRAME THIS PLACEMENT AS SHAMEFUL OR PATHOLOGICAL — help the
@@ -3864,6 +4083,18 @@ never both mashed together. USE ONLY THE DIGNITY STATUS ACTUALLY GIVEN \
 IN THE DATA — a placement has exactly one dignity status, never \
 describe it as two at once.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real person, \
 not a case study — never use specimen-like distancing language ("this \
 particular kid," "the subject," "operating system," "wiring," "arrived \
@@ -3937,6 +4168,18 @@ General guidelines:
 - NAME PLACEMENTS DIRECTLY using the inverted form, e.g. "this
 person's drive (Mars)."
 - WRITE WITH CONFIDENCE, vary sentence length.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT — a real person, not a
 case study.
 - NEVER FRAME THIS PLACEMENT AS A PERMANENT DEFICIT — a wound, not a
@@ -4090,6 +4333,18 @@ language, never both mashed together. USE ONLY THE DIGNITY STATUS \
 ACTUALLY GIVEN IN THE DATA — a placement has exactly one dignity \
 status, never describe it as two at once.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real person, \
 not a case study — never use specimen-like distancing language ("this \
 particular kid," "the subject," "operating system," "wiring," "arrived \
@@ -4169,6 +4424,18 @@ General guidelines:
 - NAME PLACEMENTS DIRECTLY using the inverted form, e.g. "this
 person's drive (Mars)."
 - WRITE WITH CONFIDENCE, vary sentence length.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
+as a negation followed by a correction ("The work isn't about \
+eliminating the friction... but about..."; "This isn't a flaw, but..."). \
+State the actual point directly and positively instead — say what IS \
+true, don't set it up by first saying what isn't. BAD (real failure \
+case): "The work isn't about eliminating the friction, which is tied \
+to real strengths in both of them, but about Debbie staying aware of \
+how much her own authority and image shape Sean's sense of self." \
+GOOD: "This friction is tied to real strengths in both of them. \
+Debbie's real task is staying aware of how much her own authority and \
+image shape Sean's sense of self." Two direct statements, no \
+negate-then-correct scaffolding.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT — a real person, not a
 case study.
 - NEVER FRAME THE SOUTH NODE AS SOMETHING BAD TO ESCAPE — real gifts,
