@@ -52,6 +52,8 @@ from prompt_builder import (
     build_relationship_synastry_prompt,
     build_parent_child_synastry_prompt,
     build_lilith_deep_dive_prompt,
+    build_chiron_deep_dive_prompt,
+    build_lunar_nodes_deep_dive_prompt,
 )
 
 app = Flask(__name__)
@@ -178,8 +180,32 @@ def _process_reading_job(job: dict) -> tuple[bool, str]:
         dignities = compute_chart_dignities(chart)
         house_readings = build_house_readings(chart)
 
-        if reading_type == "Lilith Deep Dive":
+        # Current age, used for the General reading's age-based emphasis
+        # (see prompt_builder.py's _age_guidance) — added emphasis only,
+        # never exclusion. Computed from birth.dt_utc (already resolved
+        # above) rather than re-parsing datetime_str, using UTC "today"
+        # since this worker doesn't have a meaningful local timezone of
+        # its own. Matches the same day/month comparison formula used in
+        # the main app's personal_readings_page.py.
+        _today = datetime.utcnow().date()
+        _birth_date = birth.dt_utc.date()
+        current_age = (
+            _today.year - _birth_date.year
+            - ((_today.month, _today.day) < (_birth_date.month, _birth_date.day))
+        )
+
+        if reading_type == "Lilith":
             prompt = build_lilith_deep_dive_prompt(
+                chart, aspects, patterns, dignities, house_readings, person_name=person_name,
+            )
+
+        elif reading_type == "Chiron":
+            prompt = build_chiron_deep_dive_prompt(
+                chart, aspects, patterns, dignities, house_readings, person_name=person_name,
+            )
+
+        elif reading_type == "North/South Node":
+            prompt = build_lunar_nodes_deep_dive_prompt(
                 chart, aspects, patterns, dignities, house_readings, person_name=person_name,
             )
 
@@ -233,6 +259,7 @@ def _process_reading_job(job: dict) -> tuple[bool, str]:
                 prompt = build_relationship_synastry_prompt(
                     synastry_result, dignities, dignities_b,
                     person_a_name=person_name, person_b_name=person_name_b,
+                    relationship_stage=job.get("relationship_stage"),
                 )
 
         elif reading_type == "Career / Work" and unknown_time:
@@ -245,11 +272,11 @@ def _process_reading_job(job: dict) -> tuple[bool, str]:
             )
         elif unknown_time:
             prompt = build_interpretation_prompt_no_time(
-                chart, aspects, patterns, dignities, person_name=person_name,
+                chart, aspects, patterns, dignities, person_name=person_name, age=current_age,
             )
         else:
             prompt = build_interpretation_prompt(
-                chart, aspects, patterns, dignities, house_readings, person_name=person_name,
+                chart, aspects, patterns, dignities, house_readings, person_name=person_name, age=current_age,
             )
 
         import anthropic
