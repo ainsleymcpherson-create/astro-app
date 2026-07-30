@@ -2616,39 +2616,51 @@ Structure your answer as follows:
 
 First, a general overview of the working dynamic — a short,
 plain-language orientation before the detail, written as a few
-flowing paragraphs (not chunked or bulleted). Do not include anything
-related to astrology here — format it as an overview of these two
-people and a summary of what follows, purely from a professional and
-working perspective. OPEN WITH A PUNCHY DECLARATIVE THESIS — one or
-two short, confident sentences stating what this working dynamic is
-fundamentally about, with no hedging. Head it "## Overview".
+flowing paragraphs (not chunked or bulleted), covering BOTH people
+together. Do not include anything related to astrology here — format
+it as an overview of these two people and a summary of what follows,
+purely from a professional and working perspective. OPEN WITH A PUNCHY
+DECLARATIVE THESIS — one or two short, confident sentences stating
+what this working dynamic is fundamentally about, with no hedging.
+Head it "## Overview".
 
-Then, exactly these three sections, each a markdown H2 heading exactly
-as written (the app relies on this exact format for a collapsible view):
+Then, exactly these two sections, each a markdown H2 heading exactly
+as written (the app relies on this exact format for a collapsible
+view). If actual names were provided in the naming instructions above,
+use the name in the heading instead of the generic label (e.g.
+"## Detail: Maria" rather than "## Detail: Person A"):
 
-## How To Work Together Effectively
-The practical mechanics of collaborating: pace, structure, how
-decisions get made, how work gets divided, how deadlines get handled.
-Draw on Mars/Mercury/Saturn cross-contacts and dignity. This answers
-"how do I actually work with this person day to day?"
+## Detail: Person A
+A deep, focused profile of PERSON A as a professional and as a
+colleague, seen through their own chart: their natural work style and
+pace, how they communicate, how they handle authority and structure,
+how they assert themselves and handle conflict, what they genuinely
+need from a colleague to do their best work, and what brings out
+their best professionally. This section is ABOUT PERSON A — Person B
+should appear only in brief supporting references where a cross-chart
+contact genuinely illuminates something about how Person A operates
+with THIS specific colleague (a few such references across the whole
+section, not in every paragraph). Draw primarily on Person A's own
+placements and dignity, secondarily on cross-contacts. Do not
+intermingle the two people evenly here — a reader should come away
+knowing Person A far better than before.
 
-## Being an Effective Colleague to Each Other
-Mutual and bidirectional: what does Person A need from Person B to feel
-respected and supported, and what does Person B need from Person A?
-Cover communication style, authority/respect dynamics (Saturn contacts),
-and what genuinely brings out the best in each other (supportive
-aspects, Jupiter contacts). Answer this for BOTH directions, not just one.
+## Detail: Person B
+The exact same treatment, format, and depth — now focused on PERSON B,
+with Person A appearing only in the same kind of brief supporting
+references. Give this section the same length and care as Person A's;
+never let the second profile be an afterthought.
 
-## Professional Watch Areas
-Honest, concrete friction points — hard aspects (Mars/Saturn/Sun
-squares, oppositions, difficult conjunctions), where misunderstandings
-are likely, what actively needs managing. Be honest about real
-difficulty rather than reframing everything as secretly fine — but
-frame it as manageable, not a verdict.
-
-End with a conclusion distilling what actually matters most, without
-repeating the Overview. Flowing prose, matching the Overview's style.
-Head it "## Conclusion" — REQUIRED, not optional.
+End with a conclusion that brings the two back TOGETHER — how these
+two specific professionals, as just described, actually mesh: where
+their styles complement, where they'll need to consciously bridge,
+and the few things most worth both people's attention. Include the
+honest friction points here — hard contacts, likely
+misunderstandings, what actively needs managing — framed as
+manageable, not a verdict. This is where the cross-chart synthesis
+lives, since the two Detail sections stay person-focused. Flowing
+prose, matching the Overview's style. Head it "## Conclusion" —
+REQUIRED, not optional.
 
 General guidelines:
 - OVERVIEW AND CONCLUSION: plain flowing prose only — no chunking, no
@@ -2661,19 +2673,20 @@ to what you've determined from the reading, stated in plain business
 terms. Use the astrology to arrive at your interpretation, but don't
 surface the astrology itself anywhere outside the dedicated
 Astrological Basis sections.
-- EACH OF THE THREE SECTIONS: open with 1-2 plain-language sentences
-summarizing the takeaway. Then a three-part structure, IN ORDER:
+- EACH OF THE TWO DETAIL SECTIONS: open with 1-2 plain-language
+sentences summarizing that person's professional character. Then a
+three-part structure, IN ORDER:
     **Working Implications:** FIRST, and this is the MAIN CONTENT of
     the reading — 3-5 substantive chunks with bolded sub-labels. This
-    should read like a business consultant's actual analysis, not a
-    brief summary: give concrete workplace scenarios (how a specific
-    meeting might go, how a project handoff plays out, what a
-    disagreement actually looks like between these two), practical
-    advice either person could act on, and specific detail grounded in
-    what's actually different or notable about these two people. Go
-    deep here rather than moving quickly to the next section. You MAY
-    name the 10 planets and zodiac signs plainly (e.g. "Person A's Mars
-    is in Libra"). You may NOT use: aspect names/verbs (trine, square,
+    should read like a business consultant's actual profile of this
+    one person, not a brief summary: give concrete workplace scenarios
+    (how this person runs a meeting, how they respond to a tight
+    deadline, what they're like to hand a project to), practical
+    advice a colleague could act on, and specific detail grounded in
+    what's actually notable about this person's chart. Go deep here
+    rather than moving quickly to the next section. You MAY name the
+    10 planets and zodiac signs plainly (e.g. "Person A's Mars is in
+    Libra"). You may NOT use: aspect names/verbs (trine, square,
     conjunct, sextile, opposition), angle names (Midheaven, Ascendant,
     Descendant, Imum Coeli), dignity terms (Exaltation, Detriment,
     Rulership, Peregrine), house numbers, or pattern names (Grand
@@ -2684,10 +2697,10 @@ summarizing the takeaway. Then a three-part structure, IN ORDER:
     ambiguous.
     **Advice:** SECOND, right after Working Implications and BEFORE
     Astrological Basis — this ordering matters, the app relies on it.
-    A short paragraph, not chunked. Speak directly to the two people
+    A short paragraph, not chunked. Speak directly to the OTHER person
     in the imperative — concrete, actionable direction for working
-    together better. Mix warnings with encouragements. No astrology in
-    this block. 2-4 sentences.
+    well with the person this section profiles. Mix warnings with
+    encouragements. No astrology in this block. 2-4 sentences.
     **Astrological Basis:** THIRD, and this is supporting evidence
     ONLY — keep it brief and minimal, 1-2 short chunks, just enough for
     a curious reader to see where the claim came from. This is NOT the
@@ -2716,6 +2729,9 @@ its weakest dignity (detriment) in diplomatic Libra, sitting in the \
 3rd house of everyday communication." If a sentence contains more than \
 one astrological object, break it.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use
+an occasional adjective triad for tone ("The dynamic here is direct,
+fast-moving, and occasionally blunt") — once or twice per section, not
+more.
 - AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
 as a negation followed by a correction ("The work isn't about \
 eliminating the friction... but about..."; "This isn't a flaw, but..."). \
@@ -2728,9 +2744,6 @@ GOOD: "This friction is tied to real strengths in both of them. \
 Debbie's real task is staying aware of how much her own authority and \
 image shape Sean's sense of self." Two direct statements, no \
 negate-then-correct scaffolding.
-an occasional adjective triad for tone ("The dynamic here is direct,
-fast-moving, and occasionally blunt") — once or twice per section, not
-more.
 - DIGNITY IS REAL WEIGHTING for both charts. NEVER GLUE A RAW \
 DIGNITY WORD ONTO A VAGUE QUALITY PHRASE — "sits exalted in \
 confidence" is a real failure case: name the technical term and gloss \
@@ -2831,14 +2844,18 @@ First, a **Summary** of the working dynamic — exactly that bolded \
 label, then 2-4 plain-language sentences, purely from a professional \
 perspective, no astrology in it. Head this "## Overview".
 
-Then, for EACH of these three sections — How To Work Together \
-Effectively, Being an Effective Colleague to Each Other, Professional \
-Watch Areas — format its heading as a markdown H2 heading exactly \
-matching that name, then write ONLY a **Summary:** block: 2-4 \
-plain-language sentences. Do NOT write "Working Implications," \
-"Advice," or "Astrological Basis" — summary only.
+Then, for EACH of these two sections — Detail: Person A, and Detail: \
+Person B — format its heading as a markdown H2 heading exactly \
+matching that name (substituting the person's actual name if provided, \
+e.g. "## Detail: Maria"), then write ONLY a **Summary:** block: 2-4 \
+plain-language sentences focused on THAT person as a professional, \
+with at most a brief reference to the other person. Do NOT write \
+"Working Implications," "Advice," or "Astrological Basis" — summary \
+only.
 
-End with a **Summary** for the Conclusion — 2-4 sentences.
+End with a **Summary** for the Conclusion — 2-4 sentences bringing \
+the two together: how they mesh, and the main friction point worth \
+both people's attention.
 
 General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
@@ -3116,6 +3133,8 @@ is. Examples: "a minor, irritation-prone angle (sesquiquadrate)," "a \
 rarer, talent-like spark (quintile)," "an awkward, adjustment-demanding \
 pull (quincunx)," "a low-grade friction (semisquare)."
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use
+an occasional adjective triad for tone ("The connection is warm,
+intense, and immediate") — once or twice per section, not more.
 - AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
 as a negation followed by a correction ("The work isn't about \
 eliminating the friction... but about..."; "This isn't a flaw, but..."). \
@@ -3128,8 +3147,6 @@ GOOD: "This friction is tied to real strengths in both of them. \
 Debbie's real task is staying aware of how much her own authority and \
 image shape Sean's sense of self." Two direct statements, no \
 negate-then-correct scaffolding.
-an occasional adjective triad for tone ("The connection is warm,
-intense, and immediate") — once or twice per section, not more.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. These are two real \
 people in a real relationship, not a case study — never use \
 specimen-like distancing language ("these two individuals," "the \
@@ -3484,6 +3501,8 @@ indication of what kind of connection it is. Examples: "a minor, \
 irritation-prone angle (sesquiquadrate)," "a rarer, talent-like spark \
 (quintile)," "an awkward, adjustment-demanding pull (quincunx)."
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use
+an occasional adjective triad for tone ("The bond is warm, loyal, and
+demonstrative") — once or twice per section, not more.
 - AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
 as a negation followed by a correction ("The work isn't about \
 eliminating the friction... but about..."; "This isn't a flaw, but..."). \
@@ -3496,8 +3515,6 @@ GOOD: "This friction is tied to real strengths in both of them. \
 Debbie's real task is staying aware of how much her own authority and \
 image shape Sean's sense of self." Two direct statements, no \
 negate-then-correct scaffolding.
-an occasional adjective triad for tone ("The bond is warm, loyal, and
-demonstrative") — once or twice per section, not more.
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real parent \
 and a real child, not a case study — never use specimen-like \
 distancing language ("this particular kid," "the child in question," \
