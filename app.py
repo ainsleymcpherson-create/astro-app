@@ -41,18 +41,34 @@ st.markdown(
     """
     <style>
     [data-testid="stSidebar"] {
-        width: 190px !important;
-        min-width: 190px !important;
-        max-width: 190px !important;
+        width: 240px !important;
+        min-width: 240px !important;
+        max-width: 240px !important;
         resize: none !important;
     }
     [data-testid="stSidebar"] > div:first-child {
-        width: 190px !important;
-        min-width: 190px !important;
-        max-width: 190px !important;
+        width: 240px !important;
+        min-width: 240px !important;
+        max-width: 240px !important;
     }
     [data-testid="stSidebar"][aria-expanded="false"] {
-        margin-left: -190px !important;
+        margin-left: -240px !important;
+    }
+
+    /* Signature element: every st.divider() renders a plain <hr> by
+       default. Replacing it with a shallow brass arc -- a fragment of
+       the same wheel this app actually computes for every chart --
+       instead of a generic flat line ties a structural, everyday UI
+       element back to the product's real subject rather than using it
+       as pure decoration. */
+    hr {
+        border: none !important;
+        height: 20px !important;
+        margin: 1.5rem 0 !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 20'%3E%3Cpath d='M0,15 Q100,-5 200,15' stroke='%23C9A66B' stroke-width='1' fill='none' opacity='0.55'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+        background-size: 100% 100% !important;
     }
     </style>
     """,
