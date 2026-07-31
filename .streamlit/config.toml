@@ -20,3 +20,30 @@
 # connection surviving the full generation window at all.
 [server]
 disconnectedSessionTTL = 600
+
+# Visual identity: pulls from astrology's own instruments -- ephemeris
+# tables, brass astrolabes, ink-on-vellum star charts -- rather than
+# generic "mystic" cliches or default AI-design palettes.
+#   primaryColor            brass/astrolabe gold -- buttons, active
+#                            tabs, links, interactive highlights
+#   backgroundColor          midnight indigo -- main content area,
+#                            evokes the night sky the whole practice
+#                            is actually about
+#   secondaryBackgroundColor a lighter indigo step -- sidebar, input
+#                            widgets, card-like surfaces
+#   textColor                warm parchment -- body text, readable
+#                            against the indigo without stark white
+#
+# Typography: Fraunces (display serif with real antique character,
+# used for headings only) paired with Karla (a warm, humanist sans
+# for body text/long-form reading content, so extended readings stay
+# comfortable) and IBM Plex Mono (utility face for chart data/degrees
+# -- leans into the "almanac" feeling for numeric content).
+[theme]
+primaryColor = "#C9A66B"
+backgroundColor = "#1B2036"
+secondaryBackgroundColor = "#252B47"
+textColor = "#EDE6D6"
+font = "Karla:https://fonts.googleapis.com/css2?family=Karla:ital,wght@0,200..800;1,200..800&display=swap, sans-serif"
+headingFont = "Fraunces:https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&display=swap, serif"
+codeFont = "'IBM Plex Mono':https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap, monospace"
