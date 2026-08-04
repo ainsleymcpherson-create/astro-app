@@ -145,7 +145,10 @@ home = st.Page("home_page.py", title="Home", icon="🏠", default=True, url_path
 personal_readings = st.Page("personal_readings_page.py", title="Personal", icon="🔭")
 synastry_readings = st.Page("synastry_readings_page.py", title="Synastry", icon="👥")
 deep_dive_readings = st.Page("deep_dive_readings_page.py", title="Deep Dive", icon="🔍")
-advanced_readings = st.Page("advanced_readings_page.py", title="Advanced Readings", icon="✨")
+advanced_readings = st.Page(
+    "advanced_readings_page.py", title="Advanced Readings", icon="✨",
+    url_path="advanced-readings",
+)
 weekly_transits = st.Page(
     "weekly_transits_signup_page.py", title="Astrology Services", icon="🌙",
     url_path="weekly-transits",
