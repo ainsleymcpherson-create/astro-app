@@ -177,6 +177,17 @@ if "auth" in st.secrets:
             if st.button("Log out", width="stretch"):
                 st.logout()
 
+            # Runs once here, before either section below queries a
+            # table it's responsible for creating -- account_subscriptions
+            # didn't exist until this migration ran, and the Full Access
+            # section (which queries it) previously ran BEFORE My
+            # Profiles' own init_schema() call further down, causing a
+            # "relation does not exist" error the first time this
+            # table was ever needed.
+            if user_email and "DATABASE_URL" in os.environ:
+                from profiles_db import init_schema
+                init_schema()
+
             # --- Full Access subscription ($10/month) ---
             # Account-level entitlement, checked here (not per-profile)
             # since it unlocks full readings across Personal, Synastry,
@@ -228,8 +239,7 @@ if "auth" in st.secrets:
             # skipped (rather than crashing) if user_email came back
             # None for the reason noted above.
             if user_email and "DATABASE_URL" in os.environ:
-                from profiles_db import init_schema, list_profiles, delete_profile, set_weekly_transits
-                init_schema()
+                from profiles_db import list_profiles, delete_profile, set_weekly_transits
                 with st.expander("My Profiles"):
                     saved = list_profiles(user_email)
                     if not saved:
