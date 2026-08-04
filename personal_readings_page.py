@@ -254,21 +254,54 @@ person_name = st.text_input(
     key="person_name_a",
 )
 
+
+# --- Saved profile picker (only when logged in and the database is
+# configured) ---
+# Purely additive: an anonymous visitor, or a logged-in one before the
+# database is set up, sees exactly the same form as always -- this
+# block just doesn't render. Loading a saved profile pre-fills the
+# fields below via each widget's `value=`, but Streamlit only applies
+# a new `value=` on a widget's FIRST render with a given key --
+# switching which profile is selected needs the widgets to get a
+# fresh key too, or they'd keep showing stale data from before the
+# switch. `profile_key_suffix` (the chosen profile's id, or "new")
+# is shared across all three fields below so they all reset together.
+selected_profile = None
+profile_key_suffix = "new"
+if "auth" in st.secrets and st.user.is_logged_in and "DATABASE_URL" in os.environ:
+    from profiles_db import list_profiles
+    saved_profiles = list_profiles(st.user.email)
+    if saved_profiles:
+        profile_choice = st.selectbox(
+            "Use a saved profile",
+            options=["New entry"] + [p["label"] for p in saved_profiles],
+            help="Loads a previously saved birth profile instead of typing it fresh.",
+        )
+        if profile_choice != "New entry":
+            selected_profile = next(p for p in saved_profiles if p["label"] == profile_choice)
+            profile_key_suffix = str(selected_profile["id"])
+
 col1, col2, col3 = st.columns([1, 1.3, 1])
 with col1:
     birth_date = st.date_input(
         "Birth date",
-        value=date_type(1989, 7, 5),
+        value=selected_profile["birth_date"] if selected_profile else date_type(1989, 7, 5),
         min_value=date_type(1900, 1, 1),
         max_value=date_type.today(),
         help="Tap to open the calendar picker.",
+        key=f"birth_date_{profile_key_suffix}",
     )
 with col2:
+    default_time = (
+        selected_profile["birth_time"] if selected_profile and selected_profile["birth_time"]
+        else time_type(11, 51)
+    )
     birth_time_val = st.time_input(
         "Birth time" + (" (disabled)" if unknown_time else ""),
-        value=time_type(11, 51),
+        value=default_time,
         disabled=unknown_time,
         help="Tap to type a time directly or use the picker.",
+        key=f"birth_time_{profile_key_suffix}",
     )
     birth_hour = birth_time_val.hour % 12 or 12
     birth_minute = f"{birth_time_val.minute:02d}"
@@ -276,8 +309,9 @@ with col2:
 with col3:
     location_str = st.text_input(
         "Birth location",
-        value="Washington, DC, USA",
+        value=selected_profile["location_str"] if selected_profile else "Washington, DC, USA",
         help="Be specific — add state/country if the place name is common",
+        key=f"location_str_{profile_key_suffix}",
     )
     _loc_found, _loc_address = geocode_location_quick(location_str)
     if _loc_found:
@@ -305,6 +339,25 @@ with align_col2:
         )
     else:
         unknown_time = False  # not applicable to Transits
+
+# --- Save this profile (only when logged in and the database is
+# configured) ---
+save_this_profile = False
+profile_label = ""
+if "auth" in st.secrets and st.user.is_logged_in and "DATABASE_URL" in os.environ:
+    save_this_profile = st.checkbox(
+        "💾 Save this profile",
+        value=False,
+        help="Saves this birth data to your account so you can reuse it on "
+             "a future visit instead of retyping it.",
+    )
+    if save_this_profile:
+        profile_label = st.text_input(
+            "Profile name",
+            value="",
+            placeholder="e.g. Me, Mom, Alex",
+            help="How this shows up in your saved-profile list — any name you like.",
+        )
 
 # --- Person B (any synastry reading) ---
 if reading_type in SYNASTRY_READING_TYPES:
@@ -895,6 +948,28 @@ if st.session_state.get("processing", False):
 
         with st.spinner("Resolving location and timezone..."):
             birth = resolve_birth_data(datetime_str, location_str, verbose=False)
+
+        if save_this_profile and profile_label.strip():
+            try:
+                from profiles_db import save_profile
+                _, _resolved_address = geocode_location_quick(location_str)
+                save_profile(
+                    owner_email=st.user.email,
+                    label=profile_label.strip(),
+                    birth_date=birth_date,
+                    birth_time=None if unknown_time else birth_time_val,
+                    unknown_time=unknown_time,
+                    location_str=location_str,
+                    latitude=birth.latitude,
+                    longitude=birth.longitude,
+                    resolved_address=_resolved_address,
+                )
+                st.success(f"Saved as \"{profile_label.strip()}\"", icon="💾")
+            except Exception as e:
+                # A save failure shouldn't block the reading itself —
+                # someone came here for their reading, not to save a
+                # profile; that's a bonus, not the point of the visit.
+                st.warning(f"Couldn't save this profile: {e}")
 
         house_system = house_system_map[house_system_label]
 
