@@ -585,6 +585,26 @@ def draw_bi_wheel(
     ax.set_aspect("equal")
     ax.axis("off")
 
+    _draw_bi_wheel_content(ax, chart_a, chart_b, synastry_aspects, min_aspect_tightness,
+                            asc_lon, outer_chart, inner_chart, outer_label, inner_label,
+                            inner_has_houses)
+
+    plt.tight_layout()
+    return fig
+
+
+def _draw_bi_wheel_content(ax, chart_a, chart_b, synastry_aspects, min_aspect_tightness,
+                            asc_lon, outer_chart, inner_chart, outer_label, inner_label,
+                            inner_has_houses):
+    """
+    Draws the zodiac ring, both house rings, planets, cross-chart
+    aspect lines, legend, and ring-info title onto an existing axes.
+    Extracted out of draw_bi_wheel() so draw_bi_wheel_art() (the
+    synastry poster/card export) can reuse the exact same drawing
+    logic rather than duplicating it — the two just wrap it in
+    different figure layouts, same relationship as
+    draw_chart_wheel / _draw_wheel_content / draw_chart_wheel_art.
+    """
     # --- Zodiac ring (shared reference frame for everything else) ---
     zodiac_outer_r = 1.35
     zodiac_inner_r = 1.15
@@ -756,9 +776,6 @@ def draw_bi_wheel(
                       f"(Person {inner_label}'s birth time is unknown)",
                      fontsize=9, color="#A8A3B8", pad=15)
 
-    plt.tight_layout()
-    return fig
-
 
 def draw_chart_wheel_art(
     chart: dict,
@@ -832,6 +849,89 @@ def draw_chart_wheel_art(
     title_ax.text(0.5, 0.30, location_str, ha="center", va="center",
                    fontsize=13, color="#C9A66B")
     title_ax.text(0.5, 0.08, "TENTH HOUSE READINGS", ha="center", va="center",
+                   fontsize=9, color="#5A5470", family="sans-serif")
+
+    return fig
+
+
+def draw_bi_wheel_art(
+    chart_a: dict,
+    chart_b: dict,
+    synastry_aspects: list,
+    person_a_name: str | None,
+    person_b_name: str | None,
+    datetime_str_a: str,
+    datetime_str_b: str,
+    format: str = "poster",
+    min_aspect_tightness: float = 0.6,
+):
+    """
+    Standalone, presentation-quality version of the synastry bi-wheel
+    — same relationship to draw_bi_wheel that draw_chart_wheel_art has
+    to draw_chart_wheel. Adds a title block with both people's names
+    and birth dates, and composes the whole figure for printing
+    ("poster") or sharing ("card") rather than the inline working view.
+    """
+    a_has_houses = "Ascendant" in chart_a and "House 1" in chart_a
+    b_has_houses = "Ascendant" in chart_b and "House 1" in chart_b
+
+    if a_has_houses:
+        outer_chart, outer_label = chart_a, "A"
+        inner_chart, inner_label, inner_has_houses = chart_b, "B", b_has_houses
+        asc_lon = chart_a["Ascendant"].longitude
+    elif b_has_houses:
+        outer_chart, outer_label = chart_b, "B"
+        inner_chart, inner_label, inner_has_houses = chart_a, "A", a_has_houses
+        asc_lon = chart_b["Ascendant"].longitude
+    else:
+        outer_chart = inner_chart = None
+        outer_label = inner_label = None
+        inner_has_houses = False
+        asc_lon = 0.0
+
+    if format == "card":
+        fig = plt.figure(figsize=(8.5, 10.5))
+        wheel_ax = fig.add_axes([0.06, 0.24, 0.88, 0.72])
+        text_y_start = 0.17
+    else:
+        fig = plt.figure(figsize=(9, 12))
+        wheel_ax = fig.add_axes([0.08, 0.30, 0.84, 0.64])
+        text_y_start = 0.22
+
+    fig.patch.set_facecolor("#1B2036")
+    wheel_ax.set_facecolor("#1B2036")
+    wheel_ax.set_xlim(-1.5, 1.5)
+    wheel_ax.set_ylim(-1.5, 1.5)
+    wheel_ax.set_aspect("equal")
+    wheel_ax.axis("off")
+
+    _draw_bi_wheel_content(wheel_ax, chart_a, chart_b, synastry_aspects, min_aspect_tightness,
+                            asc_lon, outer_chart, inner_chart, outer_label, inner_label,
+                            inner_has_houses)
+
+    # --- Title block ---
+    title_ax = fig.add_axes([0, 0, 1, text_y_start])
+    title_ax.set_facecolor("#1B2036")
+    title_ax.axis("off")
+    title_ax.set_xlim(0, 1)
+    title_ax.set_ylim(0, 1)
+
+    display_name_a = person_a_name.strip() if person_a_name and person_a_name.strip() else "Person A"
+    display_name_b = person_b_name.strip() if person_b_name and person_b_name.strip() else "Person B"
+
+    title_ax.plot([0.1, 0.9], [0.94, 0.94], color="#C9A66B", linewidth=0.8, alpha=0.6)
+
+    title_ax.text(0.5, 0.76, f"{display_name_a} & {display_name_b}", ha="center", va="center",
+                   fontsize=22, fontweight="bold", color="#EDE6D6", family="serif")
+    title_ax.text(0.27, 0.52, display_name_a, ha="center", va="center",
+                   fontsize=11, fontweight="bold", color="#C9A66B")
+    title_ax.text(0.27, 0.40, datetime_str_a, ha="center", va="center",
+                   fontsize=10, color="#A8A3B8")
+    title_ax.text(0.73, 0.52, display_name_b, ha="center", va="center",
+                   fontsize=11, fontweight="bold", color="#7A3B3B")
+    title_ax.text(0.73, 0.40, datetime_str_b, ha="center", va="center",
+                   fontsize=10, color="#A8A3B8")
+    title_ax.text(0.5, 0.10, "TENTH HOUSE READINGS", ha="center", va="center",
                    fontsize=9, color="#5A5470", family="sans-serif")
 
     return fig
