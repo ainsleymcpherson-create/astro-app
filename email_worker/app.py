@@ -378,6 +378,25 @@ def _get_weekly_subscribers() -> list[dict]:
         return [dict(row._mapping) for row in result]
 
 
+def _profile_exists_for_subscription(stripe_subscription_id: str) -> bool:
+    """
+    Checks whether a profile already exists for this Stripe
+    subscription id -- used to guard against duplicate webhook
+    deliveries. Stripe explicitly documents that the same event can
+    be delivered more than once (network retries, etc.), and without
+    this check, a duplicate checkout.session.completed would create a
+    second profile row and send a second welcome email for the same
+    single payment -- then keep sending duplicate weekly readings
+    every Monday after that, not just once.
+    """
+    engine = create_engine(os.environ["DATABASE_URL"])
+    with engine.connect() as conn:
+        result = conn.execute(sql_text(
+            "SELECT 1 FROM saved_profiles WHERE stripe_subscription_id = :sub_id LIMIT 1"
+        ), {"sub_id": stripe_subscription_id})
+        return result.fetchone() is not None
+
+
 def _create_paid_subscriber_profile_worker(
     label: str, birth_date, birth_time, location_str: str,
     latitude: float, longitude: float, resolved_address: str, theme: str,
@@ -608,6 +627,11 @@ def stripe_webhook():
             customer_email = data_object.get("customer_email") or (data_object.get("customer_details") or {}).get("email")
             stripe_customer_id = data_object.get("customer")
             stripe_subscription_id = data_object.get("subscription")
+
+            if stripe_subscription_id and _profile_exists_for_subscription(stripe_subscription_id):
+                print(f"[email_worker] Duplicate checkout.session.completed for "
+                      f"subscription {stripe_subscription_id} -- already processed, skipping.")
+                return jsonify({"status": "duplicate, skipped"}), 200
 
             # Reparse into the "Month DD, YYYY HH:MM" style
             # resolve_birth_data expects, and geocode for real (the
