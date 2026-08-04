@@ -57,17 +57,13 @@ from prompt_builder import (
     build_professional_synastry_summary_only_prompt,
     build_relationship_synastry_prompt,
     build_relationship_synastry_summary_only_prompt,
-    build_lilith_deep_dive_prompt,
-    build_lilith_deep_dive_summary_only_prompt,
-    build_chiron_deep_dive_prompt,
-    build_chiron_deep_dive_summary_only_prompt,
-    build_lunar_nodes_deep_dive_prompt,
-    build_lunar_nodes_deep_dive_summary_only_prompt,
+    build_parent_child_synastry_prompt,
+    build_parent_child_synastry_summary_only_prompt,
 )
 from birth_input import resolve_birth_data, geocode_location_quick
 from profiles_db import safe_user_email
 from chart_wheel import (
-    draw_chart_wheel, draw_bi_wheel, draw_chart_wheel_art, draw_bi_wheel_art,
+    draw_chart_wheel, draw_bi_wheel, draw_bi_wheel_art,
     build_chart_data_table_html, build_synastry_data_table_html,
     get_table_rows, get_synastry_table_rows,
 )
@@ -178,10 +174,11 @@ def enqueue_full_reading_email(job_payload: dict) -> tuple[bool, str]:
 
 
 st.caption("🔭 Tenth House Readings")
-st.title("Deep Dive Readings")
-st.caption("Focused readings on one specific point in your chart — "
-           "starting with Black Moon Lilith, with more deep-dive "
-           "topics to come.")
+st.title("Synastry Readings")
+st.caption("Compares two people's charts — for a professional working "
+           "dynamic or a traditional romantic compatibility reading — "
+           "with full support for Part of Fortune, Nodes, Vertex, "
+           "Chiron, and dignity.")
 
 COFFEE_URL = "https://buymeacoffee.com/tenthhousereadings"
 
@@ -222,23 +219,49 @@ st.markdown(
 # structure, tab logic), as distinct from "which specific synastry
 # type" checks (which prompt to build) — see the reading_type
 # if/elif branches further down for the latter.
-SYNASTRY_READING_TYPES = ("Professional Synastry", "Relationship Synastry")
+SYNASTRY_READING_TYPES = ("Professional Synastry", "Relationship Synastry", "Parent/Child Synastry")
 
 # --- Input form ---
 reading_type = st.selectbox(
-    "Deep dive topic",
-    options=["Lilith", "Chiron", "North/South Node"],
+    "Reading focus",
+    options=["Professional Synastry", "Relationship Synastry", "Parent/Child Synastry"],
     index=0,
-    help="A focused reading on one specific point (or axis) in your "
-         "chart, rather than the whole chart at once. Lilith: raw "
-         "instinct and desire, particularly what's been repressed or "
-         "shamed. Chiron: the 'wounded healer' — core wounding and the "
-         "capacity to heal through it. North/South Node: the pull "
-         "between old, inherited patterns (South Node) and your "
-         "conscious growth direction (North Node). More topics will be "
-         "added here over time. Looking for a whole-chart reading "
-         "instead? Head to the Personal Readings page.",
+    help="Professional Synastry compares TWO people's charts to "
+         "analyze their working dynamic — not romantic compatibility. "
+         "Relationship Synastry compares two people's charts for "
+         "traditional romantic compatibility — attraction, emotional "
+         "connection, and long-term potential. Parent/Child Synastry "
+         "compares a parent's chart with their child's — emotional "
+         "attunement, communication, discipline, and what to look out "
+         "for to keep the relationship healthy as the child grows. "
+         "Looking for a reading about just one person instead? Head to "
+         "the Personal Readings page.",
 )
+
+if reading_type == "Parent/Child Synastry":
+    st.caption("👪 For this reading, enter the **parent** as Person A "
+               "and the **child** as Person B.")
+
+relationship_stage = None
+if reading_type == "Relationship Synastry":
+    stage_choice = st.radio(
+        "Relationship stage",
+        options=["Not specified", "New relationship", "Established / mature relationship"],
+        index=0,
+        horizontal=True,
+        help="New relationships run on the fast, felt layer — "
+             "Venus-Mars, Sun-Moon, Mercury-Mercury, angle and Vertex "
+             "contacts. Established relationships run on the slower, "
+             "tested layer — Saturn, the Nodes, Pluto, and the "
+             "4th/8th/10th house overlays — signal that genuinely can't "
+             "be assessed until real time and real stakes have passed. "
+             "Picking a stage places extra emphasis on what's actually "
+             "legible right now, without leaving anything else out.",
+    )
+    if stage_choice == "New relationship":
+        relationship_stage = "new"
+    elif stage_choice == "Established / mature relationship":
+        relationship_stage = "mature"
 
 # Read the checkbox's stored value BEFORE the checkbox widget itself is
 # defined further down (it's rendered after the birth time fields, to
@@ -439,21 +462,28 @@ if "auth" in st.secrets and not _is_logged_in:
         icon="🔓",
     )
 
-generation_mode = st.radio(
-    "Written interpretation",
-    options=_generation_options,
-    index=0,
-    help="Generate Summary: a short, fast version shown here "
-         "immediately (a small billed API call), nothing emailed. "
-         "Generate Full Reading: the complete, in-depth reading shown "
-         "here on screen with collapsible sections, plus both Summary "
-         "and Full downloads — this is the original full experience, "
-         "so it takes several minutes. Generate Summary and Email Full "
-         "Reading: the fast summary shows here right away, while the "
-         "full reading generates separately in the background and gets "
-         "emailed to you — no need to keep this page open while you wait."
-         + ("" if _is_logged_in else " Full Reading and email delivery require logging in."),
-)
+if len(_generation_options) == 1:
+    # Only one real choice exists (the anonymous/free tier) -- a radio
+    # group with a single option is just clutter, so skip it entirely
+    # and fold the choice straight into the submit button's own label
+    # instead. Logged-in users, with real choices to make, still see
+    # the full radio group below.
+    generation_mode = _generation_options[0]
+else:
+    generation_mode = st.radio(
+        "Written interpretation",
+        options=_generation_options,
+        index=0,
+        help="Generate Summary: a short, fast version shown here "
+             "immediately (a small billed API call), nothing emailed. "
+             "Generate Full Reading: the complete, in-depth reading shown "
+             "here on screen with collapsible sections, plus both Summary "
+             "and Full downloads — this is the original full experience, "
+             "so it takes several minutes. Generate Summary and Email Full "
+             "Reading: the fast summary shows here right away, while the "
+             "full reading generates separately in the background and gets "
+             "emailed to you — no need to keep this page open while you wait.",
+    )
 generate_live = generation_mode != GEN_DONT
 want_quick_summary = generation_mode in (GEN_QUICK_ONLY, GEN_QUICK_EMAIL)
 want_full_now = generation_mode == GEN_FULL_NOW
@@ -466,7 +496,8 @@ if want_email_full:
     )
 
 submitted = st.button(
-    "Compute Chart", width="stretch",
+    "Generate Summary" if len(_generation_options) == 1 else "Compute Chart",
+    width="stretch",
     disabled=st.session_state.get("processing", False),
 )
 
@@ -937,36 +968,12 @@ if st.session_state.get("processing", False):
             dignities = compute_chart_dignities(chart)
             house_readings = build_house_readings(chart)
 
-            # Current age, used to weight the General reading's
-            # age-based emphasis (see prompt_builder.py's
-            # _age_guidance) — added emphasis only, never exclusion.
-            # Computed from the birth date directly rather than the
-            # resolved birth time, since only the year/month/day matter
-            # here, not the exact moment.
-            _today = date_type.today()
-            current_age = (
-                _today.year - birth_date.year
-                - ((_today.month, _today.day) < (birth_date.month, birth_date.day))
-            )
-
             # Placeholders so these always exist, even for reading types
             # that don't use a second person.
             chart_b = aspects_b = patterns_b = dignities_b = house_readings_b = None
             synastry_result = None
 
-            if reading_type == "Lilith":
-                prompt = build_lilith_deep_dive_prompt(
-                    chart, aspects, patterns, dignities, house_readings, person_name=person_name,
-                )
-            elif reading_type == "Chiron":
-                prompt = build_chiron_deep_dive_prompt(
-                    chart, aspects, patterns, dignities, house_readings, person_name=person_name,
-                )
-            elif reading_type == "North/South Node":
-                prompt = build_lunar_nodes_deep_dive_prompt(
-                    chart, aspects, patterns, dignities, house_readings, person_name=person_name,
-                )
-            elif reading_type == "Transits":
+            if reading_type == "Transits":
                 with st.spinner("Computing current transits..."):
                     # Transits are read for a specific moment; noon UTC on
                     # the chosen date is a reasonable default (matches
@@ -1031,6 +1038,27 @@ if st.session_state.get("processing", False):
                     prompt = build_relationship_synastry_prompt(
                         synastry_result, dignities, dignities_b,
                         person_a_name=person_name, person_b_name=person_name_b,
+                        relationship_stage=relationship_stage,
+                    )
+            elif reading_type == "Parent/Child Synastry":
+                with st.spinner("Resolving Person B's location and computing their chart..."):
+                    datetime_str_b = f"{birth_date_b.strftime('%B %d, %Y')} {birth_hour_b:02d}:{birth_minute_b} {birth_ampm_b}"
+                    birth_b = resolve_birth_data(datetime_str_b, location_str_b, verbose=False)
+                    chart_b = compute_full_chart(birth_b, house_system=house_system)
+                    aspects_b = compute_aspects(chart_b, speeds=extract_speeds(chart_b))
+                    patterns_b = find_all_patterns(chart_b, aspects_b)
+                    dignities_b = compute_chart_dignities(chart_b)
+                    house_readings_b = build_house_readings(chart_b)
+
+                with st.spinner("Computing synastry between the two charts..."):
+                    synastry_result = compute_full_synastry(
+                        chart, chart_b,
+                        person_a_time_known=not unknown_time,
+                        person_b_time_known=not unknown_time_b,
+                    )
+                    prompt = build_parent_child_synastry_prompt(
+                        synastry_result, dignities, dignities_b,
+                        person_a_name=person_name, person_b_name=person_name_b,
                     )
             elif reading_type == "Career / Work" and unknown_time:
                 prompt = build_career_interpretation_prompt_no_time(
@@ -1039,9 +1067,9 @@ if st.session_state.get("processing", False):
             elif reading_type == "Career / Work":
                 prompt = build_career_interpretation_prompt(chart, aspects, patterns, dignities, house_readings, person_name=person_name)
             elif unknown_time:
-                prompt = build_interpretation_prompt_no_time(chart, aspects, patterns, dignities, person_name=person_name, age=current_age)
+                prompt = build_interpretation_prompt_no_time(chart, aspects, patterns, dignities, person_name=person_name)
             else:
-                prompt = build_interpretation_prompt(chart, aspects, patterns, dignities, house_readings, person_name=person_name, age=current_age)
+                prompt = build_interpretation_prompt(chart, aspects, patterns, dignities, house_readings, person_name=person_name)
 
         # Build the lean summary-only prompt too, for any reading type
         # in "Quick summary" mode — this is what actually gets sent to
@@ -1050,19 +1078,7 @@ if st.session_state.get("processing", False):
         # background worker's email job.
         quick_summary_prompt = None
         if want_quick_summary:
-            if reading_type == "Lilith":
-                quick_summary_prompt = build_lilith_deep_dive_summary_only_prompt(
-                    chart, aspects, patterns, dignities, house_readings, person_name=person_name,
-                )
-            elif reading_type == "Chiron":
-                quick_summary_prompt = build_chiron_deep_dive_summary_only_prompt(
-                    chart, aspects, patterns, dignities, house_readings, person_name=person_name,
-                )
-            elif reading_type == "North/South Node":
-                quick_summary_prompt = build_lunar_nodes_deep_dive_summary_only_prompt(
-                    chart, aspects, patterns, dignities, house_readings, person_name=person_name,
-                )
-            elif reading_type == "Transits":
+            if reading_type == "Transits":
                 quick_summary_prompt = build_transit_summary_only_prompt(
                     transiting_points, transit_aspects, dignities, person_name=person_name,
                 )
@@ -1073,6 +1089,12 @@ if st.session_state.get("processing", False):
                 )
             elif reading_type == "Relationship Synastry":
                 quick_summary_prompt = build_relationship_synastry_summary_only_prompt(
+                    synastry_result, dignities, dignities_b,
+                    person_a_name=person_name, person_b_name=person_name_b,
+                    relationship_stage=relationship_stage,
+                )
+            elif reading_type == "Parent/Child Synastry":
+                quick_summary_prompt = build_parent_child_synastry_summary_only_prompt(
                     synastry_result, dignities, dignities_b,
                     person_a_name=person_name, person_b_name=person_name_b,
                 )
@@ -1086,11 +1108,11 @@ if st.session_state.get("processing", False):
                 )
             elif unknown_time:
                 quick_summary_prompt = build_summary_only_prompt_no_time(
-                    chart, aspects, patterns, dignities, person_name=person_name, age=current_age,
+                    chart, aspects, patterns, dignities, person_name=person_name,
                 )
             else:
                 quick_summary_prompt = build_summary_only_prompt(
-                    chart, aspects, patterns, dignities, house_readings, person_name=person_name, age=current_age,
+                    chart, aspects, patterns, dignities, house_readings, person_name=person_name,
                 )
 
         interpretation_text = None
@@ -1250,6 +1272,8 @@ if st.session_state.get("processing", False):
                     job_payload["location_str_b"] = location_str_b
                     job_payload["unknown_time_b"] = unknown_time_b
                     job_payload["person_name_b"] = person_name_b
+                if reading_type == "Relationship Synastry":
+                    job_payload["relationship_stage"] = relationship_stage
                 email_job_status = enqueue_full_reading_email(job_payload)
 
         # Persist everything needed for display in st.session_state.
@@ -1581,47 +1605,6 @@ if st.session_state.get("results"):
             dataframe_download_and_copy(
                 table_df, f"table_{r['birth_date'].isoformat()}.csv", "table"
             )
-
-            st.divider()
-            st.subheader("Chart Art")
-            st.write("A presentation-quality version of this chart, with your name, "
-                     "birth details, and a designed title block — meant for printing "
-                     "or sharing, rather than the working reference view above.")
-            art_col1, art_col2 = st.columns(2)
-            with art_col1:
-                st.caption("**Poster** — portrait, print-quality (300 DPI)")
-                fig_poster = draw_chart_wheel_art(
-                    r["chart"], r["aspects"], r["person_name"], r["datetime_str"],
-                    r["location_str"], format="poster",
-                )
-                buf_poster = io.BytesIO()
-                fig_poster.savefig(buf_poster, format="png", dpi=300,
-                                    facecolor=fig_poster.get_facecolor())
-                st.download_button(
-                    "Download poster (.png)",
-                    data=buf_poster.getvalue(),
-                    file_name=f"chart_poster_{r['birth_date'].isoformat()}.png",
-                    mime="image/png",
-                    width="stretch",
-                    key="art_poster_dl",
-                )
-            with art_col2:
-                st.caption("**Card** — compact, made for sharing")
-                fig_card = draw_chart_wheel_art(
-                    r["chart"], r["aspects"], r["person_name"], r["datetime_str"],
-                    r["location_str"], format="card",
-                )
-                buf_card = io.BytesIO()
-                fig_card.savefig(buf_card, format="png", dpi=150,
-                                  facecolor=fig_card.get_facecolor())
-                st.download_button(
-                    "Download card (.png)",
-                    data=buf_card.getvalue(),
-                    file_name=f"chart_card_{r['birth_date'].isoformat()}.png",
-                    mime="image/png",
-                    width="stretch",
-                    key="art_card_dl",
-                )
 
     with tabs[3]:
         if r["reading_type"] in SYNASTRY_READING_TYPES:
