@@ -438,9 +438,9 @@ if _has_full_access:
 if not _has_full_access:
     st.info(
         "You're seeing the free tier — a fast summary shown right here. "
-        "Want the full reading or to get it emailed? **Pay $3** to unlock "
+        "Want the full reading or to get it emailed? **Pay \\$3** to unlock "
         "this one reading (no account needed), or **subscribe for "
-        "$10/month** (log in from the sidebar) for unlimited full "
+        "\\$10/month** (log in from the sidebar) for unlimited full "
         "readings across Personal, Synastry, and Deep Dive.",
         icon="🔓",
     )
