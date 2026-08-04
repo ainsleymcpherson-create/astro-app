@@ -61,6 +61,7 @@ from prompt_builder import (
     build_parent_child_synastry_summary_only_prompt,
 )
 from birth_input import resolve_birth_data, geocode_location_quick
+from profiles_db import safe_user_email
 from chart_wheel import (
     draw_chart_wheel, draw_bi_wheel, draw_bi_wheel_art,
     build_chart_data_table_html, build_synastry_data_table_html,
@@ -443,7 +444,8 @@ GEN_QUICK_EMAIL = "Generate Summary & Email Full Reading"
 # a single hardcoded account so development can keep using it as this
 # gets built out, without exposing it to anyone else.
 _is_logged_in = "auth" in st.secrets and st.user.is_logged_in
-_is_admin = _is_logged_in and (st.user.email or "").strip().lower() == "amcpherson89@gmail.com"
+_user_email = safe_user_email()
+_is_admin = _is_logged_in and (_user_email or "").strip().lower() == "amcpherson89@gmail.com"
 
 _generation_options = []
 if _is_admin:
