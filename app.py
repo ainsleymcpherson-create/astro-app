@@ -151,6 +151,7 @@ weekly_transits = st.Page(
     url_path="weekly-transits",
 )
 resources = st.Page("resources_page.py", title="Resources", icon="📖")
+my_account = st.Page("my_account_page.py", title="My Account", icon="👤")
 
 # --- Optional login (saved profiles) ---
 # Anonymous use is always fully available everywhere else in the app —
@@ -241,7 +242,7 @@ if "auth" in st.secrets:
             # skipped (rather than crashing) if user_email came back
             # None for the reason noted above.
             if user_email and "DATABASE_URL" in os.environ:
-                from profiles_db import list_profiles, delete_profile, set_weekly_transits
+                from profiles_db import list_profiles, delete_profile
                 with st.expander("My Profiles"):
                     saved = list_profiles(user_email)
                     if not saved:
@@ -255,16 +256,11 @@ if "auth" in st.secrets:
                                 if st.button("🗑️", key=f"del_profile_{p['id']}", help=f"Delete \"{p['label']}\""):
                                     delete_profile(p["id"], user_email)
                                     st.rerun()
-                            _weekly_on = st.checkbox(
-                                "📅 Email me weekly transits",
-                                value=bool(p.get("weekly_transits")),
-                                key=f"weekly_{p['id']}",
-                                help=f"A short Monday-morning reading of that week's transits "
-                                     f"against {p['label']}'s chart, emailed automatically.",
-                            )
-                            if _weekly_on != bool(p.get("weekly_transits")):
-                                set_weekly_transits(p["id"], user_email, _weekly_on)
-                                st.rerun()
+                            if p.get("weekly_transits"):
+                                st.caption("📅 Weekly transits: active")
+                            else:
+                                st.caption("Weekly transits are now part of the paid "
+                                           "[Astrology Services](/weekly-transits) plan.")
         else:
             st.caption("Log in to unlock full readings, email delivery, and saved profiles.")
             if st.button("Log in", width="stretch"):
@@ -276,5 +272,6 @@ pg = st.navigation({
     "Advanced Readings": [advanced_readings],
     "Astrology Services": [weekly_transits],
     "Resources": [resources],
+    "My Account": [my_account],
 })
 pg.run()
