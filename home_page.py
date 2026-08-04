@@ -33,13 +33,12 @@ with col_b:
 st.divider()
 
 # --- Every paid offering shown together, same format, same weight ---
-st.subheader("Want more?")
+st.subheader("Want more? Check out our premium tier options")
 
 OFFERINGS = [
     {
         "icon": "✨",
         "name": "Advanced Readings",
-        "price": "$3 one-time, or $10/month unlimited",
         "desc": "Access the in-depth details. Perfect for enhanced personal "
                 "understanding and deeper synastry conversations.",
         "page": "advanced_readings_page.py",
@@ -48,7 +47,6 @@ OFFERINGS = [
     {
         "icon": "🌙",
         "name": "Weekly Transits",
-        "price": "$5/month",
         "desc": "A short reading of that week's transits against your own "
                 "chart, delivered every Monday. Choose General, Romantic, "
                 "or Career — change it anytime.",
@@ -58,7 +56,6 @@ OFFERINGS = [
     {
         "icon": "🪐",
         "name": "One-Time Transit Reading",
-        "price": "$7",
         "desc": "A full reading of the current transits against your "
                 "chart — a single reading, emailed shortly after payment.",
         "page": "weekly_transits_signup_page.py",
@@ -67,7 +64,6 @@ OFFERINGS = [
     {
         "icon": "💬",
         "name": "Ask an Astrologer",
-        "price": "$10",
         "desc": "Ask one specific question — anything from \"should I take "
                 "this job\" to \"what does this transit mean\" — and get a "
                 "real, focused answer.",
@@ -82,7 +78,6 @@ for offering, col in zip(OFFERINGS, row1 + row2):
     with col:
         with st.container(border=True):
             st.markdown(f"**{offering['icon']} {offering['name']}**")
-            st.caption(offering["price"])
             st.write(offering["desc"])
             st.page_link(offering["page"], label=offering["link_label"])
 
