@@ -232,15 +232,42 @@ if "auth" in st.secrets:
             if user_email and "DATABASE_URL" in os.environ:
                 from profiles_db import init_schema, has_active_subscription
                 init_schema()
-                # Distinct from the removed "Get Full Access" button --
-                # this only ever shows for people who ALREADY have the
-                # subscription, as a gold-styled status indicator, not
-                # a purchase path. type="primary" picks up the theme's
-                # brass color automatically, same technique already
-                # used for the homepage's main CTA.
+                # Gold "All Access Tier" is a status indicator for
+                # people who already have the subscription --
+                # type="primary" picks up the theme's brass color
+                # automatically, same technique used for the
+                # homepage's main CTA. "Get Full Access" is the actual
+                # purchase path for people who don't have it yet.
                 if has_active_subscription(user_email):
                     if st.button("All Access Tier", width="stretch", type="primary"):
                         st.switch_page("my_account_page.py")
+                elif "STRIPE_SECRET_KEY" in os.environ and "STRIPE_FULL_ACCESS_PRICE_ID" in os.environ:
+                    if st.button("Get Full Access", width="stretch"):
+                        import stripe
+                        stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
+                        try:
+                            checkout_session = stripe.checkout.Session.create(
+                                mode="subscription",
+                                line_items=[{
+                                    "price": os.environ["STRIPE_FULL_ACCESS_PRICE_ID"],
+                                    "quantity": 1,
+                                }],
+                                customer_email=user_email,
+                                success_url="https://tenthhousereadings.com/?signup=success",
+                                cancel_url="https://tenthhousereadings.com/?signup=cancelled",
+                                metadata={
+                                    "product_type": "full_access_subscription",
+                                    "label": user_email,
+                                },
+                            )
+                            st.link_button(
+                                "Proceed to Secure Checkout →",
+                                checkout_session.url,
+                                width="stretch",
+                                type="primary",
+                            )
+                        except Exception as e:
+                            st.error(f"Something went wrong setting up checkout: {e}")
         else:
             st.caption("Log in to unlock full readings, email delivery, and saved profiles.")
             if st.button("Log in", width="stretch"):
