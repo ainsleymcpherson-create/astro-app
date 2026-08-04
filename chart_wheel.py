@@ -37,11 +37,17 @@ SIGN_NAMES = [
 ]
 
 ASPECT_COLORS = {
-    "Conjunction": "#888888",
-    "Sextile": "#3498db",
-    "Square": "#e74c3c",
-    "Trine": "#27ae60",
-    "Opposition": "#e74c3c",
+    # Muted, antique-toned rather than bright web colors, so aspect
+    # lines read as part of the same brass/parchment palette as the
+    # rest of the chart instead of clashing neon against the indigo
+    # background. Warm tones (rust/brick) for hard aspects, cool tones
+    # (dusty blue/sage) for soft ones -- keeps the functional soft-vs-
+    # hard distinction the original bright red/green/blue scheme had.
+    "Conjunction": "#9B9488",
+    "Sextile": "#6B8CAE",
+    "Square": "#B2543D",
+    "Trine": "#7A9B7A",
+    "Opposition": "#9B4A42",
 }
 
 # Points shown in the linear data table — everything the wheel itself
@@ -414,11 +420,28 @@ def draw_chart_wheel(
     asc_lon = chart["Ascendant"].longitude
 
     fig, ax = plt.subplots(figsize=(figsize, figsize))
+    fig.patch.set_facecolor("#1B2036")
+    ax.set_facecolor("#1B2036")
     ax.set_xlim(-1.35, 1.35)
     ax.set_ylim(-1.35, 1.35)
     ax.set_aspect("equal")
     ax.axis("off")
 
+    _draw_wheel_content(ax, chart, aspects, min_aspect_tightness, asc_lon)
+
+    plt.tight_layout()
+    return fig
+
+
+def _draw_wheel_content(ax, chart: dict, aspects: list, min_aspect_tightness: float, asc_lon: float):
+    """
+    Draws the zodiac ring, house ring, angle labels, aspect lines, and
+    planets onto an existing axes. Extracted out of draw_chart_wheel()
+    so draw_chart_wheel_art() (the poster/card export) can reuse the
+    exact same drawing logic rather than duplicating ~90 lines of it —
+    the two just wrap it in different figure layouts (draw_chart_wheel
+    is a single square axes; the art export adds a title block below).
+    """
     # --- Zodiac ring (outer) ---
     zodiac_outer_r = 1.25
     zodiac_inner_r = 1.05
@@ -428,13 +451,13 @@ def draw_chart_wheel(
         wedge = mpatches.Wedge(
             (0, 0), zodiac_outer_r, start_angle, start_angle + 30,
             width=zodiac_outer_r - zodiac_inner_r,
-            facecolor="#f5f0e8" if i % 2 == 0 else "#e8dfd0",
-            edgecolor="#999999", linewidth=0.5,
+            facecolor="#252B47" if i % 2 == 0 else "#1B2036",
+            edgecolor="#5A5470", linewidth=0.5,
         )
         ax.add_patch(wedge)
         mid_lon = sign_start_lon + 15
         label_x, label_y = _to_xy(mid_lon, asc_lon, (zodiac_outer_r + zodiac_inner_r) / 2)
-        ax.text(label_x, label_y, SIGN_GLYPHS[i], ha="center", va="center", fontsize=16)
+        ax.text(label_x, label_y, SIGN_GLYPHS[i], ha="center", va="center", fontsize=16, color="#C9A66B")
 
     # --- House ring (uses REAL computed cusp longitudes, not assumed
     #     even spacing, since Placidus/Koch/etc. produce unequal houses) ---
@@ -445,13 +468,13 @@ def draw_chart_wheel(
         x2, y2 = _to_xy(cusp_lon, asc_lon, house_r)
         is_angle = house_num in (1, 4, 7, 10)
         ax.plot([x1, x2], [y1, y2],
-                color="#333333" if is_angle else "#aaaaaa",
+                color="#C9A66B" if is_angle else "#5A5470",
                 linewidth=2.0 if is_angle else 0.7)
         next_cusp_lon = chart[f"House {(house_num % 12) + 1}"].longitude
         mid_lon = cusp_lon + ((next_cusp_lon - cusp_lon) % 360) / 2
         lx, ly = _to_xy(mid_lon, asc_lon, house_r * 0.88)
         ax.text(lx, ly, str(house_num), ha="center", va="center",
-                fontsize=9, color="#666666")
+                fontsize=9, color="#8B87A8")
 
     # --- Angle labels (Asc/Desc/MC/IC) ---
     for label, point_name in [("ASC", "Ascendant"), ("DSC", "Descendant"),
@@ -459,7 +482,7 @@ def draw_chart_wheel(
         lon = chart[point_name].longitude
         lx, ly = _to_xy(lon, asc_lon, zodiac_outer_r + 0.08)
         ax.text(lx, ly, label, ha="center", va="center", fontsize=10,
-                fontweight="bold", color="#333333")
+                fontweight="bold", color="#C9A66B")
 
     # --- Aspect lines (inner circle) ---
     aspect_r = 0.75
@@ -472,12 +495,12 @@ def draw_chart_wheel(
             continue
         x1, y1 = _to_xy(chart[a.point1].longitude, asc_lon, aspect_r)
         x2, y2 = _to_xy(chart[a.point2].longitude, asc_lon, aspect_r)
-        color = ASPECT_COLORS.get(a.aspect_name, "#cccccc")
+        color = ASPECT_COLORS.get(a.aspect_name, "#5A5470")
         style = "--" if a.aspect_name in ("Sextile", "Trine") else "-"
         ax.plot([x1, x2], [y1, y2], color=color, linewidth=0.8,
                 linestyle=style, alpha=0.6, zorder=1)
 
-    inner_circle = plt.Circle((0, 0), aspect_r, fill=False, color="#cccccc", linewidth=0.8)
+    inner_circle = plt.Circle((0, 0), aspect_r, fill=False, color="#5A5470", linewidth=0.8)
     ax.add_patch(inner_circle)
 
     # --- Planets (and other points) ---
@@ -500,14 +523,11 @@ def draw_chart_wheel(
         glyph = PLANET_GLYPHS.get(name, FALLBACK_LABELS.get(name, "?"))
         fontsize = 14 if name in PLANET_GLYPHS else 8
         ax.text(x, y, glyph, ha="center", va="center", fontsize=fontsize,
-                color="#1a1a2e", zorder=3,
-                bbox=dict(boxstyle="circle,pad=0.15", facecolor="white",
-                           edgecolor="#1a1a2e", linewidth=0.5))
+                color="#EDE6D6", zorder=3,
+                bbox=dict(boxstyle="circle,pad=0.15", facecolor="#252B47",
+                           edgecolor="#C9A66B", linewidth=0.5))
         if point.retrograde:
-            ax.text(x + 0.05, y + 0.05, "℞", fontsize=7, color="#c0392b")
-
-    plt.tight_layout()
-    return fig
+            ax.text(x + 0.05, y + 0.05, "℞", fontsize=7, color="#D1495B")
 
 
 def draw_bi_wheel(
@@ -558,6 +578,8 @@ def draw_bi_wheel(
         asc_lon = 0.0
 
     fig, ax = plt.subplots(figsize=(figsize, figsize))
+    fig.patch.set_facecolor("#1B2036")
+    ax.set_facecolor("#1B2036")
     ax.set_xlim(-1.5, 1.5)
     ax.set_ylim(-1.5, 1.5)
     ax.set_aspect("equal")
@@ -572,13 +594,13 @@ def draw_bi_wheel(
         wedge = mpatches.Wedge(
             (0, 0), zodiac_outer_r, start_angle, start_angle + 30,
             width=zodiac_outer_r - zodiac_inner_r,
-            facecolor="#f5f0e8" if i % 2 == 0 else "#e8dfd0",
-            edgecolor="#999999", linewidth=0.5,
+            facecolor="#252B47" if i % 2 == 0 else "#1B2036",
+            edgecolor="#5A5470", linewidth=0.5,
         )
         ax.add_patch(wedge)
         mid_lon = sign_start_lon + 15
         label_x, label_y = _to_xy(mid_lon, asc_lon, (zodiac_outer_r + zodiac_inner_r) / 2)
-        ax.text(label_x, label_y, SIGN_GLYPHS[i], ha="center", va="center", fontsize=15)
+        ax.text(label_x, label_y, SIGN_GLYPHS[i], ha="center", va="center", fontsize=15, color="#C9A66B")
 
     def _draw_house_ring(chart, ring_outer_r, ring_inner_r, angle_color, num_color, num_fontsize, label_r, label_fontsize, inner_overshoot=0.0, outer_overshoot=0.0):
         """Draws one person's house-cusp spokes and angle labels within
@@ -598,7 +620,7 @@ def draw_bi_wheel(
             x2, y2 = _to_xy(cusp_lon, asc_lon, line_outer_r)
             is_angle = house_num in (1, 4, 7, 10)
             ax.plot([x1, x2], [y1, y2],
-                    color=angle_color if is_angle else "#bbbbbb",
+                    color=angle_color if is_angle else "#5A5470",
                     linewidth=1.8 if is_angle else 0.6, zorder=1)
             next_cusp_lon = chart[f"House {(house_num % 12) + 1}"].longitude
             mid_lon = cusp_lon + ((next_cusp_lon - cusp_lon) % 360) / 2
@@ -629,7 +651,7 @@ def draw_bi_wheel(
     if outer_chart is not None:
         _draw_house_ring(
             outer_chart, outer_ring_outer_r, outer_ring_inner_r,
-            angle_color="#1a1a2e", num_color="#888888", num_fontsize=8,
+            angle_color="#C9A66B", num_color="#8B87A8", num_fontsize=8,
             label_r=zodiac_outer_r + 0.08, label_fontsize=9,
         )
 
@@ -639,21 +661,21 @@ def draw_bi_wheel(
     if inner_chart is not None and inner_has_houses:
         _draw_house_ring(
             inner_chart, inner_ring_outer_r, inner_ring_inner_r,
-            angle_color="#2266aa", num_color="#7aa3cc", num_fontsize=7,
+            angle_color="#7A3B3B", num_color="#A67878", num_fontsize=7,
             label_r=(inner_ring_outer_r + inner_ring_inner_r) / 2 - 0.02, label_fontsize=8,
         )
 
     # --- Second circle (shared boundary between the two rings) ---
     if outer_chart is not None:
         second_boundary_circle = plt.Circle(
-            (0, 0), second_r, fill=False, color="#cccccc",
+            (0, 0), second_r, fill=False, color="#5A5470",
             linewidth=0.8, zorder=1,
         )
         ax.add_patch(second_boundary_circle)
 
     if outer_chart is None:
         ax.text(0, 0, "Houses unavailable\n(both birth times unknown)",
-                ha="center", va="center", fontsize=11, color="#999999")
+                ha="center", va="center", fontsize=11, color="#8B87A8")
 
     def _draw_planets(chart, r, face_color):
         plotted = []
@@ -670,20 +692,20 @@ def draw_bi_wheel(
             glyph = PLANET_GLYPHS.get(name, FALLBACK_LABELS.get(name, "?"))
             fontsize = 12 if name in PLANET_GLYPHS else 7
             ax.text(x, y, glyph, ha="center", va="center", fontsize=fontsize,
-                    color="#1a1a2e", zorder=3,
+                    color="#EDE6D6", zorder=3,
                     bbox=dict(boxstyle="circle,pad=0.12", facecolor=face_color,
-                               edgecolor="#1a1a2e", linewidth=0.6))
+                               edgecolor="#EDE6D6", linewidth=0.5))
             if point.retrograde:
-                ax.text(x + 0.04, y + 0.04, "℞", fontsize=6, color="#c0392b")
+                ax.text(x + 0.04, y + 0.04, "℞", fontsize=6, color="#D1495B")
 
     # --- Person A's planets and Person B's planets, each within their
     #     own ring's radius band ---
     if outer_chart is chart_a:
-        _draw_planets(chart_a, outer_ring_inner_r + (outer_ring_outer_r - outer_ring_inner_r) * 0.4, "white")
-        _draw_planets(chart_b, inner_ring_inner_r + (inner_ring_outer_r - inner_ring_inner_r) * 0.4, "#dbe9ff")
+        _draw_planets(chart_a, outer_ring_inner_r + (outer_ring_outer_r - outer_ring_inner_r) * 0.4, "#252B47")
+        _draw_planets(chart_b, inner_ring_inner_r + (inner_ring_outer_r - inner_ring_inner_r) * 0.4, "#3D2828")
     else:
-        _draw_planets(chart_b, outer_ring_inner_r + (outer_ring_outer_r - outer_ring_inner_r) * 0.4, "#dbe9ff")
-        _draw_planets(chart_a, inner_ring_inner_r + (inner_ring_outer_r - inner_ring_inner_r) * 0.4, "white")
+        _draw_planets(chart_b, outer_ring_inner_r + (outer_ring_outer_r - outer_ring_inner_r) * 0.4, "#3D2828")
+        _draw_planets(chart_a, inner_ring_inner_r + (inner_ring_outer_r - inner_ring_inner_r) * 0.4, "#252B47")
 
     # --- Boundary circle framing the aspect-line hub — without this,
     #     the crisscrossing aspect lines sprawl unbounded across the
@@ -693,7 +715,7 @@ def draw_bi_wheel(
     #     read as one continuous boundary. Matches the same pattern
     #     draw_chart_wheel() already uses for its own aspect circle.
     aspect_hub_r = inner_ring_inner_r
-    inner_circle = plt.Circle((0, 0), aspect_hub_r, fill=False, color="#cccccc", linewidth=0.8, zorder=1)
+    inner_circle = plt.Circle((0, 0), aspect_hub_r, fill=False, color="#5A5470", linewidth=0.8, zorder=1)
     ax.add_patch(inner_circle)
 
     # --- Cross-chart aspect lines ---
@@ -708,30 +730,108 @@ def draw_bi_wheel(
             continue
         x1, y1 = _to_xy(chart_a[a.person_a_point].longitude, asc_lon, a_planet_r)
         x2, y2 = _to_xy(chart_b[a.person_b_point].longitude, asc_lon, b_planet_r)
-        color = ASPECT_COLORS.get(a.aspect_name, "#cccccc")
+        color = ASPECT_COLORS.get(a.aspect_name, "#5A5470")
         style = "--" if a.aspect_name in ("Sextile", "Trine") else "-"
         ax.plot([x1, x2], [y1, y2], color=color, linewidth=0.9,
                 linestyle=style, alpha=0.6, zorder=2)
 
     # --- Legend ---
     legend_elements = [
-        Line2D([0], [0], marker="o", color="w", markerfacecolor="white",
-               markeredgecolor="#1a1a2e", markersize=11, label="Person A"),
-        Line2D([0], [0], marker="o", color="w", markerfacecolor="#dbe9ff",
-               markeredgecolor="#1a1a2e", markersize=11, label="Person B"),
-        Line2D([0], [0], color="#1a1a2e", linewidth=1.8, label="Outer ring angles"),
-        Line2D([0], [0], color="#2266aa", linewidth=1.8, label="Inner ring angles"),
+        Line2D([0], [0], marker="o", color="w", markerfacecolor="#252B47",
+               markeredgecolor="#EDE6D6", markersize=11, label="Person A"),
+        Line2D([0], [0], marker="o", color="w", markerfacecolor="#3D2828",
+               markeredgecolor="#EDE6D6", markersize=11, label="Person B"),
+        Line2D([0], [0], color="#C9A66B", linewidth=1.8, label="Outer ring angles"),
+        Line2D([0], [0], color="#7A3B3B", linewidth=1.8, label="Inner ring angles"),
     ]
     ax.legend(handles=legend_elements, loc="upper right",
-              bbox_to_anchor=(1.05, 1.05), frameon=False, fontsize=9)
+              bbox_to_anchor=(1.05, 1.05), frameon=False, fontsize=9,
+              labelcolor="#EDE6D6")
 
     if outer_label and inner_has_houses:
         ax.set_title(f"Outer ring: Person {outer_label}'s houses  •  Inner ring: Person {inner_label}'s houses",
-                     fontsize=9, color="#888888", pad=15)
+                     fontsize=9, color="#A8A3B8", pad=15)
     elif outer_label:
         ax.set_title(f"House ring shown: Person {outer_label}'s houses "
                       f"(Person {inner_label}'s birth time is unknown)",
-                     fontsize=9, color="#888888", pad=15)
+                     fontsize=9, color="#A8A3B8", pad=15)
 
     plt.tight_layout()
+    return fig
+
+
+def draw_chart_wheel_art(
+    chart: dict,
+    aspects: list,
+    person_name: str | None,
+    datetime_str: str,
+    location_str: str,
+    format: str = "poster",
+    min_aspect_tightness: float = 0.6,
+):
+    """
+    Draws a standalone, presentation-quality version of the chart
+    wheel meant to be downloaded and kept or shared, rather than the
+    working reference view shown inline in the app. Adds a title
+    block below the wheel (name, birth date/time, location, and a
+    small brand line) and composes the whole figure at a size/aspect
+    suited to the given format, rather than just being a bigger export
+    of the inline wheel.
+
+    format:
+      "poster" - taller, portrait aspect ratio suited to printing.
+                  Caller should save at dpi=300 for actual print use.
+      "card"   - more compact, closer to square, suited to sharing on
+                  a phone screen. dpi=150 is already plenty for that.
+
+    Both formats reuse the exact same wheel-drawing logic as the
+    inline chart (_draw_wheel_content) and the same indigo/brass
+    palette as the rest of the app, so this feels like a piece of the
+    product's own visual identity rather than a generic export.
+    """
+    asc_lon = chart["Ascendant"].longitude
+
+    if format == "card":
+        fig = plt.figure(figsize=(8, 9.5))
+        wheel_ax = fig.add_axes([0.06, 0.22, 0.88, 0.74])
+        text_y_start = 0.15
+    else:
+        fig = plt.figure(figsize=(8.5, 11))
+        wheel_ax = fig.add_axes([0.08, 0.30, 0.84, 0.62])
+        text_y_start = 0.20
+
+    fig.patch.set_facecolor("#1B2036")
+    wheel_ax.set_facecolor("#1B2036")
+    wheel_ax.set_xlim(-1.35, 1.35)
+    wheel_ax.set_ylim(-1.35, 1.35)
+    wheel_ax.set_aspect("equal")
+    wheel_ax.axis("off")
+
+    _draw_wheel_content(wheel_ax, chart, aspects, min_aspect_tightness, asc_lon)
+
+    # --- Title block ---
+    title_ax = fig.add_axes([0, 0, 1, text_y_start])
+    title_ax.set_facecolor("#1B2036")
+    title_ax.axis("off")
+    title_ax.set_xlim(0, 1)
+    title_ax.set_ylim(0, 1)
+
+    display_name = person_name.strip() if person_name and person_name.strip() else "Birth Chart"
+
+    # A thin brass rule above the text block, echoing the same
+    # wheel-fragment motif used for dividers elsewhere in the app --
+    # ties this standalone export back to the rest of the product
+    # rather than reading as a disconnected image.
+    title_ax.plot([0.15, 0.85], [0.92, 0.92], color="#C9A66B", linewidth=0.8, alpha=0.6)
+
+    title_ax.text(0.5, 0.68, display_name, ha="center", va="center",
+                   fontsize=26, fontweight="bold", color="#EDE6D6",
+                   family="serif")
+    title_ax.text(0.5, 0.44, datetime_str, ha="center", va="center",
+                   fontsize=13, color="#C9A66B")
+    title_ax.text(0.5, 0.30, location_str, ha="center", va="center",
+                   fontsize=13, color="#C9A66B")
+    title_ax.text(0.5, 0.08, "TENTH HOUSE READINGS", ha="center", va="center",
+                   fontsize=9, color="#5A5470", family="sans-serif")
+
     return fig
