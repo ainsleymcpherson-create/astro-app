@@ -193,7 +193,6 @@ with st.sidebar:
         st.page_link("personal_readings_page.py", label="Personal", icon="🔭")
         st.page_link("synastry_readings_page.py", label="Synastry", icon="👥")
         st.page_link("deep_dive_readings_page.py", label="Deep Dive", icon="🔍")
-    st.divider()
     st.page_link("advanced_readings_page.py", label="Advanced Readings")
     st.page_link("weekly_transits_signup_page.py", label="Astrology Services")
     st.page_link("resources_page.py", label="Resources")
@@ -250,8 +249,6 @@ if "auth" in st.secrets:
                     st.caption("✅ Full Access active — unlimited full readings across "
                                "Personal, Synastry, and Deep Dive.")
                 elif "STRIPE_SECRET_KEY" in os.environ and "STRIPE_FULL_ACCESS_PRICE_ID" in os.environ:
-                    st.caption("Get unlimited full readings + email delivery across "
-                               "Personal, Synastry, and Deep Dive.")
                     if st.button("Get Full Access", width="stretch"):
                         import stripe
                         stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
