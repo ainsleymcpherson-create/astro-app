@@ -547,3 +547,22 @@ def deactivate_subscription_by_id(stripe_subscription_id: str) -> None:
             "WHERE stripe_subscription_id = :sub_id"
         ), {"sub_id": stripe_subscription_id})
         session.commit()
+
+
+def get_subscription_details(owner_email: str) -> dict | None:
+    """
+    Returns the full account_subscriptions row for this email (including
+    stripe_subscription_id, needed to actually cancel the subscription
+    via Stripe's API), or None if no row exists. has_active_subscription
+    only returns a bool -- this is for callers that need the rest of
+    the row, like the account page's cancel button.
+    """
+    conn = _get_conn()
+    df = conn.query(
+        "SELECT * FROM account_subscriptions WHERE owner_email = :owner_email",
+        params={"owner_email": owner_email},
+        ttl=0,
+    )
+    if df.empty:
+        return None
+    return df.to_dict("records")[0]
