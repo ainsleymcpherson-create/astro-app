@@ -40,12 +40,60 @@ st.set_page_config(page_title="Tenth House Readings", layout="wide")
 # page the link happens to land on.
 if "unsubscribe" in st.query_params and "DATABASE_URL" in os.environ:
     from profiles_db import unsubscribe_by_token
-    _unsub_label = unsubscribe_by_token(st.query_params["unsubscribe"])
+    _unsub_result = unsubscribe_by_token(st.query_params["unsubscribe"])
     del st.query_params["unsubscribe"]
-    if _unsub_label:
-        st.success(f"Weekly transit emails turned off for \"{_unsub_label}\".", icon="✅")
+    if _unsub_result:
+        # For paid (Stripe) subscribers, turning off the email flag
+        # alone isn't enough -- their card would keep getting charged
+        # $5/month even though the emails stopped. Cancel the actual
+        # subscription too, so unsubscribing here genuinely stops
+        # billing, not just delivery.
+        _sub_id = _unsub_result.get("stripe_subscription_id")
+        if _sub_id and "STRIPE_SECRET_KEY" in os.environ:
+            try:
+                import stripe
+                stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
+                stripe.Subscription.cancel(_sub_id)
+            except Exception as e:
+                st.warning(
+                    "Emails are turned off, but there was a problem canceling "
+                    f"the associated subscription automatically ({e}). Please "
+                    "contact support to confirm billing has stopped."
+                )
+        st.success(f"Weekly transit emails turned off for \"{_unsub_result['label']}\".", icon="✅")
     else:
         st.info("That unsubscribe link has already been used or is no longer valid.")
+
+# --- Manage subscription (change theme, or unsubscribe) ---
+# Same private-token authentication as the unsubscribe link above --
+# no login required, since paid weekly-transit subscribers never go
+# through Auth0 at all. Linked from the weekly email itself alongside
+# the unsubscribe link.
+if "manage" in st.query_params and "DATABASE_URL" in os.environ:
+    from profiles_db import get_profile_by_token, set_theme_by_token
+    _manage_token = st.query_params["manage"]
+    _managed_profile = get_profile_by_token(_manage_token)
+    if _managed_profile:
+        st.subheader(f"Manage weekly transits for \"{_managed_profile['label']}\"")
+        _theme_options = ["General", "Romantic", "Career"]
+        _current_theme = _managed_profile.get("transit_theme") or "General"
+        _new_theme = st.radio(
+            "Reading theme",
+            options=_theme_options,
+            index=_theme_options.index(_current_theme) if _current_theme in _theme_options else 0,
+            help="Changes what your weekly transit reading focuses on going forward.",
+        )
+        if st.button("Save theme"):
+            _updated_label = set_theme_by_token(_manage_token, _new_theme)
+            if _updated_label:
+                st.success(f"Theme updated to {_new_theme} for \"{_updated_label}\".", icon="✅")
+            else:
+                st.error("That link is no longer valid.")
+        st.divider()
+        st.caption("Want to stop weekly transit emails entirely?")
+        st.markdown(f"[Unsubscribe](?unsubscribe={_manage_token})")
+    else:
+        st.info("That management link has already been used or is no longer valid.")
 
 # Narrow the sidebar. Streamlit doesn't expose sidebar width as a
 # simple, reliably-available parameter across versions, so this uses
@@ -96,6 +144,7 @@ st.markdown(
 personal_readings = st.Page("personal_readings_page.py", title="Personal Readings", icon="🔭")
 synastry_readings = st.Page("synastry_readings_page.py", title="Synastry Readings", icon="👥")
 deep_dive_readings = st.Page("deep_dive_readings_page.py", title="Deep Dive Readings", icon="🔍")
+weekly_transits = st.Page("weekly_transits_signup_page.py", title="Weekly Transits", icon="🌙")
 resources = st.Page("resources_page.py", title="Resources", icon="📖")
 
 # --- Optional login (saved profiles) ---
@@ -164,5 +213,5 @@ if "auth" in st.secrets:
             if st.button("Log in", width="stretch"):
                 st.login("auth0")
 
-pg = st.navigation([personal_readings, synastry_readings, deep_dive_readings, resources])
+pg = st.navigation([personal_readings, synastry_readings, deep_dive_readings, weekly_transits, resources])
 pg.run()
