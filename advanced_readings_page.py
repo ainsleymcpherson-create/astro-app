@@ -55,8 +55,16 @@ CATEGORIES = {
 }
 SYNASTRY_READING_TYPES = ("Professional Synastry", "Relationship Synastry", "Parent/Child Synastry")
 
-category = st.radio("Category", options=list(CATEGORIES.keys()), horizontal=True)
-reading_type = st.radio("Reading type", options=CATEGORIES[category])
+_selector_col, _ = st.columns([2, 1])
+with _selector_col:
+    category = st.segmented_control(
+        "Category", options=list(CATEGORIES.keys()), default="Personal", required=True,
+    )
+    reading_type = st.segmented_control(
+        "Reading type", options=CATEGORIES[category],
+        default=CATEGORIES[category][0], required=True,
+        key=f"reading_type_{category}",
+    )
 
 st.divider()
 
