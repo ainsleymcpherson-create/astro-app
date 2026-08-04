@@ -177,6 +177,48 @@ if "auth" in st.secrets:
             if st.button("Log out", width="stretch"):
                 st.logout()
 
+            # --- Full Access subscription ($10/month) ---
+            # Account-level entitlement, checked here (not per-profile)
+            # since it unlocks full readings across Personal, Synastry,
+            # and Deep Dive for the whole account, not any one saved
+            # profile. Deliberately separate from the Astrology Services
+            # products (Weekly Transits, One-Time Transit, Ask an
+            # Astrologer), which stay individually priced.
+            if user_email and "DATABASE_URL" in os.environ:
+                from profiles_db import has_active_subscription
+                if has_active_subscription(user_email):
+                    st.caption("✅ Full Access active — unlimited full readings across "
+                               "Personal, Synastry, and Deep Dive.")
+                elif "STRIPE_SECRET_KEY" in os.environ and "STRIPE_FULL_ACCESS_PRICE_ID" in os.environ:
+                    st.caption("Get unlimited full readings + email delivery across "
+                               "Personal, Synastry, and Deep Dive.")
+                    if st.button("Get Full Access — $10/month", width="stretch"):
+                        import stripe
+                        stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
+                        try:
+                            checkout_session = stripe.checkout.Session.create(
+                                mode="subscription",
+                                line_items=[{
+                                    "price": os.environ["STRIPE_FULL_ACCESS_PRICE_ID"],
+                                    "quantity": 1,
+                                }],
+                                customer_email=user_email,
+                                success_url="https://tenthhousereadings.com/?signup=success",
+                                cancel_url="https://tenthhousereadings.com/?signup=cancelled",
+                                metadata={
+                                    "product_type": "full_access_subscription",
+                                    "label": user_email,
+                                },
+                            )
+                            st.link_button(
+                                "Proceed to Secure Checkout →",
+                                checkout_session.url,
+                                width="stretch",
+                                type="primary",
+                            )
+                        except Exception as e:
+                            st.error(f"Something went wrong setting up checkout: {e}")
+
             # --- Saved profiles management ---
             # Guarded separately from the login block above, since
             # login can exist without the database being configured
