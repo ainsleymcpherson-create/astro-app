@@ -35,6 +35,8 @@ import requests
 from flask import Flask, request, jsonify
 from qstash import Receiver
 
+from sqlalchemy import create_engine, text as sql_text
+
 from chart_points import compute_full_chart, extract_speeds
 from aspect_engine import compute_aspects, find_all_patterns
 from dignity import compute_chart_dignities
@@ -48,6 +50,7 @@ from prompt_builder import (
     build_career_interpretation_prompt,
     build_career_interpretation_prompt_no_time,
     build_transit_prompt,
+    build_transit_summary_only_prompt,
     build_professional_synastry_prompt,
     build_relationship_synastry_prompt,
     build_parent_child_synastry_prompt,
@@ -106,10 +109,12 @@ receiver = Receiver(
 
 def markdown_to_html(text: str) -> str:
     """
-    Minimal markdown-to-HTML for the email body — handles the ## and
-    **bold** structure our readings actually use, nothing more. Not a
+    Minimal markdown-to-HTML for the email body — handles the ##,
+    **bold**, and [text](url) link structure our readings and
+    transactional emails actually use, nothing more. Not a
     general-purpose markdown renderer; matches the same simple subset
-    readings_page.py's PDF generator assumes.
+    readings_page.py's PDF generator assumes (plus links, needed for
+    the weekly-transit unsubscribe line).
     """
     html_lines = []
     for raw_line in text.split("\n"):
@@ -119,6 +124,7 @@ def markdown_to_html(text: str) -> str:
             continue
         line = line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         line = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", line)
+        line = re.sub(r"\[(.+?)\]\((.+?)\)", r'<a href="\2">\1</a>', line)
         if line.startswith("## "):
             html_lines.append(f"<h2>{line[3:]}</h2>")
         else:
@@ -351,6 +357,135 @@ def generate_and_email():
         return jsonify({"status": "sent"}), 200
     else:
         return jsonify({"error": message}), 500
+
+
+def _get_weekly_subscribers() -> list[dict]:
+    """
+    Flask-compatible equivalent of the main app's
+    profiles_db.list_weekly_subscribers() -- can't use Streamlit's
+    st.connection here since this is a plain Flask app, not a
+    Streamlit one. Uses a fresh SQLAlchemy engine against the same
+    DATABASE_URL instead. Row values come back as native Python
+    date/time objects directly from psycopg2 (no pandas involved),
+    so this doesn't need the Timestamp-normalization dance the
+    Streamlit side needs.
+    """
+    engine = create_engine(os.environ["DATABASE_URL"])
+    with engine.connect() as conn:
+        result = conn.execute(sql_text(
+            "SELECT * FROM saved_profiles WHERE weekly_transits = TRUE"
+        ))
+        return [dict(row._mapping) for row in result]
+
+
+def _process_weekly_transit_profile(profile: dict) -> tuple[bool, str]:
+    """
+    Builds and sends one profile's weekly transit email. Mirrors
+    _process_reading_job's shape, but for a single saved profile
+    rather than a live form submission -- reconstructs the natal
+    chart from the profile's stored birth data, computes today's
+    transits against it, and emails a short summary with an
+    unsubscribe link.
+
+    Profiles with unknown_time are skipped entirely (not treated as a
+    failure) -- transit readings need house cusps to place transiting
+    planets in the natal chart, which requires a known birth time,
+    the same reason the in-app unknown-time path never offered
+    Transits as an option to begin with.
+    """
+    if profile.get("unknown_time"):
+        return True, "skipped (unknown birth time)"
+
+    label = profile["label"]
+    owner_email = profile["owner_email"]
+    try:
+        birth_date = profile["birth_date"]
+        birth_time = profile["birth_time"]
+        datetime_str = f"{birth_date.strftime('%B %d, %Y')} {birth_time.strftime('%I:%M %p')}"
+        birth = resolve_birth_data(datetime_str, profile["location_str"], verbose=False)
+
+        chart = compute_full_chart(birth, house_system=b"P")
+        dignities = compute_chart_dignities(chart)
+
+        transit_dt_utc = datetime.utcnow().replace(hour=12, minute=0, second=0, tzinfo=timezone.utc)
+        transiting_points = compute_transiting_points(transit_dt_utc)
+        natal_house_cusps = [chart[f"House {i}"] for i in range(1, 13)]
+        assign_transit_houses(transiting_points, natal_house_cusps)
+        transit_aspects = compute_transit_aspects(
+            chart, transiting_points,
+            transiting_speeds=extract_speeds(transiting_points),
+        )
+
+        prompt = build_transit_summary_only_prompt(
+            transiting_points, transit_aspects, dignities,
+            person_name=profile.get("person_name"),
+        )
+
+        import anthropic
+        client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        accumulated_text = ""
+        with client.messages.stream(
+            model="claude-sonnet-5",
+            max_tokens=4096,
+            messages=[{"role": "user", "content": prompt}],
+        ) as stream:
+            for text_chunk in stream.text_stream:
+                accumulated_text += text_chunk
+
+        app_base_url = os.environ.get("APP_BASE_URL", "https://tenthhousereadings.com")
+        unsubscribe_url = f"{app_base_url}/?unsubscribe={profile['unsubscribe_token']}"
+        accumulated_text += (
+            f"\n\n---\n\n[Turn off weekly transit emails for {label}]({unsubscribe_url})"
+        )
+
+        send_email(
+            owner_email,
+            f"Your Week Ahead — {label} — Tenth House Readings",
+            accumulated_text,
+        )
+        return True, "sent"
+    except Exception as e:
+        print(f"[email_worker] Weekly transit failed for \"{label}\" ({owner_email}): "
+              f"{traceback.format_exc()}")
+        return False, str(e)
+
+
+@app.route("/send-weekly-transits", methods=["POST"])
+def send_weekly_transits():
+    """
+    Triggered by a QStash Schedule (set up once, in Upstash's
+    console, pointed at this endpoint on a weekly cron) rather than
+    an individual publish per request like /generate-and-email —
+    this single trigger fans out to every currently opted-in profile
+    across all users. Each profile is wrapped in its own try/except
+    (inside _process_weekly_transit_profile) so one person's failure
+    never blocks anyone else's email from going out.
+    """
+    signature = request.headers.get("Upstash-Signature", "")
+    body_raw = request.get_data(as_text=True)
+    try:
+        receiver.verify(
+            signature=signature,
+            body=body_raw,
+            url=request.url,
+        )
+    except Exception as e:
+        return jsonify({"error": f"Signature verification failed: {e}"}), 401
+
+    subscribers = _get_weekly_subscribers()
+    sent, skipped, failed = 0, 0, 0
+    for profile in subscribers:
+        success, message = _process_weekly_transit_profile(profile)
+        if not success:
+            failed += 1
+        elif "skipped" in message:
+            skipped += 1
+        else:
+            sent += 1
+
+    summary = {"total": len(subscribers), "sent": sent, "skipped": skipped, "failed": failed}
+    print(f"[email_worker] Weekly transits run: {summary}")
+    return jsonify(summary), 200
 
 
 @app.route("/health", methods=["GET"])
