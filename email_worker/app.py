@@ -440,8 +440,15 @@ def _deactivate_by_subscription_id_worker(stripe_subscription_id: str) -> None:
     Flask-compatible equivalent of profiles_db.deactivate_by_subscription_id
     -- called on customer.subscription.deleted (canceled via Stripe's own
     Customer Portal, not just this app's unsubscribe link) and
-    invoice.payment_failed (card stopped working). Silently does nothing
-    if no profile matches this subscription id.
+    invoice.payment_failed (card stopped working).
+
+    Checks BOTH saved_profiles (weekly transits) and account_subscriptions
+    (the $10/month full-access plan) -- both are ordinary Stripe
+    subscriptions, and Stripe fires the exact same event types for a
+    canceled/failed payment regardless of which product it was for, so
+    this needs to cover both rather than assuming which one a given
+    subscription id belongs to. Silently does nothing wherever no row
+    matches.
     """
     engine = create_engine(os.environ["DATABASE_URL"])
     with engine.begin() as conn:
@@ -449,6 +456,33 @@ def _deactivate_by_subscription_id_worker(stripe_subscription_id: str) -> None:
             "UPDATE saved_profiles SET weekly_transits = FALSE "
             "WHERE stripe_subscription_id = :sub_id"
         ), {"sub_id": stripe_subscription_id})
+        conn.execute(sql_text(
+            "UPDATE account_subscriptions SET active = FALSE "
+            "WHERE stripe_subscription_id = :sub_id"
+        ), {"sub_id": stripe_subscription_id})
+
+
+def _activate_account_subscription_worker(owner_email: str, stripe_customer_id: str, stripe_subscription_id: str) -> None:
+    """
+    Flask-compatible equivalent of profiles_db.activate_subscription --
+    marks an account's $10/month full-access plan active. Upserts, since
+    someone could subscribe, cancel, and re-subscribe later.
+    """
+    engine = create_engine(os.environ["DATABASE_URL"])
+    with engine.begin() as conn:
+        conn.execute(sql_text("""
+            INSERT INTO account_subscriptions
+                (owner_email, stripe_customer_id, stripe_subscription_id, active)
+            VALUES (:owner_email, :stripe_customer_id, :stripe_subscription_id, TRUE)
+            ON CONFLICT (owner_email) DO UPDATE SET
+                stripe_customer_id = :stripe_customer_id,
+                stripe_subscription_id = :stripe_subscription_id,
+                active = TRUE
+        """), {
+            "owner_email": owner_email,
+            "stripe_customer_id": stripe_customer_id,
+            "stripe_subscription_id": stripe_subscription_id,
+        })
 
 
 def _process_weekly_transit_profile(profile: dict) -> tuple[bool, str]:
@@ -622,9 +656,6 @@ def stripe_webhook():
             metadata = data_object.get("metadata", {})
             product_type = metadata.get("product_type", "weekly")  # default covers any in-flight test purchases from before this existed
             label = metadata.get("label", "Customer")
-            birth_date_str = metadata["birth_date"]  # YYYY-MM-DD, from date.isoformat()
-            birth_time_str = metadata["birth_time"]  # HH:MM, 24-hour
-            location_str = metadata["location_str"]
             customer_email = data_object.get("customer_email") or (data_object.get("customer_details") or {}).get("email")
             stripe_customer_id = data_object.get("customer")
             stripe_subscription_id = data_object.get("subscription")
@@ -634,14 +665,23 @@ def stripe_webhook():
                       f"subscription {stripe_subscription_id} -- already processed, skipping.")
                 return jsonify({"status": "duplicate, skipped"}), 200
 
-            # Reparse into the "Month DD, YYYY HH:MM" style
-            # resolve_birth_data expects, and geocode for real (the
-            # signup page only did a quick check, not the full
-            # resolution needed to actually compute a chart).
-            _bd = datetime.strptime(birth_date_str, "%Y-%m-%d")
-            _bt = datetime.strptime(birth_time_str, "%H:%M")
-            datetime_str = f"{_bd.strftime('%B %d, %Y')} {_bt.strftime('%I:%M %p')}"
-            birth = resolve_birth_data(datetime_str, location_str, verbose=False)
+            # full_access_subscription is the one product here that
+            # ISN'T tied to any birth data at all -- it's an
+            # account-level entitlement, not a specific reading -- so
+            # its metadata never includes birth_date/birth_time/
+            # location_str, and this whole block is skipped for it.
+            if product_type != "full_access_subscription":
+                birth_date_str = metadata["birth_date"]  # YYYY-MM-DD, from date.isoformat()
+                birth_time_str = metadata["birth_time"]  # HH:MM, 24-hour
+                location_str = metadata["location_str"]
+                # Reparse into the "Month DD, YYYY HH:MM" style
+                # resolve_birth_data expects, and geocode for real (the
+                # signup page only did a quick check, not the full
+                # resolution needed to actually compute a chart).
+                _bd = datetime.strptime(birth_date_str, "%Y-%m-%d")
+                _bt = datetime.strptime(birth_time_str, "%H:%M")
+                datetime_str = f"{_bd.strftime('%B %d, %Y')} {_bt.strftime('%I:%M %p')}"
+                birth = resolve_birth_data(datetime_str, location_str, verbose=False)
 
             if product_type == "weekly":
                 theme = metadata.get("theme", "General")
@@ -724,6 +764,58 @@ def stripe_webhook():
                         accumulated_text += text_chunk
                 send_email(customer_email, "Your Question, Answered — Tenth House Readings", accumulated_text)
                 print(f"[email_worker] Ask an Astrologer answer sent to {customer_email}")
+
+            elif product_type == "reading_unlock":
+                # The $3 one-off unlock -- reuses _process_reading_job
+                # wholesale rather than re-implementing chart
+                # computation and prompt dispatch for every reading
+                # type here. That function already handles every
+                # reading type this app supports (Personal, Synastry,
+                # Deep Dive) via its own internal dispatch, since it's
+                # the exact same code path the "Generate Summary and
+                # Email Full Reading" in-app flow already uses.
+                reading_type = metadata.get("reading_type", "General")
+                job = {
+                    "reading_type": reading_type,
+                    "datetime_str": datetime_str,
+                    "location_str": location_str,
+                    "unknown_time": metadata.get("unknown_time") == "true",
+                    "person_name": label,
+                    "email": customer_email,
+                }
+                if reading_type in ("Professional Synastry", "Relationship Synastry", "Parent/Child Synastry"):
+                    _bd_b = datetime.strptime(metadata["birth_date_b"], "%Y-%m-%d")
+                    _bt_b = datetime.strptime(metadata["birth_time_b"], "%H:%M")
+                    job["datetime_str_b"] = f"{_bd_b.strftime('%B %d, %Y')} {_bt_b.strftime('%I:%M %p')}"
+                    job["location_str_b"] = metadata["location_str_b"]
+                    job["unknown_time_b"] = metadata.get("unknown_time_b") == "true"
+                    job["person_name_b"] = metadata.get("label_b")
+                    if metadata.get("relationship_stage"):
+                        job["relationship_stage"] = metadata["relationship_stage"]
+
+                success, message = _process_reading_job(job)
+                if success:
+                    print(f"[email_worker] Reading unlock ({reading_type}) sent to {customer_email}")
+                else:
+                    print(f"[email_worker] Reading unlock ({reading_type}) FAILED: {message}")
+
+            elif product_type == "full_access_subscription":
+                # Account-level entitlement, not tied to any specific
+                # reading -- unlocks Full Reading/Email on Personal,
+                # Synastry, and Deep Dive for as long as it's active.
+                # Deliberately does NOT cover the Astrology Services
+                # products (Weekly Transits, One-Time Transit, Ask an
+                # Astrologer) -- those stay separately priced.
+                _activate_account_subscription_worker(customer_email, stripe_customer_id, stripe_subscription_id)
+                welcome_body = (
+                    f"## Welcome to Full Access, {label}!\n\n"
+                    f"Your subscription is confirmed — you now have unlimited "
+                    f"full readings and email delivery across Personal, "
+                    f"Synastry, and Deep Dive readings. Just log in with this "
+                    f"same email ({customer_email}) on the site to use it."
+                )
+                send_email(customer_email, "Full Access Confirmed — Tenth House Readings", welcome_body)
+                print(f"[email_worker] Full access subscription activated for {customer_email}")
 
         elif event_type == "customer.subscription.deleted":
             _deactivate_by_subscription_id_worker(data_object.get("id"))
