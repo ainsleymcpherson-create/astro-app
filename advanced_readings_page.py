@@ -32,7 +32,7 @@ from profiles_db import safe_user_email
 st.title("✨ Advanced Readings")
 st.write(
     "Get the complete, in-depth version of any reading — emailed to you. "
-    "**$3** unlocks a single reading, or **$10/month** (requires logging "
+    "**\\$3** unlocks a single reading, or **\\$10/month** (requires logging "
     "in) unlocks unlimited full readings across Personal, Synastry, and "
     "Deep Dive."
 )
