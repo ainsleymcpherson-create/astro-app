@@ -28,6 +28,25 @@ import pandas as pd
 from sqlalchemy import text
 
 
+def safe_user_email() -> str | None:
+    """
+    st.user.email has been observed to raise AttributeError even when
+    st.user.is_logged_in is True — seen in production right alongside
+    a "stale or replayed OAuth callback" warning, apparently a brief
+    window where Streamlit's session carries a valid login cookie but
+    hasn't yet fully populated the OIDC claims dict behind it. Every
+    call site that needs the logged-in user's email should go through
+    this rather than touching st.user.email directly, so that one
+    unlucky rerun during that window degrades gracefully (saved
+    profiles just don't load for that rerun) instead of taking down
+    the entire page with an uncaught exception.
+    """
+    try:
+        return st.user.email
+    except AttributeError:
+        return None
+
+
 def _get_conn():
     """
     Returns the cached SQL connection, built from the DATABASE_URL
