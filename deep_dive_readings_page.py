@@ -408,13 +408,9 @@ email_address = None
 want_email_full = False
 
 GEN_DONT = "Show Prompt"
-GEN_QUICK_ONLY = "Generate Summary (fast, in-app)"
-GEN_FULL_NOW = "Generate Full Reading (can take up to 5 minutes)"
-GEN_QUICK_EMAIL = (
-    "Generate Summary and Email Full Reading (navigate away from this "
-    "page while your reading is being generated; can take up to 10 "
-    "minutes to appear in your inbox)"
-)
+GEN_QUICK_ONLY = "Generate Summary"
+GEN_FULL_NOW = "Generate Full Reading (can take 5+ minutes)"
+GEN_QUICK_EMAIL = "Generate Summary & Email Full Reading"
 
 # --- Tiered access ---
 # Anonymous visitors: summary only, no full reading and no email
@@ -424,7 +420,7 @@ GEN_QUICK_EMAIL = (
 # a single hardcoded account so development can keep using it as this
 # gets built out, without exposing it to anyone else.
 _is_logged_in = "auth" in st.secrets and st.user.is_logged_in
-_is_admin = _is_logged_in and st.user.email == "amcpherson89@gmail.com"
+_is_admin = _is_logged_in and (st.user.email or "").strip().lower() == "amcpherson89@gmail.com"
 
 _generation_options = []
 if _is_admin:
