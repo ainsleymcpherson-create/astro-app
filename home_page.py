@@ -24,12 +24,6 @@ st.write(
 if st.button("Get Your Free Reading →", type="primary"):
     st.switch_page("personal_readings_page.py")
 
-col_a, col_b = st.columns(2)
-with col_a:
-    st.page_link("synastry_readings_page.py", label="Synastry Readings", icon="👥")
-with col_b:
-    st.page_link("deep_dive_readings_page.py", label="Deep Dive Readings", icon="🔍")
-
 st.divider()
 
 # --- Every paid offering shown together, same format, same weight ---
@@ -81,8 +75,3 @@ for offering, col in zip(OFFERINGS, row1 + row2):
             st.markdown(f"**{offering['icon']} {offering['name']}**")
             st.write(offering["desc"])
             st.page_link(offering["page"], label=offering["link_label"])
-
-st.divider()
-st.write("New to some of the terms used throughout? The Resources page has a "
-          "plain-language glossary of signs, planets, and houses.")
-st.page_link("resources_page.py", label="Resources", icon="📖")
