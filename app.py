@@ -80,5 +80,25 @@ synastry_readings = st.Page("synastry_readings_page.py", title="Synastry Reading
 deep_dive_readings = st.Page("deep_dive_readings_page.py", title="Deep Dive Readings", icon="🔍")
 resources = st.Page("resources_page.py", title="Resources", icon="📖")
 
+# --- Optional login (saved profiles) ---
+# Anonymous use is always fully available everywhere else in the app —
+# this only adds an optional "log in to save birth profiles"
+# convenience layer, per an explicit product decision to never gate
+# the core reading experience behind an account. Guarded by an "auth"
+# secrets check so the app runs identically whether or not Auth0
+# credentials have actually been configured yet (e.g. during initial
+# rollout, or in a local dev environment without them) — this check
+# fails safe, just hiding the login UI entirely, rather than crashing.
+if "auth" in st.secrets:
+    with st.sidebar:
+        st.divider()
+        if st.user.is_logged_in:
+            st.caption(f"Signed in as {st.user.email}")
+            if st.button("Log out", width="stretch"):
+                st.logout()
+        else:
+            if st.button("Log in to save profiles", width="stretch"):
+                st.login("auth0")
+
 pg = st.navigation([personal_readings, synastry_readings, deep_dive_readings, resources])
 pg.run()
