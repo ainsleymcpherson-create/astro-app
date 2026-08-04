@@ -526,16 +526,6 @@ _generation_options.append(GEN_QUICK_ONLY)
 if _has_full_access:
     _generation_options += [GEN_FULL_NOW, GEN_QUICK_EMAIL]
 
-if not _has_full_access:
-    st.info(
-        "You're seeing the free tier — a fast summary shown right here. "
-        "Want the full reading or to get it emailed? **Pay \\$3** to unlock "
-        "this one reading (no account needed), or **subscribe for "
-        "\\$10/month** (log in from the sidebar) for unlimited full "
-        "readings across Personal, Synastry, and Deep Dive.",
-        icon="🔓",
-    )
-
 if len(_generation_options) == 1:
     # Only one real choice exists (the anonymous/free tier) -- a radio
     # group with a single option is just clutter, so skip it entirely
