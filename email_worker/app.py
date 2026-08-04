@@ -378,6 +378,59 @@ def _get_weekly_subscribers() -> list[dict]:
         return [dict(row._mapping) for row in result]
 
 
+def _create_paid_subscriber_profile_worker(
+    label: str, birth_date, birth_time, location_str: str,
+    latitude: float, longitude: float, resolved_address: str, theme: str,
+    owner_email: str, stripe_customer_id: str, stripe_subscription_id: str,
+) -> str:
+    """
+    Flask-compatible equivalent of profiles_db.create_paid_subscriber_profile
+    -- called from the Stripe webhook handler once checkout.session.completed
+    confirms a real payment, never from the signup page itself. Returns
+    the generated unsubscribe_token, included in the welcome email.
+    """
+    import secrets as secrets_module
+    token = secrets_module.token_urlsafe(32)
+    engine = create_engine(os.environ["DATABASE_URL"])
+    with engine.begin() as conn:
+        conn.execute(sql_text("""
+            INSERT INTO saved_profiles
+                (owner_email, label, birth_date, birth_time, unknown_time,
+                 location_str, latitude, longitude, resolved_address,
+                 transit_theme, weekly_transits, is_paid_subscriber,
+                 stripe_customer_id, stripe_subscription_id, unsubscribe_token)
+            VALUES
+                (:owner_email, :label, :birth_date, :birth_time, FALSE,
+                 :location_str, :latitude, :longitude, :resolved_address,
+                 :theme, TRUE, TRUE,
+                 :stripe_customer_id, :stripe_subscription_id, :token)
+        """), {
+            "owner_email": owner_email, "label": label, "birth_date": birth_date,
+            "birth_time": birth_time, "location_str": location_str,
+            "latitude": latitude, "longitude": longitude,
+            "resolved_address": resolved_address, "theme": theme,
+            "stripe_customer_id": stripe_customer_id,
+            "stripe_subscription_id": stripe_subscription_id, "token": token,
+        })
+    return token
+
+
+def _deactivate_by_subscription_id_worker(stripe_subscription_id: str) -> None:
+    """
+    Flask-compatible equivalent of profiles_db.deactivate_by_subscription_id
+    -- called on customer.subscription.deleted (canceled via Stripe's own
+    Customer Portal, not just this app's unsubscribe link) and
+    invoice.payment_failed (card stopped working). Silently does nothing
+    if no profile matches this subscription id.
+    """
+    engine = create_engine(os.environ["DATABASE_URL"])
+    with engine.begin() as conn:
+        conn.execute(sql_text(
+            "UPDATE saved_profiles SET weekly_transits = FALSE "
+            "WHERE stripe_subscription_id = :sub_id"
+        ), {"sub_id": stripe_subscription_id})
+
+
 def _process_weekly_transit_profile(profile: dict) -> tuple[bool, str]:
     """
     Builds and sends one profile's weekly transit email. Mirrors
@@ -486,6 +539,108 @@ def send_weekly_transits():
     summary = {"total": len(subscribers), "sent": sent, "skipped": skipped, "failed": failed}
     print(f"[email_worker] Weekly transits run: {summary}")
     return jsonify(summary), 200
+
+
+@app.route("/stripe-webhook", methods=["POST"])
+def stripe_webhook():
+    """
+    Handles Stripe's webhook events for the weekly-transits paid
+    subscription. This is the ONLY place a paid subscriber profile
+    ever gets created or deactivated -- deliberately never on the
+    signup page's own submission, and never based on Stripe's
+    success_url redirect, since a redirect can fire without payment
+    actually completing. Only a verified, signed webhook event from
+    Stripe itself is trusted to grant or revoke access.
+
+    Events handled:
+      checkout.session.completed  -- payment confirmed, create the
+                                      profile and send a welcome email
+      customer.subscription.deleted -- canceled (including via
+                                      Stripe's own Customer Portal,
+                                      not just this app's unsubscribe
+                                      link) -- deactivate
+      invoice.payment_failed      -- card stopped working --
+                                      deactivate; someone who isn't
+                                      actually paying shouldn't keep
+                                      getting emails regardless of why
+    """
+    import stripe
+    stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
+
+    payload = request.get_data()  # raw bytes -- signature verification
+    sig_header = request.headers.get("Stripe-Signature", "")
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, os.environ["STRIPE_WEBHOOK_SECRET"]
+        )
+    except Exception as e:
+        return jsonify({"error": f"Webhook signature verification failed: {e}"}), 400
+
+    event_type = event["type"]
+    data_object = event["data"]["object"]
+
+    try:
+        if event_type == "checkout.session.completed":
+            metadata = data_object.get("metadata", {})
+            label = metadata.get("label", "Subscriber")
+            birth_date_str = metadata["birth_date"]  # YYYY-MM-DD, from date.isoformat()
+            birth_time_str = metadata["birth_time"]  # HH:MM, 24-hour
+            location_str = metadata["location_str"]
+            theme = metadata.get("theme", "General")
+            customer_email = data_object.get("customer_email") or data_object.get("customer_details", {}).get("email")
+            stripe_customer_id = data_object.get("customer")
+            stripe_subscription_id = data_object.get("subscription")
+
+            # Reparse into the "Month DD, YYYY HH:MM" style
+            # resolve_birth_data expects, and geocode for real (the
+            # signup page only did a quick check, not the full
+            # resolution needed to actually compute a chart).
+            _bd = datetime.strptime(birth_date_str, "%Y-%m-%d")
+            _bt = datetime.strptime(birth_time_str, "%H:%M")
+            datetime_str = f"{_bd.strftime('%B %d, %Y')} {_bt.strftime('%I:%M %p')}"
+            birth = resolve_birth_data(datetime_str, location_str, verbose=False)
+
+            token = _create_paid_subscriber_profile_worker(
+                label=label,
+                birth_date=_bd.date(),
+                birth_time=_bt.time(),
+                location_str=location_str,
+                latitude=birth.latitude,
+                longitude=birth.longitude,
+                resolved_address=location_str,
+                theme=theme,
+                owner_email=customer_email,
+                stripe_customer_id=stripe_customer_id,
+                stripe_subscription_id=stripe_subscription_id,
+            )
+
+            app_base_url = os.environ.get("APP_BASE_URL", "https://tenthhousereadings.com")
+            manage_url = f"{app_base_url}/?manage={token}"
+            welcome_body = (
+                f"## Welcome, {label}!\n\n"
+                f"Your weekly transits subscription is confirmed — your first "
+                f"reading arrives this coming Monday, focused on your "
+                f"**{theme}** theme.\n\n"
+                f"[Manage your subscription (change theme, or unsubscribe)]({manage_url})"
+            )
+            send_email(customer_email, "You're signed up — Tenth House Readings", welcome_body)
+
+        elif event_type == "customer.subscription.deleted":
+            _deactivate_by_subscription_id_worker(data_object.get("id"))
+
+        elif event_type == "invoice.payment_failed":
+            sub_id = data_object.get("subscription")
+            if sub_id:
+                _deactivate_by_subscription_id_worker(sub_id)
+
+    except Exception:
+        print(f"[email_worker] Stripe webhook processing failed for {event_type}: "
+              f"{traceback.format_exc()}")
+        # Still return 200 -- Stripe would otherwise retry an event
+        # that failed for a reason a retry won't fix (e.g. bad
+        # metadata), and this is logged above for manual follow-up.
+
+    return jsonify({"status": "received"}), 200
 
 
 @app.route("/health", methods=["GET"])
