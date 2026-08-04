@@ -109,6 +109,21 @@ def init_schema() -> None:
             "ALTER TABLE saved_profiles ADD COLUMN IF NOT EXISTS is_paid_subscriber "
             "BOOLEAN NOT NULL DEFAULT FALSE"
         ))
+        # Separate table, deliberately -- this tracks the $10/month
+        # "full access" plan, which is an ACCOUNT-level entitlement
+        # (unlocks full readings across Personal and Synastry, for as
+        # long as it's active), not tied to any one saved birth
+        # profile the way weekly_transits is. owner_email is the
+        # primary key since each account has at most one active plan.
+        session.execute(text("""
+            CREATE TABLE IF NOT EXISTS account_subscriptions (
+                owner_email TEXT PRIMARY KEY,
+                stripe_customer_id TEXT,
+                stripe_subscription_id TEXT,
+                active BOOLEAN NOT NULL DEFAULT TRUE,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW()
+            )
+        """))
         session.commit()
 
 
@@ -469,3 +484,66 @@ def set_theme_by_token(token: str, theme: str) -> str | None:
         row = result.fetchone()
         session.commit()
         return row[0] if row else None
+
+
+def has_active_subscription(owner_email: str) -> bool:
+    """
+    Checks whether this account currently has an active $10/month
+    full-access plan -- this is what actually gates the "Full
+    Reading"/"Generate Summary and Email" options on Personal and
+    Synastry Readings for a logged-in user, replacing the old
+    "logged in = free full access" rule. Being logged in with no
+    active subscription now only unlocks saved profiles, not full
+    readings.
+    """
+    conn = _get_conn()
+    df = conn.query(
+        "SELECT active FROM account_subscriptions WHERE owner_email = :owner_email",
+        params={"owner_email": owner_email},
+        ttl=0,
+    )
+    if df.empty:
+        return False
+    return bool(df.iloc[0]["active"])
+
+
+def activate_subscription(owner_email: str, stripe_customer_id: str, stripe_subscription_id: str) -> None:
+    """
+    Marks an account's full-access plan as active -- called from the
+    webhook on a confirmed subscription payment. Upserts rather than
+    always inserting, since someone could subscribe, cancel, and
+    re-subscribe later under the same email.
+    """
+    conn = _get_conn()
+    with conn.session as session:
+        session.execute(text("""
+            INSERT INTO account_subscriptions
+                (owner_email, stripe_customer_id, stripe_subscription_id, active)
+            VALUES (:owner_email, :stripe_customer_id, :stripe_subscription_id, TRUE)
+            ON CONFLICT (owner_email) DO UPDATE SET
+                stripe_customer_id = :stripe_customer_id,
+                stripe_subscription_id = :stripe_subscription_id,
+                active = TRUE
+        """), {
+            "owner_email": owner_email,
+            "stripe_customer_id": stripe_customer_id,
+            "stripe_subscription_id": stripe_subscription_id,
+        })
+        session.commit()
+
+
+def deactivate_subscription_by_id(stripe_subscription_id: str) -> None:
+    """
+    Turns off an account's full-access plan -- called on
+    customer.subscription.deleted (canceled, including via Stripe's
+    own Customer Portal) and invoice.payment_failed (card stopped
+    working). Silently does nothing if no account matches this
+    subscription id.
+    """
+    conn = _get_conn()
+    with conn.session as session:
+        session.execute(text(
+            "UPDATE account_subscriptions SET active = FALSE "
+            "WHERE stripe_subscription_id = :sub_id"
+        ), {"sub_id": stripe_subscription_id})
+        session.commit()
