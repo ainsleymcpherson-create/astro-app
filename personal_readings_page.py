@@ -247,15 +247,6 @@ unknown_time = (
 if reading_type in SYNASTRY_READING_TYPES:
     st.subheader("Person A")
 
-person_name = st.text_input(
-    "Name (optional)",
-    value="",
-    help="If provided, the reading will address this person by name "
-         "occasionally instead of only using \"you\" throughout.",
-    key="person_name_a",
-)
-
-
 # --- Saved profile picker (only when logged in and the database is
 # configured) ---
 # Purely additive: an anonymous visitor, or a logged-in one before the
@@ -266,7 +257,9 @@ person_name = st.text_input(
 # switching which profile is selected needs the widgets to get a
 # fresh key too, or they'd keep showing stale data from before the
 # switch. `profile_key_suffix` (the chosen profile's id, or "new")
-# is shared across all three fields below so they all reset together.
+# is shared across every field below so they all reset together.
+# Placed BEFORE the Name field specifically so the name can pre-fill
+# too, rather than only birth data.
 selected_profile = None
 profile_key_suffix = "new"
 if "auth" in st.secrets and st.user.is_logged_in and "DATABASE_URL" in os.environ:
@@ -281,6 +274,14 @@ if "auth" in st.secrets and st.user.is_logged_in and "DATABASE_URL" in os.enviro
         if profile_choice != "Select":
             selected_profile = next(p for p in saved_profiles if p["label"] == profile_choice)
             profile_key_suffix = str(selected_profile["id"])
+
+person_name = st.text_input(
+    "Name (optional)",
+    value=(selected_profile.get("person_name") or "") if selected_profile else "",
+    help="If provided, the reading will address this person by name "
+         "occasionally instead of only using \"you\" throughout.",
+    key=f"person_name_a_{profile_key_suffix}",
+)
 
 if selected_profile:
     _sp_hour_12 = selected_profile["birth_time"].hour % 12 or 12 if selected_profile["birth_time"] else None
@@ -337,6 +338,32 @@ with _details_container:
             st.caption(f"✓ {_loc_address}")
         else:
             st.caption("Location not yet confirmed — checked when you generate your reading")
+
+    if selected_profile:
+        if st.button(f"💾 Update \"{selected_profile['label']}\" with these changes"):
+            try:
+                from profiles_db import update_profile
+                with st.spinner("Resolving location and timezone..."):
+                    _update_datetime_str = f"{birth_date.strftime('%B %d, %Y')} {birth_hour:02d}:{birth_minute} {birth_ampm}"
+                    _update_birth = resolve_birth_data(_update_datetime_str, location_str, verbose=False)
+                _, _update_address = geocode_location_quick(location_str)
+                update_profile(
+                    profile_id=selected_profile["id"],
+                    owner_email=st.user.email,
+                    label=selected_profile["label"],
+                    person_name=person_name.strip() if person_name.strip() else None,
+                    birth_date=birth_date,
+                    birth_time=None if unknown_time else birth_time_val,
+                    unknown_time=unknown_time,
+                    location_str=location_str,
+                    latitude=_update_birth.latitude,
+                    longitude=_update_birth.longitude,
+                    resolved_address=_update_address,
+                )
+                st.success(f"Updated \"{selected_profile['label']}\"", icon="💾")
+                st.rerun()
+            except Exception as e:
+                st.warning(f"Couldn't update this profile: {e}")
 
 align_col1, align_col2, align_col3 = st.columns([1, 1.3, 1])
 with align_col2:
@@ -975,6 +1002,7 @@ if st.session_state.get("processing", False):
                 save_profile(
                     owner_email=st.user.email,
                     label=profile_label.strip(),
+                    person_name=person_name.strip() if person_name.strip() else None,
                     birth_date=birth_date,
                     birth_time=None if unknown_time else birth_time_val,
                     unknown_time=unknown_time,
