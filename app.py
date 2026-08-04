@@ -25,6 +25,7 @@ This file itself stays intentionally small — it's just the router.
 All the actual logic lives in the page files.
 """
 
+import os
 import streamlit as st
 
 st.set_page_config(page_title="Tenth House Readings", layout="wide")
@@ -96,6 +97,28 @@ if "auth" in st.secrets:
             st.caption(f"Signed in as {st.user.email}")
             if st.button("Log out", width="stretch"):
                 st.logout()
+
+            # --- Saved profiles management ---
+            # Guarded separately from the login block above, since
+            # login can exist without the database being configured
+            # yet (e.g. mid-rollout) -- fails safe to just not
+            # showing this section, same pattern as everywhere else
+            # this app checks for optional infrastructure.
+            if "DATABASE_URL" in os.environ:
+                from profiles_db import init_schema, list_profiles, delete_profile
+                init_schema()
+                with st.expander("My Profiles"):
+                    saved = list_profiles(st.user.email)
+                    if not saved:
+                        st.caption("No saved profiles yet.")
+                    for p in saved:
+                        col_label, col_delete = st.columns([3, 1])
+                        with col_label:
+                            st.write(p["label"])
+                        with col_delete:
+                            if st.button("🗑️", key=f"del_profile_{p['id']}", help=f"Delete \"{p['label']}\""):
+                                delete_profile(p["id"], st.user.email)
+                                st.rerun()
         else:
             if st.button("Log in to save profiles", width="stretch"):
                 st.login("auth0")
