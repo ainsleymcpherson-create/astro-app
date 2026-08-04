@@ -506,27 +506,33 @@ GEN_FULL_NOW = "Generate Full Reading (can take 5+ minutes)"
 GEN_QUICK_EMAIL = "Generate Summary & Email Full Reading"
 
 # --- Tiered access ---
-# Anonymous visitors: summary only, no full reading and no email
-# delivery -- those stay behind login. Show Prompt is separate again:
-# it's a build/debug view of the actual prompt sent to the model, not
-# something any regular user (logged in or not) should see -- kept to
-# a single hardcoded account so development can keep using it as this
-# gets built out, without exposing it to anyone else.
+# Anonymous visitors and logged-in-without-a-subscription visitors
+# both get summary only. Full reading + email now requires an ACTIVE
+# $10/month subscription, not just being logged in -- login by itself
+# only unlocks saved profiles these days. Show Prompt is separate
+# again: kept to a single hardcoded account for development use.
 _is_logged_in = "auth" in st.secrets and st.user.is_logged_in
 _is_admin = _is_logged_in and (_user_email or "").strip().lower() == "amcpherson89@gmail.com"
+
+_has_full_access = False
+if _is_logged_in and _user_email and "DATABASE_URL" in os.environ:
+    from profiles_db import has_active_subscription
+    _has_full_access = has_active_subscription(_user_email)
 
 _generation_options = []
 if _is_admin:
     _generation_options.append(GEN_DONT)
 _generation_options.append(GEN_QUICK_ONLY)
-if _is_logged_in:
+if _has_full_access:
     _generation_options += [GEN_FULL_NOW, GEN_QUICK_EMAIL]
 
-if "auth" in st.secrets and not _is_logged_in:
+if not _has_full_access:
     st.info(
         "You're seeing the free tier — a fast summary shown right here. "
-        "**Log in** (in the sidebar) to unlock the full in-depth reading "
-        "and email delivery.",
+        "Want the full reading or to get it emailed? **Pay $3** to unlock "
+        "this one reading (no account needed), or **subscribe for "
+        "$10/month** (log in from the sidebar) for unlimited full "
+        "readings across Personal, Synastry, and Deep Dive.",
         icon="🔓",
     )
 
@@ -1551,6 +1557,54 @@ if st.session_state.get("results"):
                         label_visibility="collapsed",
                         key="reading_copy",
                     )
+
+                if not _has_full_access and "STRIPE_SECRET_KEY" in os.environ \
+                        and "STRIPE_ONE_TIME_READING_UNLOCK_PRICE_ID" in os.environ:
+                    st.divider()
+                    st.subheader("Want the full reading?")
+                    st.write("Unlock the complete, in-depth version of this reading "
+                             "and have it emailed to you — a one-time purchase, no "
+                             "account needed.")
+                    if st.button("Unlock full reading — $3", width="stretch", type="primary"):
+                        import stripe
+                        stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
+                        try:
+                            metadata = {
+                                "product_type": "reading_unlock",
+                                "reading_type": r["reading_type"],
+                                "label": label_a or "",
+                                "birth_date": r["birth_date"].isoformat(),
+                                "birth_time": birth_time_val.strftime("%H:%M"),
+                                "location_str": r["location_str"],
+                                "unknown_time": "true" if unknown_time else "false",
+                            }
+                            if r["reading_type"] in SYNASTRY_READING_TYPES:
+                                metadata["label_b"] = label_b or ""
+                                metadata["birth_date_b"] = birth_date_b.isoformat()
+                                metadata["birth_time_b"] = birth_time_val_b.strftime("%H:%M")
+                                metadata["location_str_b"] = r["location_str_b"]
+                                metadata["unknown_time_b"] = "true" if unknown_time_b else "false"
+                                if r["reading_type"] == "Relationship Synastry" and locals().get("relationship_stage"):
+                                    metadata["relationship_stage"] = locals().get("relationship_stage")
+                            checkout_session = stripe.checkout.Session.create(
+                                mode="payment",
+                                line_items=[{
+                                    "price": os.environ["STRIPE_ONE_TIME_READING_UNLOCK_PRICE_ID"],
+                                    "quantity": 1,
+                                }],
+                                success_url="https://tenthhousereadings.com/?signup=success",
+                                cancel_url="https://tenthhousereadings.com/?signup=cancelled",
+                                metadata=metadata,
+                            )
+                            st.success("Click below to complete your payment securely with Stripe.")
+                            st.link_button(
+                                "Proceed to Secure Checkout →",
+                                checkout_session.url,
+                                width="stretch",
+                                type="primary",
+                            )
+                        except Exception as e:
+                            st.error(f"Something went wrong setting up checkout: {e}")
         elif r["interpretation_error"]:
             st.warning("Something went wrong generating the live interpretation:")
             st.code(r["interpretation_error"])
