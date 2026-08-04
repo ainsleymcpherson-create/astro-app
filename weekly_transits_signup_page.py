@@ -1,27 +1,27 @@
 """
 weekly_transits_signup_page.py
 
-Combined signup page for all three paid, no-login astrology products:
-  - Weekly Transits ($5/month, recurring)
-  - One-Time Transit Reading ($7, single purchase)
-  - Ask an Astrologer ($10, one specific question answered)
+Ask an Astrologer ($10, one specific question answered) -- the last
+of what used to be three products on this page. Weekly Transits and
+One-Time Transit Reading moved to Advanced Readings, since they fit
+that page's "pick a category, fill in birth data, pay" shape once it
+grew a Transits category of its own. Ask an Astrologer stays here on
+its own, since its open-ended question field doesn't fit that shape.
 
-Deliberately no login required for any of these -- meant to be simple
-purchases (name, birth data, email, pay), not something requiring a
-full account. All three share the same birth-data fields; only Ask an
-Astrologer adds a question field on top.
+Deliberately no login required -- meant to be a simple purchase
+(name, birth data, question, email, pay), not something requiring a
+full account.
 
 Creates a Stripe Checkout Session with the collected data attached as
 metadata (Stripe hands the same metadata back on the webhook event,
 so nothing needs to be held in a separate "pending signup" table in
-between), tagged with which product was purchased so the webhook
-handler knows which of the three flows to run.
+between).
 
 IMPORTANT: nothing here ever grants access to anything itself -- not
-even a successful-looking redirect back to this page. Every one of
-these three flows only actually happens once Stripe confirms payment
-via webhook (see email_worker/app.py's /stripe-webhook route). This
-page's job ends at handing off to Stripe.
+even a successful-looking redirect back to this page. The reading
+only actually gets generated once Stripe confirms payment via webhook
+(see email_worker/app.py's /stripe-webhook route). This page's job
+ends at handing off to Stripe.
 """
 
 import os
@@ -32,52 +32,17 @@ import streamlit as st
 from birth_input import geocode_location_quick
 
 st.title("🌙 Astrology Services")
+st.write("**Ask an Astrologer** — one specific question, answered using your "
+         "actual chart. **$10**, one-time.")
 
-if "STRIPE_SECRET_KEY" not in os.environ or "DATABASE_URL" not in os.environ:
-    st.warning("These aren't available right now — check back soon.")
+if "STRIPE_SECRET_KEY" not in os.environ or "STRIPE_ASK_ASTROLOGER_PRICE_ID" not in os.environ:
+    st.warning("This isn't available right now — check back soon.")
     st.stop()
 
 if st.query_params.get("signup") == "success":
-    st.success(
-        "Payment received! Check your inbox shortly.",
-        icon="🎉",
-    )
+    st.success("Payment received! Check your inbox shortly.", icon="🎉")
 elif st.query_params.get("signup") == "cancelled":
     st.info("Checkout was cancelled — no charge was made.")
-
-st.divider()
-
-PRODUCTS = {
-    "Weekly Transits — $5/month": {
-        "key": "weekly",
-        "price_env": "STRIPE_WEEKLY_TRANSITS_PRICE_ID",
-        "stripe_mode": "subscription",
-        "description": "A short reading of that week's transits against your own "
-                        "chart, delivered every Monday morning. Cancel anytime.",
-        "button_label": "Sign me up — $5/month",
-    },
-    "One-Time Transit Reading — $7": {
-        "key": "one_time",
-        "price_env": "STRIPE_ONE_TIME_TRANSIT_PRICE_ID",
-        "stripe_mode": "payment",
-        "description": "A full, in-depth reading of the current transits against "
-                        "your chart — a single reading, emailed shortly after payment.",
-        "button_label": "Get my reading — $7",
-    },
-    "Ask an Astrologer — $10": {
-        "key": "ask",
-        "price_env": "STRIPE_ASK_ASTROLOGER_PRICE_ID",
-        "stripe_mode": "payment",
-        "description": "Ask one specific question — anything from \"should I take "
-                        "this job\" to \"what does this transit mean for me\" — and "
-                        "get a real, focused answer grounded in your actual chart.",
-        "button_label": "Ask my question — $10",
-    },
-}
-
-product_choice = st.radio("What would you like?", options=list(PRODUCTS.keys()))
-product = PRODUCTS[product_choice]
-st.caption(product["description"])
 
 st.divider()
 
@@ -97,8 +62,7 @@ with col2:
     birth_time = st.time_input(
         "Birth time",
         value=time_type(12, 0),
-        help="An exact birth time is required here — none of these three "
-             "readings work without one, since they all need your houses.",
+        help="An exact birth time is required here — this needs your houses.",
     )
 with col3:
     location_str = st.text_input(
@@ -113,28 +77,17 @@ with col3:
         else:
             st.caption("Location not yet confirmed — checked before payment.")
 
-theme = None
-question = None
-
-if product["key"] == "weekly":
-    theme = st.radio(
-        "Reading theme",
-        options=["General", "Romantic", "Career"],
-        help="What your weekly reading focuses on. Changeable anytime later "
-             "via a link included in your emails.",
-    )
-elif product["key"] == "ask":
-    question = st.text_area(
-        "Your question",
-        max_chars=500,
-        placeholder="e.g. \"Should I take the job offer I just received?\"",
-        help="One specific question — this purchase covers one question, "
-             "answered once.",
-    )
+question = st.text_area(
+    "Your question",
+    max_chars=500,
+    placeholder="e.g. \"Should I take the job offer I just received?\"",
+    help="One specific question — this purchase covers one question, "
+         "answered once.",
+)
 
 st.divider()
 
-if st.button(product["button_label"], width="stretch", type="primary"):
+if st.button("Ask my question — $10", width="stretch", type="primary"):
     errors = []
     if not name.strip():
         errors.append("Please enter your name.")
@@ -146,40 +99,33 @@ if st.button(product["button_label"], width="stretch", type="primary"):
         _found, _ = geocode_location_quick(location_str)
         if not _found:
             errors.append("Couldn't confirm that location — please check it and try again.")
-    if product["key"] == "ask" and not (question or "").strip():
+    if not question.strip():
         errors.append("Please enter your question.")
 
     if errors:
         for e in errors:
             st.error(e)
-    elif product["price_env"] not in os.environ:
-        st.error("This option isn't fully configured yet — please try again later.")
     else:
         import stripe
         stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
         try:
-            metadata = {
-                "product_type": product["key"],
-                "label": name.strip(),
-                "birth_date": birth_date.isoformat(),
-                "birth_time": birth_time.strftime("%H:%M"),
-                "location_str": location_str.strip(),
-            }
-            if theme:
-                metadata["theme"] = theme
-            if question:
-                metadata["question"] = question.strip()
-
             checkout_session = stripe.checkout.Session.create(
-                mode=product["stripe_mode"],
+                mode="payment",
                 line_items=[{
-                    "price": os.environ[product["price_env"]],
+                    "price": os.environ["STRIPE_ASK_ASTROLOGER_PRICE_ID"],
                     "quantity": 1,
                 }],
                 customer_email=email.strip(),
                 success_url="https://tenthhousereadings.com/weekly-transits?signup=success",
                 cancel_url="https://tenthhousereadings.com/weekly-transits?signup=cancelled",
-                metadata=metadata,
+                metadata={
+                    "product_type": "ask",
+                    "label": name.strip(),
+                    "birth_date": birth_date.isoformat(),
+                    "birth_time": birth_time.strftime("%H:%M"),
+                    "location_str": location_str.strip(),
+                    "question": question.strip(),
+                },
             )
             st.success("Almost done — click below to complete your payment securely with Stripe.")
             st.link_button(
