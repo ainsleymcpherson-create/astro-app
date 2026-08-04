@@ -54,7 +54,7 @@ with col2:
         "We also provide one-time or weekly transit readings straight "
         "to your inbox. Stay up-to-date on how your chart is "
         "interacting with current planetary locations and transits. "
-        "Choose from one of three focuses: General, Relationship, or "
+        "Choose from one of three focuses: General, Romantic, or "
         "Career. Change the focus at any time! Looking for something "
         "you don't see offered already? Ask an astrologer something "
         "specific, and receive the detailed response in your email "
