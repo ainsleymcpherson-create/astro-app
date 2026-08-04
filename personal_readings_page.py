@@ -60,7 +60,7 @@ from prompt_builder import (
 )
 from birth_input import resolve_birth_data, geocode_location_quick
 from chart_wheel import (
-    draw_chart_wheel, draw_bi_wheel, draw_chart_wheel_art,
+    draw_chart_wheel, draw_bi_wheel, draw_chart_wheel_art, draw_bi_wheel_art,
     build_chart_data_table_html, build_synastry_data_table_html,
     get_table_rows, get_synastry_table_rows,
 )
@@ -1451,6 +1451,49 @@ if st.session_state.get("results"):
             dataframe_download_and_copy(
                 synastry_table_df, f"synastry_table_{r['birth_date'].isoformat()}.csv", "synastry_table"
             )
+
+            st.divider()
+            st.subheader("Chart Art")
+            st.write("A presentation-quality version of the bi-wheel, with both names "
+                     "and birth details — meant for printing or sharing, rather than "
+                     "the working reference view above.")
+            bi_art_col1, bi_art_col2 = st.columns(2)
+            with bi_art_col1:
+                st.caption("**Poster** — portrait, print-quality (300 DPI)")
+                fig_bi_poster = draw_bi_wheel_art(
+                    r["chart"], r["chart_b"], r["synastry_result"]["aspects"],
+                    r["person_name"], r["person_name_b"],
+                    r["datetime_str"], r["datetime_str_b"], format="poster",
+                )
+                buf_bi_poster = io.BytesIO()
+                fig_bi_poster.savefig(buf_bi_poster, format="png", dpi=300,
+                                       facecolor=fig_bi_poster.get_facecolor())
+                st.download_button(
+                    "Download poster (.png)",
+                    data=buf_bi_poster.getvalue(),
+                    file_name=f"synastry_poster_{r['birth_date'].isoformat()}.png",
+                    mime="image/png",
+                    width="stretch",
+                    key="bi_art_poster_dl",
+                )
+            with bi_art_col2:
+                st.caption("**Card** — compact, made for sharing")
+                fig_bi_card = draw_bi_wheel_art(
+                    r["chart"], r["chart_b"], r["synastry_result"]["aspects"],
+                    r["person_name"], r["person_name_b"],
+                    r["datetime_str"], r["datetime_str_b"], format="card",
+                )
+                buf_bi_card = io.BytesIO()
+                fig_bi_card.savefig(buf_bi_card, format="png", dpi=150,
+                                     facecolor=fig_bi_card.get_facecolor())
+                st.download_button(
+                    "Download card (.png)",
+                    data=buf_bi_card.getvalue(),
+                    file_name=f"synastry_card_{r['birth_date'].isoformat()}.png",
+                    mime="image/png",
+                    width="stretch",
+                    key="bi_art_card_dl",
+                )
 
             st.divider()
             st.subheader(f"{label_a}'s Chart")
