@@ -18,20 +18,19 @@ import streamlit as st
 
 st.title("🔭 Tenth House Readings")
 st.write(
-    "Real astrology, computed from your actual birth chart — not a "
-    "generic sun-sign horoscope. Every reading here comes from your "
-    "full chart: all the planets, the houses (including the empty "
-    "ones), and the aspects between them, the same way a working "
-    "astrologer would actually read it."
+    "Real astrology, computed for you. Every reading comes from your "
+    "full chart to ensure that the reading is as true-to-you as "
+    "possible."
 )
 
 st.divider()
 
 st.subheader("Start with a free reading")
 st.write(
-    "Pick Personal, Synastry (compatibility between two people), or "
-    "Deep Dive (a focused look at one specific point in your chart) — "
-    "each gives you a real, substantive summary at no cost."
+    "Pick a focus: Personal, Career, Relationship Synastry, "
+    "Professional Synastry, or dig into one of our Deep Dive "
+    "Readings for an understanding of some of the lesser known "
+    "chart components. Sometimes a quick summary is all you need!"
 )
 st.page_link("personal_readings_page.py", label="Personal Readings", icon="🔭")
 st.page_link("synastry_readings_page.py", label="Synastry Readings", icon="👥")
@@ -45,17 +44,21 @@ col1, col2 = st.columns(2)
 with col1:
     st.markdown("**Advanced Readings**")
     st.write(
-        "The complete, in-depth version of any reading above, emailed "
-        "to you — $3 for a single reading, or $10/month for unlimited "
-        "full readings across Personal, Synastry, and Deep Dive."
+        "Access the in-depth details. Perfect for enhanced personal "
+        "understanding and deeper synastry conversations."
     )
     st.page_link("advanced_readings_page.py", label="Advanced Readings", icon="✨")
 with col2:
     st.markdown("**Astrology Services**")
     st.write(
-        "Weekly transit readings by email ($5/month), a one-time "
-        "transit reading ($7), or ask an astrologer one specific "
-        "question about your chart ($10)."
+        "We also provide one-time or weekly transit readings straight "
+        "to your inbox. Stay up-to-date on how your chart is "
+        "interacting with current planetary locations and transits. "
+        "Choose from one of three focuses: General, Relationship, or "
+        "Career. Change the focus at any time! Looking for something "
+        "you don't see offered already? Ask an astrologer something "
+        "specific, and receive the detailed response in your email "
+        "inbox."
     )
     st.page_link("weekly_transits_signup_page.py", label="Astrology Services", icon="🌙")
 
