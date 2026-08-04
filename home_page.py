@@ -2,16 +2,13 @@
 home_page.py
 
 The site's actual landing page — set as the default page (loads at
-the bare root URL), replacing what used to just be whichever reading
-page happened to load first in the navigation list by accident of
-ordering.
+the bare root URL).
 
-Deliberately "slightly fuller than a bare splash page, but not
-pushy": a short, confident intro explaining what makes this different
-from a sun-sign horoscope, one clear path into a free reading, and
-brief, honest mentions of what else exists (Advanced Readings,
-Astrology Services) without foregrounding a sales pitch before
-someone's seen a single actual reading.
+Restructured after reviewing a reference site's FLOW (not its colors
+or copy, both of which stay entirely this brand's own): one clear
+primary action instead of several competing links, and every paid
+offering shown together in one consistent grid instead of scattered
+across sections with different visual treatments.
 """
 
 import streamlit as st
@@ -23,46 +20,73 @@ st.write(
     "possible."
 )
 
-st.divider()
+# --- One primary action, not several competing ones ---
+if st.button("Get Your Free Reading →", type="primary"):
+    st.switch_page("personal_readings_page.py")
 
-st.subheader("Start with a free reading")
-st.write(
-    "Pick a focus: Personal, Career, Relationship Synastry, "
-    "Professional Synastry, or dig into one of our Deep Dive "
-    "Readings for an understanding of some of the lesser known "
-    "chart components. Sometimes a quick summary is all you need!"
-)
-st.page_link("personal_readings_page.py", label="Personal Readings", icon="🔭")
-st.page_link("synastry_readings_page.py", label="Synastry Readings", icon="👥")
-st.page_link("deep_dive_readings_page.py", label="Deep Dive Readings", icon="🔍")
+col_a, col_b = st.columns(2)
+with col_a:
+    st.page_link("synastry_readings_page.py", label="Synastry Readings", icon="👥")
+with col_b:
+    st.page_link("deep_dive_readings_page.py", label="Deep Dive Readings", icon="🔍")
 
 st.divider()
 
+# --- Every paid offering shown together, same format, same weight ---
 st.subheader("Want more?")
 
-col1, col2 = st.columns(2)
-with col1:
-    st.markdown("**Advanced Readings**")
-    st.write(
-        "Access the in-depth details. Perfect for enhanced personal "
-        "understanding and deeper synastry conversations."
-    )
-    st.page_link("advanced_readings_page.py", label="Advanced Readings", icon="✨")
-with col2:
-    st.markdown("**Astrology Services**")
-    st.write(
-        "We also provide one-time or weekly transit readings straight "
-        "to your inbox. Stay up-to-date on how your chart is "
-        "interacting with current planetary locations and transits. "
-        "Choose from one of three focuses: General, Romantic, or "
-        "Career. Change the focus at any time! Looking for something "
-        "you don't see offered already? Ask an astrologer something "
-        "specific, and receive the detailed response in your email "
-        "inbox."
-    )
-    st.page_link("weekly_transits_signup_page.py", label="Astrology Services", icon="🌙")
+OFFERINGS = [
+    {
+        "icon": "✨",
+        "name": "Advanced Readings",
+        "price": "$3 one-time, or $10/month unlimited",
+        "desc": "Access the in-depth details. Perfect for enhanced personal "
+                "understanding and deeper synastry conversations.",
+        "page": "advanced_readings_page.py",
+        "link_label": "Explore Advanced Readings",
+    },
+    {
+        "icon": "🌙",
+        "name": "Weekly Transits",
+        "price": "$5/month",
+        "desc": "A short reading of that week's transits against your own "
+                "chart, delivered every Monday. Choose General, Romantic, "
+                "or Career — change it anytime.",
+        "page": "weekly_transits_signup_page.py",
+        "link_label": "Explore Astrology Services",
+    },
+    {
+        "icon": "🪐",
+        "name": "One-Time Transit Reading",
+        "price": "$7",
+        "desc": "A full reading of the current transits against your "
+                "chart — a single reading, emailed shortly after payment.",
+        "page": "weekly_transits_signup_page.py",
+        "link_label": "Explore Astrology Services",
+    },
+    {
+        "icon": "💬",
+        "name": "Ask an Astrologer",
+        "price": "$10",
+        "desc": "Ask one specific question — anything from \"should I take "
+                "this job\" to \"what does this transit mean\" — and get a "
+                "real, focused answer.",
+        "page": "weekly_transits_signup_page.py",
+        "link_label": "Explore Astrology Services",
+    },
+]
+
+row1 = st.columns(2)
+row2 = st.columns(2)
+for offering, col in zip(OFFERINGS, row1 + row2):
+    with col:
+        with st.container(border=True):
+            st.markdown(f"**{offering['icon']} {offering['name']}**")
+            st.caption(offering["price"])
+            st.write(offering["desc"])
+            st.page_link(offering["page"], label=offering["link_label"])
 
 st.divider()
-st.caption("New to some of the terms used throughout? The Resources page has a "
-           "plain-language glossary of signs, planets, and houses.")
+st.write("New to some of the terms used throughout? The Resources page has a "
+          "plain-language glossary of signs, planets, and houses.")
 st.page_link("resources_page.py", label="Resources", icon="📖")
