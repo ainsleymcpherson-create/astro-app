@@ -1,23 +1,27 @@
 """
 weekly_transits_signup_page.py
 
-Standalone signup page for the paid weekly transits product ($5/month
-via Stripe) — deliberately no login required, since this is meant to
-be a simple, newsletter-style commitment (name, birth data, email,
-pay) rather than something requiring a full account.
+Combined signup page for all three paid, no-login astrology products:
+  - Weekly Transits ($5/month, recurring)
+  - One-Time Transit Reading ($7, single purchase)
+  - Ask an Astrologer ($10, one specific question answered)
 
-Collects birth data and a reading theme, creates a Stripe Checkout
-Session with that data attached as metadata (Stripe hands the same
-metadata back on the webhook event, so nothing needs to be held in a
-separate "pending signup" table in between), and sends the person to
-Stripe's hosted payment page.
+Deliberately no login required for any of these -- meant to be simple
+purchases (name, birth data, email, pay), not something requiring a
+full account. All three share the same birth-data fields; only Ask an
+Astrologer adds a question field on top.
 
-IMPORTANT: the actual profile only gets created once Stripe confirms
-payment via webhook (see email_worker/app.py's /stripe-webhook route)
-— never here, and never based on Stripe's success_url redirect alone,
-since that redirect can fire without payment actually completing.
-This page's job ends at handing off to Stripe; it doesn't and
-shouldn't grant access to anything itself.
+Creates a Stripe Checkout Session with the collected data attached as
+metadata (Stripe hands the same metadata back on the webhook event,
+so nothing needs to be held in a separate "pending signup" table in
+between), tagged with which product was purchased so the webhook
+handler knows which of the three flows to run.
+
+IMPORTANT: nothing here ever grants access to anything itself -- not
+even a successful-looking redirect back to this page. Every one of
+these three flows only actually happens once Stripe confirms payment
+via webhook (see email_worker/app.py's /stripe-webhook route). This
+page's job ends at handing off to Stripe.
 """
 
 import os
@@ -27,23 +31,15 @@ import streamlit as st
 
 from birth_input import geocode_location_quick
 
-st.title("🌙 Weekly Transits")
-st.write(
-    "A short reading of that week's transits against your own chart, "
-    "delivered to your inbox every Monday morning — **$5/month, cancel "
-    "anytime.** No account needed; just your birth details and an email "
-    "address."
-)
+st.title("🌙 Astrology Services")
 
-if "STRIPE_SECRET_KEY" not in os.environ or "STRIPE_WEEKLY_TRANSITS_PRICE_ID" not in os.environ \
-        or "DATABASE_URL" not in os.environ:
-    st.warning("Weekly transit signups aren't available right now — check back soon.")
+if "STRIPE_SECRET_KEY" not in os.environ or "DATABASE_URL" not in os.environ:
+    st.warning("These aren't available right now — check back soon.")
     st.stop()
 
 if st.query_params.get("signup") == "success":
     st.success(
-        "Payment received! Your first weekly transit reading will arrive "
-        "this Monday.",
+        "Payment received! Check your inbox shortly.",
         icon="🎉",
     )
 elif st.query_params.get("signup") == "cancelled":
@@ -51,8 +47,42 @@ elif st.query_params.get("signup") == "cancelled":
 
 st.divider()
 
-name = st.text_input("Your name", help="Used to address you in your readings.")
-email = st.text_input("Email address", help="Your weekly reading gets sent here.")
+PRODUCTS = {
+    "Weekly Transits — $5/month": {
+        "key": "weekly",
+        "price_env": "STRIPE_WEEKLY_TRANSITS_PRICE_ID",
+        "stripe_mode": "subscription",
+        "description": "A short reading of that week's transits against your own "
+                        "chart, delivered every Monday morning. Cancel anytime.",
+        "button_label": "Sign me up — $5/month",
+    },
+    "One-Time Transit Reading — $7": {
+        "key": "one_time",
+        "price_env": "STRIPE_ONE_TIME_TRANSIT_PRICE_ID",
+        "stripe_mode": "payment",
+        "description": "A full, in-depth reading of the current transits against "
+                        "your chart — a single reading, emailed shortly after payment.",
+        "button_label": "Get my reading — $7",
+    },
+    "Ask an Astrologer — $10": {
+        "key": "ask",
+        "price_env": "STRIPE_ASK_ASTROLOGER_PRICE_ID",
+        "stripe_mode": "payment",
+        "description": "Ask one specific question — anything from \"should I take "
+                        "this job\" to \"what does this transit mean for me\" — and "
+                        "get a real, focused answer grounded in your actual chart.",
+        "button_label": "Ask my question — $10",
+    },
+}
+
+product_choice = st.radio("What would you like?", options=list(PRODUCTS.keys()))
+product = PRODUCTS[product_choice]
+st.caption(product["description"])
+
+st.divider()
+
+name = st.text_input("Your name", help="Used to address you in your reading.")
+email = st.text_input("Email address", help="Your reading gets sent here.")
 
 col1, col2, col3 = st.columns([1, 1.3, 1])
 with col1:
@@ -67,10 +97,8 @@ with col2:
     birth_time = st.time_input(
         "Birth time",
         value=time_type(12, 0),
-        help="An exact birth time is required here — weekly transits need "
-             "your houses, which can't be computed without one. (This is "
-             "different from readings elsewhere on the site, which can "
-             "work without a known birth time.)",
+        help="An exact birth time is required here — none of these three "
+             "readings work without one, since they all need your houses.",
     )
 with col3:
     location_str = st.text_input(
@@ -85,16 +113,28 @@ with col3:
         else:
             st.caption("Location not yet confirmed — checked before payment.")
 
-theme = st.radio(
-    "Reading theme",
-    options=["General", "Romantic", "Career"],
-    help="What your weekly reading focuses on. Changeable anytime later "
-         "via a link included in your emails.",
-)
+theme = None
+question = None
+
+if product["key"] == "weekly":
+    theme = st.radio(
+        "Reading theme",
+        options=["General", "Romantic", "Career"],
+        help="What your weekly reading focuses on. Changeable anytime later "
+             "via a link included in your emails.",
+    )
+elif product["key"] == "ask":
+    question = st.text_area(
+        "Your question",
+        max_chars=500,
+        placeholder="e.g. \"Should I take the job offer I just received?\"",
+        help="One specific question — this purchase covers one question, "
+             "answered once.",
+    )
 
 st.divider()
 
-if st.button("Sign me up — $5/month", width="stretch", type="primary"):
+if st.button(product["button_label"], width="stretch", type="primary"):
     errors = []
     if not name.strip():
         errors.append("Please enter your name.")
@@ -106,35 +146,40 @@ if st.button("Sign me up — $5/month", width="stretch", type="primary"):
         _found, _ = geocode_location_quick(location_str)
         if not _found:
             errors.append("Couldn't confirm that location — please check it and try again.")
+    if product["key"] == "ask" and not (question or "").strip():
+        errors.append("Please enter your question.")
 
     if errors:
         for e in errors:
             st.error(e)
+    elif product["price_env"] not in os.environ:
+        st.error("This option isn't fully configured yet — please try again later.")
     else:
         import stripe
         stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
         try:
+            metadata = {
+                "product_type": product["key"],
+                "label": name.strip(),
+                "birth_date": birth_date.isoformat(),
+                "birth_time": birth_time.strftime("%H:%M"),
+                "location_str": location_str.strip(),
+            }
+            if theme:
+                metadata["theme"] = theme
+            if question:
+                metadata["question"] = question.strip()
+
             checkout_session = stripe.checkout.Session.create(
-                mode="subscription",
+                mode=product["stripe_mode"],
                 line_items=[{
-                    "price": os.environ["STRIPE_WEEKLY_TRANSITS_PRICE_ID"],
+                    "price": os.environ[product["price_env"]],
                     "quantity": 1,
                 }],
                 customer_email=email.strip(),
                 success_url="https://tenthhousereadings.com/weekly-transits?signup=success",
                 cancel_url="https://tenthhousereadings.com/weekly-transits?signup=cancelled",
-                # Carries the collected birth data through to the webhook
-                # handler, which is where the actual profile gets created
-                # — Stripe returns this same metadata on the confirmed
-                # payment event, so nothing needs to be stored separately
-                # in the meantime.
-                metadata={
-                    "label": name.strip(),
-                    "birth_date": birth_date.isoformat(),
-                    "birth_time": birth_time.strftime("%H:%M"),
-                    "location_str": location_str.strip(),
-                    "theme": theme,
-                },
+                metadata=metadata,
             )
             st.success("Almost done — click below to complete your payment securely with Stripe.")
             st.link_button(
