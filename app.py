@@ -187,7 +187,7 @@ pg.run()
 
 with st.sidebar:
     st.page_link("home_page.py", label="Home")
-    st.caption("READINGS")
+    st.write("READINGS")
     _indent, _nested = st.columns([1, 9])
     with _nested:
         st.page_link("personal_readings_page.py", label="Personal", icon="🔭")
@@ -225,56 +225,22 @@ if "auth" in st.secrets:
             if st.button("Log out", width="stretch"):
                 st.logout()
 
-            # Runs once here, before either section below queries a
-            # table it's responsible for creating -- account_subscriptions
-            # didn't exist until this migration ran, and the Full Access
-            # section (which queries it) previously ran BEFORE My
-            # Profiles' own init_schema() call further down, causing a
-            # "relation does not exist" error the first time this
-            # table was ever needed.
+            # Runs once here, right after login is confirmed -- needed
+            # before anything on this app (including other pages, like
+            # Advanced Readings and My Account) queries a table this
+            # migration is responsible for creating.
             if user_email and "DATABASE_URL" in os.environ:
-                from profiles_db import init_schema
+                from profiles_db import init_schema, has_active_subscription
                 init_schema()
-
-            # --- Full Access subscription ($10/month) ---
-            # Account-level entitlement, checked here (not per-profile)
-            # since it unlocks full readings across Personal, Synastry,
-            # and Deep Dive for the whole account, not any one saved
-            # profile. Deliberately separate from the Astrology Services
-            # products (Weekly Transits, One-Time Transit, Ask an
-            # Astrologer), which stay individually priced.
-            if user_email and "DATABASE_URL" in os.environ:
-                from profiles_db import has_active_subscription
+                # Distinct from the removed "Get Full Access" button --
+                # this only ever shows for people who ALREADY have the
+                # subscription, as a gold-styled status indicator, not
+                # a purchase path. type="primary" picks up the theme's
+                # brass color automatically, same technique already
+                # used for the homepage's main CTA.
                 if has_active_subscription(user_email):
-                    st.caption("✅ Full Access active — unlimited full readings across "
-                               "Personal, Synastry, and Deep Dive.")
-                elif "STRIPE_SECRET_KEY" in os.environ and "STRIPE_FULL_ACCESS_PRICE_ID" in os.environ:
-                    if st.button("Get Full Access", width="stretch"):
-                        import stripe
-                        stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
-                        try:
-                            checkout_session = stripe.checkout.Session.create(
-                                mode="subscription",
-                                line_items=[{
-                                    "price": os.environ["STRIPE_FULL_ACCESS_PRICE_ID"],
-                                    "quantity": 1,
-                                }],
-                                customer_email=user_email,
-                                success_url="https://tenthhousereadings.com/?signup=success",
-                                cancel_url="https://tenthhousereadings.com/?signup=cancelled",
-                                metadata={
-                                    "product_type": "full_access_subscription",
-                                    "label": user_email,
-                                },
-                            )
-                            st.link_button(
-                                "Proceed to Secure Checkout →",
-                                checkout_session.url,
-                                width="stretch",
-                                type="primary",
-                            )
-                        except Exception as e:
-                            st.error(f"Something went wrong setting up checkout: {e}")
+                    if st.button("All Access Tier", width="stretch", type="primary"):
+                        st.switch_page("my_account_page.py")
         else:
             st.caption("Log in to unlock full readings, email delivery, and saved profiles.")
             if st.button("Log in", width="stretch"):
