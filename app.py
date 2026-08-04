@@ -145,7 +145,7 @@ personal_readings = st.Page("personal_readings_page.py", title="Personal Reading
 synastry_readings = st.Page("synastry_readings_page.py", title="Synastry Readings", icon="👥")
 deep_dive_readings = st.Page("deep_dive_readings_page.py", title="Deep Dive Readings", icon="🔍")
 weekly_transits = st.Page(
-    "weekly_transits_signup_page.py", title="Weekly Transits", icon="🌙",
+    "weekly_transits_signup_page.py", title="Astrology Services", icon="🌙",
     url_path="weekly-transits",
 )
 resources = st.Page("resources_page.py", title="Resources", icon="📖")
