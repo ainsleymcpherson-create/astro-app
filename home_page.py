@@ -46,18 +46,19 @@ OFFERINGS = [
     },
     {
         "icon": "🌙",
-        "name": "Weekly Transits",
-        "desc": "A short reading of that week's transits against your own "
-                "chart, delivered every Monday. Choose General, Romantic, "
-                "or Career — change it anytime.",
+        "name": "Weekly and One-Time Transit Readings",
+        "desc": "A short reading of that week's transits delivered every "
+                "Monday, or a single full transit reading whenever you "
+                "want one — both measured against your own chart.",
         "page": "advanced_readings_page.py",
         "link_label": "Explore Advanced Readings",
     },
     {
-        "icon": "🪐",
-        "name": "One-Time Transit Reading",
-        "desc": "A full reading of the current transits against your "
-                "chart — a single reading, emailed shortly after payment.",
+        "icon": "🔓",
+        "name": "All-Access Subscription",
+        "desc": "Log in and subscribe for unlimited full readings and "
+                "email delivery across Personal, Synastry, and Deep Dive — "
+                "no per-reading purchases needed.",
         "page": "advanced_readings_page.py",
         "link_label": "Explore Advanced Readings",
     },
