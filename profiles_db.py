@@ -95,6 +95,20 @@ def init_schema() -> None:
         session.execute(text(
             "ALTER TABLE saved_profiles ADD COLUMN IF NOT EXISTS unsubscribe_token TEXT"
         ))
+        session.execute(text(
+            "ALTER TABLE saved_profiles ADD COLUMN IF NOT EXISTS transit_theme TEXT "
+            "NOT NULL DEFAULT 'General'"
+        ))
+        session.execute(text(
+            "ALTER TABLE saved_profiles ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT"
+        ))
+        session.execute(text(
+            "ALTER TABLE saved_profiles ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT"
+        ))
+        session.execute(text(
+            "ALTER TABLE saved_profiles ADD COLUMN IF NOT EXISTS is_paid_subscriber "
+            "BOOLEAN NOT NULL DEFAULT FALSE"
+        ))
         session.commit()
 
 
@@ -275,26 +289,35 @@ def set_weekly_transits(profile_id: int, owner_email: str, enabled: bool) -> Non
         session.commit()
 
 
-def unsubscribe_by_token(token: str) -> str | None:
+def unsubscribe_by_token(token: str) -> dict | None:
     """
     Turns off weekly transit emails for whichever profile owns this
     token, with NO login required -- this is the one-click email-link
     path, deliberately independent of the in-app toggle so someone
-    can opt out without needing to sign back in first. Returns the
-    profile's label if a match was found (so the caller can show a
-    friendly confirmation), or None if the token didn't match
-    anything -- e.g. an already-used/stale link, or a stray guess.
+    can opt out without needing to sign back in first.
+
+    Returns a dict with the profile's label and stripe_subscription_id
+    if a match was found, or None if the token didn't match anything
+    (e.g. an already-used/stale link, or a stray guess). The
+    stripe_subscription_id is included specifically so the caller can
+    also cancel the actual Stripe subscription for paid subscribers --
+    this function only ever touches the database; it deliberately
+    doesn't call Stripe's API itself, keeping this module free of any
+    payment-provider dependency. Turning off the email flag without
+    also canceling billing would leave someone still being charged
+    $5/month after they've unsubscribed, which is a real problem, not
+    just a rough edge.
     """
     conn = _get_conn()
     with conn.session as session:
         result = session.execute(text("""
             UPDATE saved_profiles SET weekly_transits = FALSE
             WHERE unsubscribe_token = :token
-            RETURNING label
+            RETURNING label, stripe_subscription_id
         """), {"token": token})
         row = result.fetchone()
         session.commit()
-        return row[0] if row else None
+        return {"label": row[0], "stripe_subscription_id": row[1]} if row else None
 
 
 def list_weekly_subscribers() -> list[dict]:
@@ -326,3 +349,123 @@ def list_weekly_subscribers() -> list[dict]:
             elif isinstance(bt, pd.Timestamp):
                 r["birth_time"] = bt.time()
     return records
+
+
+def create_paid_subscriber_profile(
+    label: str,
+    birth_date: date_type,
+    birth_time: time_type | None,
+    unknown_time: bool,
+    location_str: str,
+    latitude: float | None,
+    longitude: float | None,
+    resolved_address: str | None,
+    theme: str,
+    owner_email: str,
+    stripe_customer_id: str,
+    stripe_subscription_id: str,
+) -> str:
+    """
+    Creates a profile from a confirmed Stripe payment -- called ONLY
+    from the webhook handler after Stripe's checkout.session.completed
+    event, never from the checkout-initiation step itself (a redirect
+    to Stripe is not the same as a completed payment; see the
+    worker's webhook handler for why this distinction matters).
+
+    Sets weekly_transits and is_paid_subscriber TRUE from the start,
+    generates a fresh unsubscribe_token, and returns it directly so
+    the webhook handler can include it in the welcome email without a
+    second round-trip to look it up.
+    """
+    conn = _get_conn()
+    token = secrets.token_urlsafe(32)
+    with conn.session as session:
+        session.execute(text("""
+            INSERT INTO saved_profiles
+                (owner_email, label, birth_date, birth_time, unknown_time,
+                 location_str, latitude, longitude, resolved_address,
+                 transit_theme, weekly_transits, is_paid_subscriber,
+                 stripe_customer_id, stripe_subscription_id, unsubscribe_token)
+            VALUES
+                (:owner_email, :label, :birth_date, :birth_time, :unknown_time,
+                 :location_str, :latitude, :longitude, :resolved_address,
+                 :theme, TRUE, TRUE,
+                 :stripe_customer_id, :stripe_subscription_id, :token)
+        """), {
+            "owner_email": owner_email,
+            "label": label,
+            "birth_date": birth_date,
+            "birth_time": birth_time,
+            "unknown_time": unknown_time,
+            "location_str": location_str,
+            "latitude": latitude,
+            "longitude": longitude,
+            "resolved_address": resolved_address,
+            "theme": theme,
+            "stripe_customer_id": stripe_customer_id,
+            "stripe_subscription_id": stripe_subscription_id,
+            "token": token,
+        })
+        session.commit()
+    return token
+
+
+def deactivate_by_subscription_id(stripe_subscription_id: str) -> None:
+    """
+    Turns off weekly transit emails for whichever profile has this
+    Stripe subscription ID -- called from the webhook handler on
+    customer.subscription.deleted (someone canceled, including via
+    Stripe's own Customer Portal, not just this app's unsubscribe
+    link) and on invoice.payment_failed (a card stopped working; keep
+    emailing someone who isn't actually paying anymore is wrong
+    regardless of why the payment failed). Silently does nothing if
+    no profile matches -- not every subscription in Stripe necessarily
+    corresponds to a row here (e.g. test events, unrelated products
+    on the same Stripe account).
+    """
+    conn = _get_conn()
+    with conn.session as session:
+        session.execute(text("""
+            UPDATE saved_profiles SET weekly_transits = FALSE
+            WHERE stripe_subscription_id = :sub_id
+        """), {"sub_id": stripe_subscription_id})
+        session.commit()
+
+
+def get_profile_by_token(token: str) -> dict | None:
+    """
+    Looks up a profile by its unsubscribe_token WITHOUT modifying
+    anything -- used by the token-authenticated "manage my
+    subscription" page to show someone their current theme before
+    they decide whether to change it. Returns None if the token
+    doesn't match anything.
+    """
+    conn = _get_conn()
+    df = conn.query(
+        "SELECT * FROM saved_profiles WHERE unsubscribe_token = :token",
+        params={"token": token},
+        ttl=0,
+    )
+    if df.empty:
+        return None
+    return df.to_dict("records")[0]
+
+
+def set_theme_by_token(token: str, theme: str) -> str | None:
+    """
+    Changes a profile's transit theme, authenticated by the same
+    private token as unsubscribe -- no login required, consistent
+    with the rest of this paid-subscriber flow being deliberately
+    account-free. Returns the profile's label on success (for a
+    friendly confirmation message), or None if the token didn't match.
+    """
+    conn = _get_conn()
+    with conn.session as session:
+        result = session.execute(text("""
+            UPDATE saved_profiles SET transit_theme = :theme
+            WHERE unsubscribe_token = :token
+            RETURNING label
+        """), {"token": token, "theme": theme})
+        row = result.fetchone()
+        session.commit()
+        return row[0] if row else None
