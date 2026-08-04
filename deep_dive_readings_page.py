@@ -19,7 +19,7 @@ GitHub and point Streamlit Cloud at it.
 import os
 import re
 import io
-from datetime import date as date_type, datetime, timezone
+from datetime import date as date_type, datetime, time as time_type, timezone
 import streamlit as st
 import pandas as pd
 import swisseph as swe
@@ -64,9 +64,9 @@ from prompt_builder import (
     build_lunar_nodes_deep_dive_prompt,
     build_lunar_nodes_deep_dive_summary_only_prompt,
 )
-from birth_input import resolve_birth_data
+from birth_input import resolve_birth_data, geocode_location_quick
 from chart_wheel import (
-    draw_chart_wheel, draw_bi_wheel,
+    draw_chart_wheel, draw_bi_wheel, draw_chart_wheel_art,
     build_chart_data_table_html, build_synastry_data_table_html,
     get_table_rows, get_synastry_table_rows,
 )
@@ -272,29 +272,26 @@ with col1:
         help="Tap to open the calendar picker.",
     )
 with col2:
-    st.write("Birth time" + (" (disabled — unknown birth time selected)" if unknown_time else ""))
-    hour_col, minute_col, ampm_col = st.columns(3)
-    with hour_col:
-        birth_hour = st.selectbox(
-            "Hour", options=list(range(1, 13)), index=10,
-            label_visibility="collapsed", disabled=unknown_time,
-        )
-    with minute_col:
-        birth_minute = st.selectbox(
-            "Minute", options=[f"{m:02d}" for m in range(60)], index=51,
-            label_visibility="collapsed", disabled=unknown_time,
-        )
-    with ampm_col:
-        birth_ampm = st.selectbox(
-            "AM/PM", options=["AM", "PM"], index=0,
-            label_visibility="collapsed", disabled=unknown_time,
-        )
+    birth_time_val = st.time_input(
+        "Birth time" + (" (disabled)" if unknown_time else ""),
+        value=time_type(11, 51),
+        disabled=unknown_time,
+        help="Tap to type a time directly or use the picker.",
+    )
+    birth_hour = birth_time_val.hour % 12 or 12
+    birth_minute = f"{birth_time_val.minute:02d}"
+    birth_ampm = "AM" if birth_time_val.hour < 12 else "PM"
 with col3:
     location_str = st.text_input(
         "Birth location",
         value="Washington, DC, USA",
         help="Be specific — add state/country if the place name is common",
     )
+    _loc_found, _loc_address = geocode_location_quick(location_str)
+    if _loc_found:
+        st.caption(f"✓ {_loc_address}")
+    else:
+        st.caption("Location not yet confirmed — checked when you generate your reading")
 
 align_col1, align_col2, align_col3 = st.columns([1, 1.3, 1])
 with align_col2:
@@ -343,26 +340,16 @@ if reading_type in SYNASTRY_READING_TYPES:
             key="birth_date_b",
         )
     with colb2:
-        st.write("Birth time" + (" (disabled — unknown birth time selected)" if unknown_time_b else ""))
-        hour_col_b, minute_col_b, ampm_col_b = st.columns(3)
-        with hour_col_b:
-            birth_hour_b = st.selectbox(
-                "Hour", options=list(range(1, 13)), index=0,
-                label_visibility="collapsed", disabled=unknown_time_b,
-                key="birth_hour_b",
-            )
-        with minute_col_b:
-            birth_minute_b = st.selectbox(
-                "Minute", options=[f"{m:02d}" for m in range(60)], index=30,
-                label_visibility="collapsed", disabled=unknown_time_b,
-                key="birth_minute_b",
-            )
-        with ampm_col_b:
-            birth_ampm_b = st.selectbox(
-                "AM/PM", options=["AM", "PM"], index=1,
-                label_visibility="collapsed", disabled=unknown_time_b,
-                key="birth_ampm_b",
-            )
+        birth_time_val_b = st.time_input(
+            "Birth time" + (" (disabled)" if unknown_time_b else ""),
+            value=time_type(13, 30),
+            disabled=unknown_time_b,
+            help="Tap to type a time directly or use the picker.",
+            key="birth_time_b",
+        )
+        birth_hour_b = birth_time_val_b.hour % 12 or 12
+        birth_minute_b = f"{birth_time_val_b.minute:02d}"
+        birth_ampm_b = "AM" if birth_time_val_b.hour < 12 else "PM"
     with colb3:
         location_str_b = st.text_input(
             "Birth location",
@@ -370,6 +357,11 @@ if reading_type in SYNASTRY_READING_TYPES:
             help="Be specific — add state/country if the place name is common",
             key="location_str_b",
         )
+        _loc_found_b, _loc_address_b = geocode_location_quick(location_str_b)
+        if _loc_found_b:
+            st.caption(f"✓ {_loc_address_b}")
+        else:
+            st.caption("Location not yet confirmed — checked when you generate your reading")
 
     align_colb1, align_colb2, align_colb3 = st.columns([1, 1.3, 1])
     with align_colb2:
@@ -627,6 +619,27 @@ def markdown_to_pdf_bytes(markdown_text: str, title: str) -> bytes:
     pdf_bytes = buffer.getvalue()
     buffer.close()
     return pdf_bytes
+
+
+def _reading_header_block(r: dict, label_a: str | None, label_b: str | None) -> str:
+    """
+    Builds the person + birth date/time line(s) shown at the top of a
+    reading -- before the Overview section -- both in the app display
+    and in downloaded PDFs. Both call sites use this exact same text
+    so the two stay consistent with each other.
+    """
+    if r["reading_type"] in SYNASTRY_READING_TYPES:
+        name_a = label_a or "Person A"
+        name_b = label_b or "Person B"
+        line_a = f"**{name_a}** \u2014 {r['datetime_str']} \u2014 {r['location_str']}"
+        line_b = f"**{name_b}** \u2014 {r['datetime_str_b']} \u2014 {r['location_str_b']}"
+        return f"{line_a}\n\n{line_b}"
+    else:
+        name = label_a or "Birth Chart"
+        line = f"**{name}** \u2014 {r['datetime_str']} \u2014 {r['location_str']}"
+        if r["reading_type"] == "Transits":
+            line += f"  \nTransits for {r['transit_date'].isoformat()}"
+        return line
 
 
 def render_interpretation(text: str):
@@ -1307,6 +1320,9 @@ if st.session_state.get("results"):
                 st.warning(f"📧 {message}")
 
         if r["interpretation_text"]:
+            header_block = _reading_header_block(r, label_a, label_b)
+            st.markdown(header_block)
+            st.divider()
             render_interpretation(r["interpretation_text"])
             st.divider()
 
@@ -1325,10 +1341,12 @@ if st.session_state.get("results"):
                 summary_text = extract_summary_only(r["interpretation_text"])
                 full_text = format_full_text_for_export(r["interpretation_text"])
                 summary_pdf_bytes = markdown_to_pdf_bytes(
-                    summary_text, f"{r['reading_type']} — Summary — {title_who}"
+                    f"{header_block}\n\n{summary_text}",
+                    f"{r['reading_type']} — Summary — {title_who}",
                 )
                 full_pdf_bytes = markdown_to_pdf_bytes(
-                    full_text, f"{r['reading_type']} Reading — {title_who}"
+                    f"{header_block}\n\n{full_text}",
+                    f"{r['reading_type']} Reading — {title_who}",
                 )
 
                 st.subheader("Summary Version")
@@ -1381,7 +1399,8 @@ if st.session_state.get("results"):
                 # short summary content, so there's just one document
                 # to offer, not a redundant summary/full split.
                 pdf_bytes = markdown_to_pdf_bytes(
-                    r["interpretation_text"], f"{r['reading_type']} — {title_who}"
+                    f"{header_block}\n\n{r['interpretation_text']}",
+                    f"{r['reading_type']} — {title_who}",
                 )
                 dl_col1, dl_col2 = st.columns(2)
                 with dl_col1:
@@ -1434,7 +1453,7 @@ if st.session_state.get("results"):
         def show_wheel_with_download(fig, filename_suffix):
             st.pyplot(fig, width="stretch")
             buf = io.BytesIO()
-            fig.savefig(buf, format="png", dpi=150, facecolor="white", bbox_inches="tight")
+            fig.savefig(buf, format="png", dpi=150, facecolor=fig.get_facecolor(), bbox_inches="tight")
             st.download_button(
                 "Download chart wheel as .png",
                 data=buf.getvalue(),
@@ -1495,6 +1514,47 @@ if st.session_state.get("results"):
             dataframe_download_and_copy(
                 table_df, f"table_{r['birth_date'].isoformat()}.csv", "table"
             )
+
+            st.divider()
+            st.subheader("Chart Art")
+            st.write("A presentation-quality version of this chart, with your name, "
+                     "birth details, and a designed title block — meant for printing "
+                     "or sharing, rather than the working reference view above.")
+            art_col1, art_col2 = st.columns(2)
+            with art_col1:
+                st.caption("**Poster** — portrait, print-quality (300 DPI)")
+                fig_poster = draw_chart_wheel_art(
+                    r["chart"], r["aspects"], r["person_name"], r["datetime_str"],
+                    r["location_str"], format="poster",
+                )
+                buf_poster = io.BytesIO()
+                fig_poster.savefig(buf_poster, format="png", dpi=300,
+                                    facecolor=fig_poster.get_facecolor())
+                st.download_button(
+                    "Download poster (.png)",
+                    data=buf_poster.getvalue(),
+                    file_name=f"chart_poster_{r['birth_date'].isoformat()}.png",
+                    mime="image/png",
+                    width="stretch",
+                    key="art_poster_dl",
+                )
+            with art_col2:
+                st.caption("**Card** — compact, made for sharing")
+                fig_card = draw_chart_wheel_art(
+                    r["chart"], r["aspects"], r["person_name"], r["datetime_str"],
+                    r["location_str"], format="card",
+                )
+                buf_card = io.BytesIO()
+                fig_card.savefig(buf_card, format="png", dpi=150,
+                                  facecolor=fig_card.get_facecolor())
+                st.download_button(
+                    "Download card (.png)",
+                    data=buf_card.getvalue(),
+                    file_name=f"chart_card_{r['birth_date'].isoformat()}.png",
+                    mime="image/png",
+                    width="stretch",
+                    key="art_card_dl",
+                )
 
     with tabs[3]:
         if r["reading_type"] in SYNASTRY_READING_TYPES:
