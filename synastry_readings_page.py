@@ -456,6 +456,14 @@ _generation_options.append(GEN_QUICK_ONLY)
 if _is_logged_in:
     _generation_options += [GEN_FULL_NOW, GEN_QUICK_EMAIL]
 
+if "auth" in st.secrets and not _is_logged_in:
+    st.info(
+        "You're seeing the free tier — a fast summary shown right here. "
+        "**Log in** (in the sidebar) to unlock the full in-depth reading "
+        "and email delivery.",
+        icon="🔓",
+    )
+
 generation_mode = st.radio(
     "Written interpretation",
     options=_generation_options,
