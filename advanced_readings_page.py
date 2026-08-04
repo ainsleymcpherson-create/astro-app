@@ -2,23 +2,22 @@
 advanced_readings_page.py
 
 A direct path to paying for a full reading, without first needing to
-generate a free summary elsewhere. The $3-per-reading unlock also
-exists as a follow-on prompt after a free summary on Personal,
-Synastry, and Deep Dive -- this page exists because that placement
-alone wasn't a real purchase path for someone who already knows they
-want the full version and doesn't want to go through the free flow
-first to get there.
+generate a free summary elsewhere.
 
-Covers all three reading categories (Personal, Synastry, Deep Dive)
-in one place, with two ways to pay:
-  - $3, one-time, unlocks just the specific reading configured here
-  - $10/month, requires login (so there's an account to manage it
-    under), unlocks unlimited full readings across all three
-    categories going forward
+Covers four reading categories in one place:
+  - Personal, Synastry, Deep Dive: $3 one-time unlock for a single
+    reading, or $10/month (requires login) for unlimited full
+    readings across all three
+  - Transits: moved here from the Astrology Services page, since it
+    fits the same "pick a category, fill in birth data, pay" shape --
+    Weekly Transits ($5/month, with a theme choice) or a One-Time
+    Transit reading ($7). These keep their own separate pricing and
+    Stripe products; they were never part of the $3/$10 unlock
+    structure and still aren't.
 
-Deliberately does NOT include the Astrology Services products
-(Weekly Transits, One-Time Transit, Ask an Astrologer) -- those stay
-on their own page with their own pricing.
+Ask an Astrologer stays on its own page (Astrology Services) -- it
+needs an open-ended question field that doesn't fit this page's
+birth-data-plus-category shape.
 """
 
 import os
@@ -34,10 +33,11 @@ st.write(
     "Get the complete, in-depth version of any reading — emailed to you. "
     "**\\$3** unlocks a single reading, or **\\$10/month** (requires logging "
     "in) unlocks unlimited full readings across Personal, Synastry, and "
-    "Deep Dive."
+    "Deep Dive. Weekly and one-time transit readings are also available "
+    "here, with their own separate pricing."
 )
 
-if "STRIPE_SECRET_KEY" not in os.environ or "STRIPE_ONE_TIME_READING_UNLOCK_PRICE_ID" not in os.environ:
+if "STRIPE_SECRET_KEY" not in os.environ:
     st.warning("Advanced readings aren't available right now — check back soon.")
     st.stop()
 
@@ -52,6 +52,7 @@ CATEGORIES = {
     "Personal": ["General", "Career / Work"],
     "Synastry": ["Professional Synastry", "Relationship Synastry", "Parent/Child Synastry"],
     "Deep Dive": ["Lilith", "Chiron", "North/South Node"],
+    "Transits": ["Weekly Transits", "One-Time Transit"],
 }
 SYNASTRY_READING_TYPES = ("Professional Synastry", "Relationship Synastry", "Parent/Child Synastry")
 
@@ -87,10 +88,13 @@ with col3:
 unknown_time = st.checkbox(
     "I don't know my exact birth time",
     help="Works for General and Career/Work only — every other reading type "
-         "here needs an exact birth time to compute houses correctly.",
+         "here, including both transit options, needs an exact birth time "
+         "to compute houses correctly.",
 )
 
 relationship_stage = None
+transit_theme = None
+
 if reading_type in SYNASTRY_READING_TYPES:
     st.divider()
     st.subheader("Person B")
@@ -118,31 +122,47 @@ if reading_type in SYNASTRY_READING_TYPES:
 else:
     label_b = birth_date_b = birth_time_val_b = location_str_b = unknown_time_b = None
 
+if reading_type == "Weekly Transits":
+    st.divider()
+    transit_theme = st.radio(
+        "Reading theme",
+        options=["General", "Romantic", "Career"],
+        help="What your weekly reading focuses on. Changeable anytime later "
+             "via a link included in your emails.",
+    )
+
 st.divider()
 
 # --- Purchase options ---
-col_unlock, col_sub = st.columns(2)
+if category == "Transits":
+    # Weekly and one-time transits keep their own separate pricing --
+    # never part of the $3/$10 unlock structure below, so this is a
+    # genuinely different purchase flow, not a variation of it.
+    if reading_type == "Weekly Transits":
+        st.subheader("Weekly Transits")
+        st.write("**\\$5/month**, cancel anytime.")
+        button_label = "Sign me up — $5/month"
+        stripe_mode = "subscription"
+        price_env = "STRIPE_WEEKLY_TRANSITS_PRICE_ID"
+    else:
+        st.subheader("One-Time Transit Reading")
+        st.write("**\\$7**, one-time.")
+        button_label = "Get my reading — $7"
+        stripe_mode = "payment"
+        price_env = "STRIPE_ONE_TIME_TRANSIT_PRICE_ID"
 
-with col_unlock:
-    st.subheader("Just this reading")
-    st.write("**$3**, one-time.")
-    if st.button("Unlock this reading — $3", width="stretch", type="primary"):
+    if price_env not in os.environ:
+        st.error("This option isn't fully configured yet — please try again later.")
+    elif st.button(button_label, width="stretch", type="primary"):
         errors = []
         if not label_a.strip():
-            errors.append("Please enter a name.")
+            errors.append("Please enter your name.")
         if not email.strip() or "@" not in email:
             errors.append("Please enter a valid email address.")
         if not location_str.strip():
-            errors.append("Please enter a birth location.")
+            errors.append("Please enter your birth location.")
         elif not geocode_location_quick(location_str)[0]:
             errors.append("Couldn't confirm that location — please check it and try again.")
-        if reading_type in SYNASTRY_READING_TYPES:
-            if not (label_b or "").strip():
-                errors.append("Please enter Person B's name.")
-            if not (location_str_b or "").strip():
-                errors.append("Please enter Person B's birth location.")
-            elif not geocode_location_quick(location_str_b)[0]:
-                errors.append("Couldn't confirm Person B's location — please check it and try again.")
 
         if errors:
             for e in errors:
@@ -152,25 +172,18 @@ with col_unlock:
             stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
             try:
                 metadata = {
-                    "product_type": "reading_unlock",
-                    "reading_type": reading_type,
+                    "product_type": "weekly" if reading_type == "Weekly Transits" else "one_time",
                     "label": label_a.strip(),
                     "birth_date": birth_date.isoformat(),
                     "birth_time": birth_time_val.strftime("%H:%M"),
                     "location_str": location_str.strip(),
-                    "unknown_time": "true" if unknown_time else "false",
                 }
-                if reading_type in SYNASTRY_READING_TYPES:
-                    metadata["label_b"] = label_b.strip()
-                    metadata["birth_date_b"] = birth_date_b.isoformat()
-                    metadata["birth_time_b"] = birth_time_val_b.strftime("%H:%M")
-                    metadata["location_str_b"] = location_str_b.strip()
-                    metadata["unknown_time_b"] = "true" if unknown_time_b else "false"
-                    if reading_type == "Relationship Synastry" and relationship_stage:
-                        metadata["relationship_stage"] = relationship_stage
+                if reading_type == "Weekly Transits":
+                    metadata["theme"] = transit_theme
+
                 checkout_session = stripe.checkout.Session.create(
-                    mode="payment",
-                    line_items=[{"price": os.environ["STRIPE_ONE_TIME_READING_UNLOCK_PRICE_ID"], "quantity": 1}],
+                    mode=stripe_mode,
+                    line_items=[{"price": os.environ[price_env], "quantity": 1}],
                     customer_email=email.strip(),
                     success_url="https://tenthhousereadings.com/advanced-readings?signup=success",
                     cancel_url="https://tenthhousereadings.com/advanced-readings?signup=cancelled",
@@ -181,32 +194,95 @@ with col_unlock:
             except Exception as e:
                 st.error(f"Something went wrong setting up checkout: {e}")
 
-with col_sub:
-    st.subheader("Unlimited full readings")
-    st.write("**$10/month**, all three categories.")
-    _is_logged_in = "auth" in st.secrets and st.user.is_logged_in
-    _user_email = safe_user_email() if _is_logged_in else None
-    if not _is_logged_in:
-        st.info("Log in from the sidebar to subscribe.")
-    elif "STRIPE_FULL_ACCESS_PRICE_ID" not in os.environ:
-        st.caption("Not available right now.")
-    else:
-        from profiles_db import has_active_subscription
-        if _user_email and has_active_subscription(_user_email):
-            st.success("You already have Full Access — just generate the reading "
-                       "directly on its own page.", icon="✅")
-        elif st.button("Subscribe — $10/month", width="stretch"):
-            import stripe
-            stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
-            try:
-                checkout_session = stripe.checkout.Session.create(
-                    mode="subscription",
-                    line_items=[{"price": os.environ["STRIPE_FULL_ACCESS_PRICE_ID"], "quantity": 1}],
-                    customer_email=_user_email,
-                    success_url="https://tenthhousereadings.com/advanced-readings?signup=success",
-                    cancel_url="https://tenthhousereadings.com/advanced-readings?signup=cancelled",
-                    metadata={"product_type": "full_access_subscription", "label": _user_email},
-                )
-                st.link_button("Proceed to Secure Checkout →", checkout_session.url, width="stretch", type="primary")
-            except Exception as e:
-                st.error(f"Something went wrong setting up checkout: {e}")
+else:
+    col_unlock, col_sub = st.columns(2)
+
+    with col_unlock:
+        st.subheader("Just this reading")
+        st.write("**\\$3**, one-time.")
+        if "STRIPE_ONE_TIME_READING_UNLOCK_PRICE_ID" not in os.environ:
+            st.caption("Not available right now.")
+        elif st.button("Unlock this reading — $3", width="stretch", type="primary"):
+            errors = []
+            if not label_a.strip():
+                errors.append("Please enter a name.")
+            if not email.strip() or "@" not in email:
+                errors.append("Please enter a valid email address.")
+            if not location_str.strip():
+                errors.append("Please enter a birth location.")
+            elif not geocode_location_quick(location_str)[0]:
+                errors.append("Couldn't confirm that location — please check it and try again.")
+            if reading_type in SYNASTRY_READING_TYPES:
+                if not (label_b or "").strip():
+                    errors.append("Please enter Person B's name.")
+                if not (location_str_b or "").strip():
+                    errors.append("Please enter Person B's birth location.")
+                elif not geocode_location_quick(location_str_b)[0]:
+                    errors.append("Couldn't confirm Person B's location — please check it and try again.")
+
+            if errors:
+                for e in errors:
+                    st.error(e)
+            else:
+                import stripe
+                stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
+                try:
+                    metadata = {
+                        "product_type": "reading_unlock",
+                        "reading_type": reading_type,
+                        "label": label_a.strip(),
+                        "birth_date": birth_date.isoformat(),
+                        "birth_time": birth_time_val.strftime("%H:%M"),
+                        "location_str": location_str.strip(),
+                        "unknown_time": "true" if unknown_time else "false",
+                    }
+                    if reading_type in SYNASTRY_READING_TYPES:
+                        metadata["label_b"] = label_b.strip()
+                        metadata["birth_date_b"] = birth_date_b.isoformat()
+                        metadata["birth_time_b"] = birth_time_val_b.strftime("%H:%M")
+                        metadata["location_str_b"] = location_str_b.strip()
+                        metadata["unknown_time_b"] = "true" if unknown_time_b else "false"
+                        if reading_type == "Relationship Synastry" and relationship_stage:
+                            metadata["relationship_stage"] = relationship_stage
+                    checkout_session = stripe.checkout.Session.create(
+                        mode="payment",
+                        line_items=[{"price": os.environ["STRIPE_ONE_TIME_READING_UNLOCK_PRICE_ID"], "quantity": 1}],
+                        customer_email=email.strip(),
+                        success_url="https://tenthhousereadings.com/advanced-readings?signup=success",
+                        cancel_url="https://tenthhousereadings.com/advanced-readings?signup=cancelled",
+                        metadata=metadata,
+                    )
+                    st.success("Click below to complete your payment securely with Stripe.")
+                    st.link_button("Proceed to Secure Checkout →", checkout_session.url, width="stretch", type="primary")
+                except Exception as e:
+                    st.error(f"Something went wrong setting up checkout: {e}")
+
+    with col_sub:
+        st.subheader("Unlimited full readings")
+        st.write("**\\$10/month**, all three categories.")
+        _is_logged_in = "auth" in st.secrets and st.user.is_logged_in
+        _user_email = safe_user_email() if _is_logged_in else None
+        if not _is_logged_in:
+            st.info("Log in from the sidebar to subscribe.")
+        elif "STRIPE_FULL_ACCESS_PRICE_ID" not in os.environ:
+            st.caption("Not available right now.")
+        else:
+            from profiles_db import has_active_subscription
+            if _user_email and has_active_subscription(_user_email):
+                st.success("You already have Full Access — just generate the reading "
+                           "directly on its own page.", icon="✅")
+            elif st.button("Subscribe — $10/month", width="stretch"):
+                import stripe
+                stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
+                try:
+                    checkout_session = stripe.checkout.Session.create(
+                        mode="subscription",
+                        line_items=[{"price": os.environ["STRIPE_FULL_ACCESS_PRICE_ID"], "quantity": 1}],
+                        customer_email=_user_email,
+                        success_url="https://tenthhousereadings.com/advanced-readings?signup=success",
+                        cancel_url="https://tenthhousereadings.com/advanced-readings?signup=cancelled",
+                        metadata={"product_type": "full_access_subscription", "label": _user_email},
+                    )
+                    st.link_button("Proceed to Secure Checkout →", checkout_session.url, width="stretch", type="primary")
+                except Exception as e:
+                    st.error(f"Something went wrong setting up checkout: {e}")
