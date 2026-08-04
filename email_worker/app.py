@@ -57,6 +57,7 @@ from prompt_builder import (
     build_lilith_deep_dive_prompt,
     build_chiron_deep_dive_prompt,
     build_lunar_nodes_deep_dive_prompt,
+    build_ask_an_astrologer_prompt,
 )
 
 app = Flask(__name__)
@@ -619,11 +620,11 @@ def stripe_webhook():
     try:
         if event_type == "checkout.session.completed":
             metadata = data_object.get("metadata", {})
-            label = metadata.get("label", "Subscriber")
+            product_type = metadata.get("product_type", "weekly")  # default covers any in-flight test purchases from before this existed
+            label = metadata.get("label", "Customer")
             birth_date_str = metadata["birth_date"]  # YYYY-MM-DD, from date.isoformat()
             birth_time_str = metadata["birth_time"]  # HH:MM, 24-hour
             location_str = metadata["location_str"]
-            theme = metadata.get("theme", "General")
             customer_email = data_object.get("customer_email") or (data_object.get("customer_details") or {}).get("email")
             stripe_customer_id = data_object.get("customer")
             stripe_subscription_id = data_object.get("subscription")
@@ -642,31 +643,87 @@ def stripe_webhook():
             datetime_str = f"{_bd.strftime('%B %d, %Y')} {_bt.strftime('%I:%M %p')}"
             birth = resolve_birth_data(datetime_str, location_str, verbose=False)
 
-            token = _create_paid_subscriber_profile_worker(
-                label=label,
-                birth_date=_bd.date(),
-                birth_time=_bt.time(),
-                location_str=location_str,
-                latitude=birth.latitude,
-                longitude=birth.longitude,
-                resolved_address=location_str,
-                theme=theme,
-                owner_email=customer_email,
-                stripe_customer_id=stripe_customer_id,
-                stripe_subscription_id=stripe_subscription_id,
-            )
+            if product_type == "weekly":
+                theme = metadata.get("theme", "General")
+                token = _create_paid_subscriber_profile_worker(
+                    label=label,
+                    birth_date=_bd.date(),
+                    birth_time=_bt.time(),
+                    location_str=location_str,
+                    latitude=birth.latitude,
+                    longitude=birth.longitude,
+                    resolved_address=location_str,
+                    theme=theme,
+                    owner_email=customer_email,
+                    stripe_customer_id=stripe_customer_id,
+                    stripe_subscription_id=stripe_subscription_id,
+                )
+                app_base_url = os.environ.get("APP_BASE_URL", "https://tenthhousereadings.com")
+                manage_url = f"{app_base_url}/?manage={token}"
+                welcome_body = (
+                    f"## Welcome, {label}!\n\n"
+                    f"Your weekly transits subscription is confirmed — your first "
+                    f"reading arrives this coming Monday, focused on your "
+                    f"**{theme}** theme.\n\n"
+                    f"[Manage your subscription (change theme, or unsubscribe)]({manage_url})"
+                )
+                send_email(customer_email, "You're signed up — Tenth House Readings", welcome_body)
+                print(f"[email_worker] Weekly transits welcome email sent to {customer_email}")
 
-            app_base_url = os.environ.get("APP_BASE_URL", "https://tenthhousereadings.com")
-            manage_url = f"{app_base_url}/?manage={token}"
-            welcome_body = (
-                f"## Welcome, {label}!\n\n"
-                f"Your weekly transits subscription is confirmed — your first "
-                f"reading arrives this coming Monday, focused on your "
-                f"**{theme}** theme.\n\n"
-                f"[Manage your subscription (change theme, or unsubscribe)]({manage_url})"
-            )
-            send_email(customer_email, "You're signed up — Tenth House Readings", welcome_body)
-            print(f"[email_worker] Weekly transits welcome email sent to {customer_email}")
+            elif product_type == "one_time":
+                # A single, comprehensive reading -- uses the FULL
+                # transit prompt rather than the lean summary-only one
+                # the weekly job uses, since a one-time $7 purchase
+                # calls for more depth than a quick recurring check-in.
+                chart = compute_full_chart(birth, house_system=b"P")
+                dignities = compute_chart_dignities(chart)
+                transit_dt_utc = datetime.utcnow().replace(hour=12, minute=0, second=0, tzinfo=timezone.utc)
+                transiting_points = compute_transiting_points(transit_dt_utc)
+                natal_house_cusps = [chart[f"House {i}"] for i in range(1, 13)]
+                assign_transit_houses(transiting_points, natal_house_cusps)
+                transit_aspects = compute_transit_aspects(
+                    chart, transiting_points,
+                    transiting_speeds=extract_speeds(transiting_points),
+                )
+                prompt = build_transit_prompt(
+                    transiting_points, transit_aspects, dignities, person_name=label,
+                )
+                import anthropic
+                client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+                accumulated_text = ""
+                with client.messages.stream(
+                    model="claude-sonnet-5",
+                    max_tokens=32000,
+                    messages=[{"role": "user", "content": prompt}],
+                ) as stream:
+                    for text_chunk in stream.text_stream:
+                        accumulated_text += text_chunk
+                send_email(customer_email, "Your Transit Reading — Tenth House Readings", accumulated_text)
+                print(f"[email_worker] One-time transit reading sent to {customer_email}")
+
+            elif product_type == "ask":
+                question = metadata.get("question", "").strip()
+                chart = compute_full_chart(birth, house_system=b"P")
+                aspects = compute_aspects(chart, speeds=extract_speeds(chart))
+                patterns = find_all_patterns(chart, aspects)
+                dignities = compute_chart_dignities(chart)
+                house_readings = build_house_readings(chart)
+                prompt = build_ask_an_astrologer_prompt(
+                    chart, aspects, patterns, dignities, house_readings,
+                    question=question, person_name=label,
+                )
+                import anthropic
+                client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+                accumulated_text = ""
+                with client.messages.stream(
+                    model="claude-sonnet-5",
+                    max_tokens=32000,
+                    messages=[{"role": "user", "content": prompt}],
+                ) as stream:
+                    for text_chunk in stream.text_stream:
+                        accumulated_text += text_chunk
+                send_email(customer_email, "Your Question, Answered — Tenth House Readings", accumulated_text)
+                print(f"[email_worker] Ask an Astrologer answer sent to {customer_email}")
 
         elif event_type == "customer.subscription.deleted":
             _deactivate_by_subscription_id_worker(data_object.get("id"))
