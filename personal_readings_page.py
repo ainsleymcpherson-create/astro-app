@@ -275,10 +275,10 @@ if "auth" in st.secrets and st.user.is_logged_in and "DATABASE_URL" in os.enviro
     if saved_profiles:
         profile_choice = st.selectbox(
             "Use a saved profile",
-            options=["New entry"] + [p["label"] for p in saved_profiles],
+            options=["Select"] + [p["label"] for p in saved_profiles],
             help="Loads a previously saved birth profile instead of typing it fresh.",
         )
-        if profile_choice != "New entry":
+        if profile_choice != "Select":
             selected_profile = next(p for p in saved_profiles if p["label"] == profile_choice)
             profile_key_suffix = str(selected_profile["id"])
 
