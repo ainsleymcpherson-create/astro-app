@@ -147,3 +147,49 @@ def resolve_birth_data(datetime_str: str, location_str: str, verbose: bool = Tru
         print(f"UTC time: {utc_dt}\n")
 
     return BirthData(dt_utc=utc_dt, latitude=lat, longitude=lon)
+
+
+def geocode_location_quick(location_str: str) -> tuple[bool, str | None]:
+    """
+    Quick, single-attempt geocode check meant for live UI feedback as
+    someone types a location — e.g. showing a checkmark and the
+    resolved address once it's recognized, before the reading is
+    actually generated.
+
+    Deliberately NOT the same robust, retrying lookup resolve_birth_data
+    uses above. That one is built to be patient — several attempts with
+    exponential backoff — because it runs once, at the moment a reading
+    is actually being generated, and a real, if temporary, service
+    hiccup shouldn't cause the whole thing to fail. A live-typing check
+    needs the opposite property: if it hung for the same up-to-a-minute
+    retry window on every rerun while someone's mid-typing, the UI
+    would feel broken. So this makes exactly one attempt with a short
+    timeout — a "not confirmed yet" here isn't a verdict that the
+    location is invalid, just that this quick check didn't confirm it
+    yet. The real, patient lookup with full retry logic still runs
+    when the reading is generated, and is the actual source of truth.
+
+    Shares the same _GEOCODE_CACHE as resolve_birth_data — a location
+    confirmed here is already cached by the time the real submission
+    happens, so nothing gets geocoded twice.
+
+    Returns (found, resolved_display_address_or_None).
+    """
+    cache_key = location_str.strip().lower()
+    if not cache_key:
+        return False, None
+    if cache_key in _GEOCODE_CACHE:
+        _, _, address = _GEOCODE_CACHE[cache_key]
+        return True, address
+    try:
+        geolocator = Nominatim(
+            user_agent="tenth-house-readings-astro-app (contact: via GitHub repo)",
+            timeout=6,
+        )
+        location = geolocator.geocode(location_str)
+    except Exception:
+        return False, None
+    if location is None:
+        return False, None
+    _GEOCODE_CACHE[cache_key] = (location.latitude, location.longitude, location.address)
+    return True, location.address
