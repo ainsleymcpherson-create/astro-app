@@ -28,6 +28,41 @@ import streamlit as st
 from birth_input import geocode_location_quick
 from profiles_db import safe_user_email
 
+
+def get_secret(name: str):
+    """Same lookup pattern used throughout this app -- Streamlit
+    secrets first, falling back to a plain environment variable."""
+    try:
+        if name in st.secrets:
+            return st.secrets[name]
+    except Exception:
+        pass
+    return os.environ.get(name)
+
+
+def enqueue_full_reading_email(job_payload: dict) -> tuple[bool, str]:
+    """
+    Publishes a job to QStash, which calls the email worker to
+    generate the full reading and email it -- same mechanism already
+    used on Personal/Synastry/Deep Dive for "Generate Summary and
+    Email Full Reading", reused here so a subscriber can generate a
+    reading directly on this page instead of being told to go
+    elsewhere.
+    """
+    qstash_token = get_secret("QSTASH_TOKEN")
+    worker_url = get_secret("EMAIL_WORKER_URL")
+    if not qstash_token or not worker_url:
+        return False, "Email delivery isn't configured yet — please try again later."
+    try:
+        qstash_url = get_secret("QSTASH_URL") or "https://qstash-us-east-1.upstash.io"
+        os.environ["QSTASH_URL"] = qstash_url
+        from qstash import QStash
+        client = QStash(qstash_token)
+        client.message.publish_json(url=worker_url, body=job_payload, timeout="300s")
+        return True, "Your full reading is on its way — check your email in a few minutes."
+    except Exception as e:
+        return False, f"Couldn't queue the full reading ({type(e).__name__}: {e})."
+
 st.title("✨ Advanced Readings")
 st.write(
     "Get the complete, in-depth version of any reading — emailed to you. "
@@ -195,14 +230,22 @@ if category == "Transits":
                 st.error(f"Something went wrong setting up checkout: {e}")
 
 else:
-    col_unlock, col_sub = st.columns(2)
+    _is_logged_in = "auth" in st.secrets and st.user.is_logged_in
+    _user_email = safe_user_email() if _is_logged_in else None
+    _has_full_access = False
+    if _user_email and "DATABASE_URL" in os.environ:
+        from profiles_db import has_active_subscription
+        _has_full_access = has_active_subscription(_user_email)
 
-    with col_unlock:
-        st.subheader("Just this reading")
-        st.write("**\\$3**, one-time.")
-        if "STRIPE_ONE_TIME_READING_UNLOCK_PRICE_ID" not in os.environ:
-            st.caption("Not available right now.")
-        elif st.button("Unlock this reading — $3", width="stretch", type="primary"):
+    if _has_full_access:
+        # Already paying $10/month for unlimited access -- showing the
+        # $3/$10 purchase columns here would be actively confusing
+        # (why would a subscriber need to pay again?), so this
+        # replaces them entirely with a direct path to the reading
+        # itself, reusing the same generate-and-email mechanism
+        # Personal/Synastry/Deep Dive already use.
+        st.success("✅ You have Full Access — generate this reading directly, no charge.")
+        if st.button("Generate Full Reading", width="stretch", type="primary"):
             errors = []
             if not label_a.strip():
                 errors.append("Please enter a name.")
@@ -224,53 +267,100 @@ else:
                 for e in errors:
                     st.error(e)
             else:
-                import stripe
-                stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
-                try:
-                    metadata = {
-                        "product_type": "reading_unlock",
-                        "reading_type": reading_type,
-                        "label": label_a.strip(),
-                        "birth_date": birth_date.isoformat(),
-                        "birth_time": birth_time_val.strftime("%H:%M"),
-                        "location_str": location_str.strip(),
-                        "unknown_time": "true" if unknown_time else "false",
-                    }
-                    if reading_type in SYNASTRY_READING_TYPES:
-                        metadata["label_b"] = label_b.strip()
-                        metadata["birth_date_b"] = birth_date_b.isoformat()
-                        metadata["birth_time_b"] = birth_time_val_b.strftime("%H:%M")
-                        metadata["location_str_b"] = location_str_b.strip()
-                        metadata["unknown_time_b"] = "true" if unknown_time_b else "false"
-                        if reading_type == "Relationship Synastry" and relationship_stage:
-                            metadata["relationship_stage"] = relationship_stage
-                    checkout_session = stripe.checkout.Session.create(
-                        mode="payment",
-                        line_items=[{"price": os.environ["STRIPE_ONE_TIME_READING_UNLOCK_PRICE_ID"], "quantity": 1}],
-                        customer_email=email.strip(),
-                        success_url="https://tenthhousereadings.com/advanced-readings?signup=success",
-                        cancel_url="https://tenthhousereadings.com/advanced-readings?signup=cancelled",
-                        metadata=metadata,
+                job_payload = {
+                    "reading_type": reading_type,
+                    "datetime_str": f"{birth_date.strftime('%B %d, %Y')} {birth_time_val.strftime('%I:%M %p')}",
+                    "location_str": location_str.strip(),
+                    "unknown_time": unknown_time,
+                    "person_name": label_a.strip() or None,
+                    "email": email.strip(),
+                }
+                if reading_type in SYNASTRY_READING_TYPES:
+                    job_payload["datetime_str_b"] = (
+                        f"{birth_date_b.strftime('%B %d, %Y')} {birth_time_val_b.strftime('%I:%M %p')}"
                     )
-                    st.success("Click below to complete your payment securely with Stripe.")
-                    st.link_button("Proceed to Secure Checkout →", checkout_session.url, width="stretch", type="primary")
-                except Exception as e:
-                    st.error(f"Something went wrong setting up checkout: {e}")
+                    job_payload["location_str_b"] = location_str_b.strip()
+                    job_payload["unknown_time_b"] = unknown_time_b
+                    job_payload["person_name_b"] = (label_b or "").strip() or None
+                    if reading_type == "Relationship Synastry" and relationship_stage:
+                        job_payload["relationship_stage"] = relationship_stage
 
-    with col_sub:
-        st.subheader("Unlimited full readings")
-        st.write("**\\$10/month**, all three categories.")
-        _is_logged_in = "auth" in st.secrets and st.user.is_logged_in
-        _user_email = safe_user_email() if _is_logged_in else None
-        if not _is_logged_in:
-            st.info("Log in from the sidebar to subscribe.")
-        elif "STRIPE_FULL_ACCESS_PRICE_ID" not in os.environ:
-            st.caption("Not available right now.")
-        else:
-            from profiles_db import has_active_subscription
-            if _user_email and has_active_subscription(_user_email):
-                st.success("You already have Full Access — just generate the reading "
-                           "directly on its own page.", icon="✅")
+                success, message = enqueue_full_reading_email(job_payload)
+                if success:
+                    st.success(message)
+                else:
+                    st.error(message)
+
+    else:
+        col_unlock, col_sub = st.columns(2)
+
+        with col_unlock:
+            st.subheader("Just this reading")
+            st.write("**\\$3**, one-time.")
+            if "STRIPE_ONE_TIME_READING_UNLOCK_PRICE_ID" not in os.environ:
+                st.caption("Not available right now.")
+            elif st.button("Unlock this reading — $3", width="stretch", type="primary"):
+                errors = []
+                if not label_a.strip():
+                    errors.append("Please enter a name.")
+                if not email.strip() or "@" not in email:
+                    errors.append("Please enter a valid email address.")
+                if not location_str.strip():
+                    errors.append("Please enter a birth location.")
+                elif not geocode_location_quick(location_str)[0]:
+                    errors.append("Couldn't confirm that location — please check it and try again.")
+                if reading_type in SYNASTRY_READING_TYPES:
+                    if not (label_b or "").strip():
+                        errors.append("Please enter Person B's name.")
+                    if not (location_str_b or "").strip():
+                        errors.append("Please enter Person B's birth location.")
+                    elif not geocode_location_quick(location_str_b)[0]:
+                        errors.append("Couldn't confirm Person B's location — please check it and try again.")
+
+                if errors:
+                    for e in errors:
+                        st.error(e)
+                else:
+                    import stripe
+                    stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
+                    try:
+                        metadata = {
+                            "product_type": "reading_unlock",
+                            "reading_type": reading_type,
+                            "label": label_a.strip(),
+                            "birth_date": birth_date.isoformat(),
+                            "birth_time": birth_time_val.strftime("%H:%M"),
+                            "location_str": location_str.strip(),
+                            "unknown_time": "true" if unknown_time else "false",
+                        }
+                        if reading_type in SYNASTRY_READING_TYPES:
+                            metadata["label_b"] = label_b.strip()
+                            metadata["birth_date_b"] = birth_date_b.isoformat()
+                            metadata["birth_time_b"] = birth_time_val_b.strftime("%H:%M")
+                            metadata["location_str_b"] = location_str_b.strip()
+                            metadata["unknown_time_b"] = "true" if unknown_time_b else "false"
+                            if reading_type == "Relationship Synastry" and relationship_stage:
+                                metadata["relationship_stage"] = relationship_stage
+                        checkout_session = stripe.checkout.Session.create(
+                            mode="payment",
+                            line_items=[{"price": os.environ["STRIPE_ONE_TIME_READING_UNLOCK_PRICE_ID"], "quantity": 1}],
+                            customer_email=email.strip(),
+                            success_url="https://tenthhousereadings.com/advanced-readings?signup=success",
+                            cancel_url="https://tenthhousereadings.com/advanced-readings?signup=cancelled",
+                            metadata=metadata,
+                        )
+                        st.success("Click below to complete your payment securely with Stripe.")
+                        st.link_button("Proceed to Secure Checkout →", checkout_session.url, width="stretch", type="primary")
+                    except Exception as e:
+                        st.error(f"Something went wrong setting up checkout: {e}")
+
+        with col_sub:
+            st.subheader("Unlimited full readings")
+            st.write("**\\$10/month**, all three categories.")
+            if not _is_logged_in:
+                st.info("Log in from the sidebar to subscribe.")
+            elif "STRIPE_FULL_ACCESS_PRICE_ID" not in os.environ:
+                st.caption("Not available right now.")
             elif st.button("Subscribe — $10/month", width="stretch"):
                 import stripe
                 stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
