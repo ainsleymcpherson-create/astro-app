@@ -156,6 +156,27 @@ weekly_transits = st.Page(
 resources = st.Page("resources_page.py", title="Resources", icon="📖")
 my_account = st.Page("my_account_page.py", title="My Account", icon="👤")
 
+# --- Custom sidebar menu ---
+# st.navigation's own auto-generated menu can't mix flat top-level
+# pages with one nested group in the same call -- a dict turns EVERY
+# key into its own section header, even for sections with only one
+# page, which read as redundant (a header reading "Advanced Readings"
+# directly above a single link also reading "Advanced Readings").
+# Building the visible menu by hand instead, with position="hidden"
+# on st.navigation below so its own auto-menu never renders -- routing
+# and .run() still work exactly the same, this only replaces what's
+# actually drawn in the sidebar.
+with st.sidebar:
+    st.page_link("home_page.py", label="Home", icon="🏠")
+    st.caption("READINGS")
+    st.page_link("personal_readings_page.py", label="Personal", icon="🔭")
+    st.page_link("synastry_readings_page.py", label="Synastry", icon="👥")
+    st.page_link("deep_dive_readings_page.py", label="Deep Dive", icon="🔍")
+    st.page_link("advanced_readings_page.py", label="Advanced Readings", icon="✨")
+    st.page_link("weekly_transits_signup_page.py", label="Astrology Services", icon="🌙")
+    st.page_link("resources_page.py", label="Resources", icon="📖")
+    st.page_link("my_account_page.py", label="My Account", icon="👤")
+
 # --- Optional login (saved profiles) ---
 # Anonymous use is always fully available everywhere else in the app —
 # this only adds an optional "log in to save birth profiles"
@@ -269,12 +290,9 @@ if "auth" in st.secrets:
             if st.button("Log in", width="stretch"):
                 st.login("auth0")
 
-pg = st.navigation({
-    "Home": [home],
-    "Readings": [personal_readings, synastry_readings, deep_dive_readings],
-    "Advanced Readings": [advanced_readings],
-    "Astrology Services": [weekly_transits],
-    "Resources": [resources],
-    "My Account": [my_account],
-})
+pg = st.navigation(
+    [home, personal_readings, synastry_readings, deep_dive_readings,
+     advanced_readings, weekly_transits, resources, my_account],
+    position="hidden",
+)
 pg.run()
