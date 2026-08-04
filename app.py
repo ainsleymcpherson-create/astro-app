@@ -30,6 +30,23 @@ import streamlit as st
 
 st.set_page_config(page_title="Tenth House Readings", layout="wide")
 
+# --- One-click unsubscribe from weekly transit emails ---
+# Deliberately independent of login -- the whole point of a one-click
+# unsubscribe link is that someone can act on it without needing to
+# sign back in first. The token in the URL is the entire
+# authentication for this action (see profiles_db.unsubscribe_by_token
+# for why that's safe to do). Checked here, at the very top of the
+# router, before any page renders, so it works regardless of which
+# page the link happens to land on.
+if "unsubscribe" in st.query_params and "DATABASE_URL" in os.environ:
+    from profiles_db import unsubscribe_by_token
+    _unsub_label = unsubscribe_by_token(st.query_params["unsubscribe"])
+    del st.query_params["unsubscribe"]
+    if _unsub_label:
+        st.success(f"Weekly transit emails turned off for \"{_unsub_label}\".", icon="✅")
+    else:
+        st.info("That unsubscribe link has already been used or is no longer valid.")
+
 # Narrow the sidebar. Streamlit doesn't expose sidebar width as a
 # simple, reliably-available parameter across versions, so this uses
 # CSS instead. Recent Streamlit versions made the sidebar user-
@@ -105,7 +122,7 @@ if "auth" in st.secrets:
             # showing this section, same pattern as everywhere else
             # this app checks for optional infrastructure.
             if "DATABASE_URL" in os.environ:
-                from profiles_db import init_schema, list_profiles, delete_profile
+                from profiles_db import init_schema, list_profiles, delete_profile, set_weekly_transits
                 init_schema()
                 with st.expander("My Profiles"):
                     saved = list_profiles(st.user.email)
@@ -119,6 +136,17 @@ if "auth" in st.secrets:
                             if st.button("🗑️", key=f"del_profile_{p['id']}", help=f"Delete \"{p['label']}\""):
                                 delete_profile(p["id"], st.user.email)
                                 st.rerun()
+                        _weekly_on = st.checkbox(
+                            "Weekly transits",
+                            value=bool(p.get("weekly_transits")),
+                            key=f"weekly_{p['id']}",
+                            help="A short Monday-morning reading of that week's transits "
+                                 "against this profile's chart, emailed automatically.",
+                        )
+                        if _weekly_on != bool(p.get("weekly_transits")):
+                            set_weekly_transits(p["id"], st.user.email, _weekly_on)
+                            st.rerun()
+                        st.divider()
         else:
             st.caption("Log in to unlock full readings, email delivery, and saved profiles.")
             if st.button("Log in", width="stretch"):
