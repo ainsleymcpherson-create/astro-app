@@ -582,7 +582,13 @@ def stripe_webhook():
         return jsonify({"error": f"Webhook signature verification failed: {e}"}), 400
 
     event_type = event["type"]
-    data_object = event["data"]["object"]
+    # stripe-python v15 removed dict inheritance from StripeObject --
+    # .get(), .items(), etc. no longer work directly on these SDK
+    # objects even though they still support bracket access. Convert
+    # to a real plain dict immediately so every .get() call below
+    # (including on the nested "metadata" dict) works as written,
+    # rather than fixing each individual access site separately.
+    data_object = event["data"]["object"].to_dict()
 
     try:
         if event_type == "checkout.session.completed":
@@ -592,7 +598,7 @@ def stripe_webhook():
             birth_time_str = metadata["birth_time"]  # HH:MM, 24-hour
             location_str = metadata["location_str"]
             theme = metadata.get("theme", "General")
-            customer_email = data_object.get("customer_email") or data_object.get("customer_details", {}).get("email")
+            customer_email = data_object.get("customer_email") or (data_object.get("customer_details") or {}).get("email")
             stripe_customer_id = data_object.get("customer")
             stripe_subscription_id = data_object.get("subscription")
 
