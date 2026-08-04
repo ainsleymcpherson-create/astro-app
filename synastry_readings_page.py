@@ -439,9 +439,26 @@ GEN_QUICK_EMAIL = (
     "minutes to appear in your inbox)"
 )
 
+# --- Tiered access ---
+# Anonymous visitors: summary only, no full reading and no email
+# delivery -- those stay behind login. Show Prompt is separate again:
+# it's a build/debug view of the actual prompt sent to the model, not
+# something any regular user (logged in or not) should see -- kept to
+# a single hardcoded account so development can keep using it as this
+# gets built out, without exposing it to anyone else.
+_is_logged_in = "auth" in st.secrets and st.user.is_logged_in
+_is_admin = _is_logged_in and st.user.email == "amcpherson89@gmail.com"
+
+_generation_options = []
+if _is_admin:
+    _generation_options.append(GEN_DONT)
+_generation_options.append(GEN_QUICK_ONLY)
+if _is_logged_in:
+    _generation_options += [GEN_FULL_NOW, GEN_QUICK_EMAIL]
+
 generation_mode = st.radio(
     "Written interpretation",
-    options=[GEN_DONT, GEN_QUICK_ONLY, GEN_FULL_NOW, GEN_QUICK_EMAIL],
+    options=_generation_options,
     index=0,
     help="Generate Summary: a short, fast version shown here "
          "immediately (a small billed API call), nothing emailed. "
@@ -451,7 +468,8 @@ generation_mode = st.radio(
          "so it takes several minutes. Generate Summary and Email Full "
          "Reading: the fast summary shows here right away, while the "
          "full reading generates separately in the background and gets "
-         "emailed to you — no need to keep this page open while you wait.",
+         "emailed to you — no need to keep this page open while you wait."
+         + ("" if _is_logged_in else " Full Reading and email delivery require logging in."),
 )
 generate_live = generation_mode != GEN_DONT
 want_quick_summary = generation_mode in (GEN_QUICK_ONLY, GEN_QUICK_EMAIL)
