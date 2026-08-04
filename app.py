@@ -120,7 +120,8 @@ if "auth" in st.secrets:
                                 delete_profile(p["id"], st.user.email)
                                 st.rerun()
         else:
-            if st.button("Log in to save profiles", width="stretch"):
+            st.caption("Log in to unlock full readings, email delivery, and saved profiles.")
+            if st.button("Log in", width="stretch"):
                 st.login("auth0")
 
 pg = st.navigation([personal_readings, synastry_readings, deep_dive_readings, resources])
