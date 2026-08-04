@@ -574,6 +574,11 @@ def stripe_webhook():
             payload, sig_header, os.environ["STRIPE_WEBHOOK_SECRET"]
         )
     except Exception as e:
+        # This specific failure was previously silent in Render's logs
+        # -- the response told Stripe what happened, but nothing was
+        # printed here, making this exact problem invisible from the
+        # Render side even though the request was actually arriving.
+        print(f"[email_worker] Stripe webhook signature verification failed: {e}")
         return jsonify({"error": f"Webhook signature verification failed: {e}"}), 400
 
     event_type = event["type"]
