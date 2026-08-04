@@ -164,8 +164,21 @@ my_account = st.Page("my_account_page.py", title="My Account", icon="👤")
 # directly above a single link also reading "Advanced Readings").
 # Building the visible menu by hand instead, with position="hidden"
 # on st.navigation below so its own auto-menu never renders -- routing
-# and .run() still work exactly the same, this only replaces what's
-# actually drawn in the sidebar.
+# still works exactly the same, this only replaces what's actually
+# drawn in the sidebar.
+#
+# st.navigation() itself has to run BEFORE any st.page_link() calls
+# that reference these same pages -- it's what registers each page's
+# url_pathname internally, and st.page_link raises a KeyError trying
+# to look that up for a page that hasn't been registered yet. .run()
+# (which actually executes the selected page's script) is deferred to
+# the very end, after the rest of the sidebar has been built.
+pg = st.navigation(
+    [home, personal_readings, synastry_readings, deep_dive_readings,
+     advanced_readings, weekly_transits, resources, my_account],
+    position="hidden",
+)
+
 with st.sidebar:
     st.page_link("home_page.py", label="Home", icon="🏠")
     st.caption("READINGS")
@@ -290,9 +303,4 @@ if "auth" in st.secrets:
             if st.button("Log in", width="stretch"):
                 st.login("auth0")
 
-pg = st.navigation(
-    [home, personal_readings, synastry_readings, deep_dive_readings,
-     advanced_readings, weekly_transits, resources, my_account],
-    position="hidden",
-)
 pg.run()
