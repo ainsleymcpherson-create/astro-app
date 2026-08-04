@@ -41,9 +41,12 @@ def _get_conn():
 
 def init_schema() -> None:
     """
-    Creates the saved_profiles table if it doesn't already exist. Safe
-    to call on every app startup — CREATE TABLE IF NOT EXISTS is a
-    no-op once the table's already there.
+    Creates the saved_profiles table if it doesn't already exist, and
+    adds any columns introduced after the table's original creation
+    (currently just person_name) to tables that already exist from
+    before that column was added -- ADD COLUMN IF NOT EXISTS is
+    idempotent, safe to run on every startup regardless of whether the
+    table is brand new or has been running for a while already.
     """
     conn = _get_conn()
     with conn.session as session:
@@ -62,6 +65,9 @@ def init_schema() -> None:
                 created_at TIMESTAMP NOT NULL DEFAULT NOW()
             )
         """))
+        session.execute(text(
+            "ALTER TABLE saved_profiles ADD COLUMN IF NOT EXISTS person_name TEXT"
+        ))
         session.commit()
 
 
@@ -109,6 +115,7 @@ def list_profiles(owner_email: str) -> list[dict]:
 def save_profile(
     owner_email: str,
     label: str,
+    person_name: str | None,
     birth_date: date_type,
     birth_time: time_type | None,
     unknown_time: bool,
@@ -125,14 +132,63 @@ def save_profile(
     with conn.session as session:
         session.execute(text("""
             INSERT INTO saved_profiles
-                (owner_email, label, birth_date, birth_time, unknown_time,
+                (owner_email, label, person_name, birth_date, birth_time, unknown_time,
                  location_str, latitude, longitude, resolved_address)
             VALUES
-                (:owner_email, :label, :birth_date, :birth_time, :unknown_time,
+                (:owner_email, :label, :person_name, :birth_date, :birth_time, :unknown_time,
                  :location_str, :latitude, :longitude, :resolved_address)
         """), {
             "owner_email": owner_email,
             "label": label,
+            "person_name": person_name,
+            "birth_date": birth_date,
+            "birth_time": birth_time,
+            "unknown_time": unknown_time,
+            "location_str": location_str,
+            "latitude": latitude,
+            "longitude": longitude,
+            "resolved_address": resolved_address,
+        })
+        session.commit()
+
+
+def update_profile(
+    profile_id: int,
+    owner_email: str,
+    label: str,
+    person_name: str | None,
+    birth_date: date_type,
+    birth_time: time_type | None,
+    unknown_time: bool,
+    location_str: str,
+    latitude: float | None,
+    longitude: float | None,
+    resolved_address: str | None,
+) -> None:
+    """Updates an existing profile in place, rather than requiring a
+    delete-and-resave to fix a typo'd label or correct a detail.
+    Scoped to owner_email as well as id, same reasoning as
+    delete_profile — never touch another user's row even if an id
+    were somehow guessed."""
+    conn = _get_conn()
+    with conn.session as session:
+        session.execute(text("""
+            UPDATE saved_profiles
+            SET label = :label,
+                person_name = :person_name,
+                birth_date = :birth_date,
+                birth_time = :birth_time,
+                unknown_time = :unknown_time,
+                location_str = :location_str,
+                latitude = :latitude,
+                longitude = :longitude,
+                resolved_address = :resolved_address
+            WHERE id = :id AND owner_email = :owner_email
+        """), {
+            "id": profile_id,
+            "owner_email": owner_email,
+            "label": label,
+            "person_name": person_name,
             "birth_date": birth_date,
             "birth_time": birth_time,
             "unknown_time": unknown_time,
