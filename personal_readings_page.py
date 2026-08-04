@@ -530,21 +530,28 @@ if "auth" in st.secrets and not _is_logged_in:
         icon="🔓",
     )
 
-generation_mode = st.radio(
-    "Written interpretation",
-    options=_generation_options,
-    index=0,
-    help="Generate Summary: a short, fast version shown here "
-         "immediately (a small billed API call), nothing emailed. "
-         "Generate Full Reading: the complete, in-depth reading shown "
-         "here on screen with collapsible sections, plus both Summary "
-         "and Full downloads — this is the original full experience, "
-         "so it takes several minutes. Generate Summary and Email Full "
-         "Reading: the fast summary shows here right away, while the "
-         "full reading generates separately in the background and gets "
-         "emailed to you — no need to keep this page open while you wait."
-         + ("" if _is_logged_in else " Full Reading and email delivery require logging in."),
-)
+if len(_generation_options) == 1:
+    # Only one real choice exists (the anonymous/free tier) -- a radio
+    # group with a single option is just clutter, so skip it entirely
+    # and fold the choice straight into the submit button's own label
+    # instead. Logged-in users, with real choices to make, still see
+    # the full radio group below.
+    generation_mode = _generation_options[0]
+else:
+    generation_mode = st.radio(
+        "Written interpretation",
+        options=_generation_options,
+        index=0,
+        help="Generate Summary: a short, fast version shown here "
+             "immediately (a small billed API call), nothing emailed. "
+             "Generate Full Reading: the complete, in-depth reading shown "
+             "here on screen with collapsible sections, plus both Summary "
+             "and Full downloads — this is the original full experience, "
+             "so it takes several minutes. Generate Summary and Email Full "
+             "Reading: the fast summary shows here right away, while the "
+             "full reading generates separately in the background and gets "
+             "emailed to you — no need to keep this page open while you wait.",
+    )
 generate_live = generation_mode != GEN_DONT
 want_quick_summary = generation_mode in (GEN_QUICK_ONLY, GEN_QUICK_EMAIL)
 want_full_now = generation_mode == GEN_FULL_NOW
@@ -557,7 +564,8 @@ if want_email_full:
     )
 
 submitted = st.button(
-    "Compute Chart", width="stretch",
+    "Generate Summary" if len(_generation_options) == 1 else "Compute Chart",
+    width="stretch",
     disabled=st.session_state.get("processing", False),
 )
 
