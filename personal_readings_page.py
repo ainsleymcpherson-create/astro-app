@@ -222,15 +222,15 @@ SYNASTRY_READING_TYPES = ("Professional Synastry", "Relationship Synastry")
 # --- Input form ---
 reading_type = st.selectbox(
     "Reading focus",
-    options=["General", "Career / Work", "Transits"],
+    options=["General", "Career / Work"],
     index=0,
     help="General covers the whole chart. Career/Work focuses "
          "specifically on workplace happiness, colleague dynamics, "
-         "work style, and professional strengths/weaknesses. Transits "
-         "answers 'what's happening right now' — how today's sky is "
-         "currently interacting with this natal chart. Looking for a "
-         "two-person compatibility reading instead? Head to the "
-         "Synastry Readings page.",
+         "work style, and professional strengths/weaknesses. Looking "
+         "for a two-person compatibility reading instead? Head to the "
+         "Synastry Readings page. Looking for a transit reading — "
+         "what's happening right now astrologically? Head to "
+         "Astrology Services.",
 )
 
 # Read the checkbox's stored value BEFORE the checkbox widget itself is
