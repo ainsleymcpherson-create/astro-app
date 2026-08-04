@@ -485,6 +485,29 @@ def _activate_account_subscription_worker(owner_email: str, stripe_customer_id: 
         })
 
 
+def _record_purchase_worker(owner_email: str, product_type: str, detail: str,
+                             amount_cents: int, stripe_session_id: str) -> None:
+    """
+    Records a one-time purchase (reading unlock, one-time transit
+    reading, or ask-an-astrologer question) so it shows up in the
+    account's purchase history later. Previously these left no trace
+    anywhere once the confirmation email went out.
+    """
+    engine = create_engine(os.environ["DATABASE_URL"])
+    with engine.begin() as conn:
+        conn.execute(sql_text("""
+            INSERT INTO purchase_history
+                (owner_email, product_type, detail, amount_cents, stripe_session_id)
+            VALUES (:owner_email, :product_type, :detail, :amount_cents, :stripe_session_id)
+        """), {
+            "owner_email": owner_email,
+            "product_type": product_type,
+            "detail": detail,
+            "amount_cents": amount_cents,
+            "stripe_session_id": stripe_session_id,
+        })
+
+
 def _process_weekly_transit_profile(profile: dict) -> tuple[bool, str]:
     """
     Builds and sends one profile's weekly transit email. Mirrors
@@ -739,6 +762,10 @@ def stripe_webhook():
                     for text_chunk in stream.text_stream:
                         accumulated_text += text_chunk
                 send_email(customer_email, "Your Transit Reading — Tenth House Readings", accumulated_text)
+                _record_purchase_worker(
+                    customer_email, "one_time_transit", f"One-Time Transit Reading — {label}",
+                    700, data_object.get("id"),
+                )
                 print(f"[email_worker] One-time transit reading sent to {customer_email}")
 
             elif product_type == "ask":
@@ -763,6 +790,11 @@ def stripe_webhook():
                     for text_chunk in stream.text_stream:
                         accumulated_text += text_chunk
                 send_email(customer_email, "Your Question, Answered — Tenth House Readings", accumulated_text)
+                _question_preview = question if len(question) <= 100 else question[:97] + "..."
+                _record_purchase_worker(
+                    customer_email, "ask_an_astrologer", f"Ask an Astrologer: \"{_question_preview}\"",
+                    1000, data_object.get("id"),
+                )
                 print(f"[email_worker] Ask an Astrologer answer sent to {customer_email}")
 
             elif product_type == "reading_unlock":
@@ -795,6 +827,10 @@ def stripe_webhook():
 
                 success, message = _process_reading_job(job)
                 if success:
+                    _record_purchase_worker(
+                        customer_email, "reading_unlock", f"{reading_type} — {label}",
+                        300, data_object.get("id"),
+                    )
                     print(f"[email_worker] Reading unlock ({reading_type}) sent to {customer_email}")
                 else:
                     print(f"[email_worker] Reading unlock ({reading_type}) FAILED: {message}")
