@@ -582,6 +582,13 @@ def stripe_webhook():
         return jsonify({"error": f"Webhook signature verification failed: {e}"}), 400
 
     event_type = event["type"]
+    # Logged unconditionally, not just on error -- a single Checkout
+    # completion fires many different Stripe event types (invoice.paid,
+    # customer.subscription.created, etc.), and this handler only acts
+    # on three of them. Without this, every one of those other events
+    # shows up in Render's logs as an identical, silent 200 with
+    # nothing to distinguish which event it actually was.
+    print(f"[email_worker] Stripe webhook received: {event_type}")
     # stripe-python v15 removed dict inheritance from StripeObject --
     # .get(), .items(), etc. no longer work directly on these SDK
     # objects even though they still support bracket access. Convert
@@ -635,6 +642,7 @@ def stripe_webhook():
                 f"[Manage your subscription (change theme, or unsubscribe)]({manage_url})"
             )
             send_email(customer_email, "You're signed up — Tenth House Readings", welcome_body)
+            print(f"[email_worker] Weekly transits welcome email sent to {customer_email}")
 
         elif event_type == "customer.subscription.deleted":
             _deactivate_by_subscription_id_worker(data_object.get("id"))
