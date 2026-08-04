@@ -124,6 +124,20 @@ def init_schema() -> None:
                 created_at TIMESTAMP NOT NULL DEFAULT NOW()
             )
         """))
+        # One row per one-time purchase (reading unlocks, one-time
+        # transit readings, ask-an-astrologer questions) -- these
+        # previously left no trace anywhere once the email went out.
+        session.execute(text("""
+            CREATE TABLE IF NOT EXISTS purchase_history (
+                id SERIAL PRIMARY KEY,
+                owner_email TEXT NOT NULL,
+                product_type TEXT NOT NULL,
+                detail TEXT,
+                amount_cents INTEGER,
+                stripe_session_id TEXT,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW()
+            )
+        """))
         session.commit()
 
 
@@ -566,3 +580,21 @@ def get_subscription_details(owner_email: str) -> dict | None:
     if df.empty:
         return None
     return df.to_dict("records")[0]
+
+
+def list_purchase_history(owner_email: str) -> list[dict]:
+    """
+    Returns every one-time purchase (reading unlocks, one-time
+    transit readings, ask-an-astrologer questions) made under this
+    email, most recent first. Matched purely by email -- someone
+    doesn't need to have been logged in at purchase time, only for
+    the email on the purchase to match their logged-in account now.
+    """
+    conn = _get_conn()
+    df = conn.query(
+        "SELECT * FROM purchase_history WHERE owner_email = :owner_email "
+        "ORDER BY created_at DESC",
+        params={"owner_email": owner_email},
+        ttl=0,
+    )
+    return df.to_dict("records")
