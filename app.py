@@ -111,7 +111,17 @@ if "auth" in st.secrets:
     with st.sidebar:
         st.divider()
         if st.user.is_logged_in:
-            st.caption(f"Signed in as {st.user.email}")
+            from profiles_db import safe_user_email
+            user_email = safe_user_email()
+
+            if user_email:
+                st.caption(f"Signed in as {user_email}")
+            else:
+                # is_logged_in was True but the email claim wasn't
+                # available this rerun (see safe_user_email's
+                # docstring) -- degrade gracefully rather than crash;
+                # a rerun a moment later almost always resolves it.
+                st.caption("Signed in")
             if st.button("Log out", width="stretch"):
                 st.logout()
 
@@ -120,33 +130,35 @@ if "auth" in st.secrets:
             # login can exist without the database being configured
             # yet (e.g. mid-rollout) -- fails safe to just not
             # showing this section, same pattern as everywhere else
-            # this app checks for optional infrastructure.
-            if "DATABASE_URL" in os.environ:
+            # this app checks for optional infrastructure. Also
+            # skipped (rather than crashing) if user_email came back
+            # None for the reason noted above.
+            if user_email and "DATABASE_URL" in os.environ:
                 from profiles_db import init_schema, list_profiles, delete_profile, set_weekly_transits
                 init_schema()
                 with st.expander("My Profiles"):
-                    saved = list_profiles(st.user.email)
+                    saved = list_profiles(user_email)
                     if not saved:
                         st.caption("No saved profiles yet.")
                     for p in saved:
-                        col_label, col_delete = st.columns([3, 1])
-                        with col_label:
-                            st.write(p["label"])
-                        with col_delete:
-                            if st.button("🗑️", key=f"del_profile_{p['id']}", help=f"Delete \"{p['label']}\""):
-                                delete_profile(p["id"], st.user.email)
+                        with st.container(border=True):
+                            col_label, col_delete = st.columns([3, 1])
+                            with col_label:
+                                st.write(f"**{p['label']}**")
+                            with col_delete:
+                                if st.button("🗑️", key=f"del_profile_{p['id']}", help=f"Delete \"{p['label']}\""):
+                                    delete_profile(p["id"], user_email)
+                                    st.rerun()
+                            _weekly_on = st.checkbox(
+                                "📅 Email me weekly transits",
+                                value=bool(p.get("weekly_transits")),
+                                key=f"weekly_{p['id']}",
+                                help=f"A short Monday-morning reading of that week's transits "
+                                     f"against {p['label']}'s chart, emailed automatically.",
+                            )
+                            if _weekly_on != bool(p.get("weekly_transits")):
+                                set_weekly_transits(p["id"], user_email, _weekly_on)
                                 st.rerun()
-                        _weekly_on = st.checkbox(
-                            "Weekly transits",
-                            value=bool(p.get("weekly_transits")),
-                            key=f"weekly_{p['id']}",
-                            help="A short Monday-morning reading of that week's transits "
-                                 "against this profile's chart, emailed automatically.",
-                        )
-                        if _weekly_on != bool(p.get("weekly_transits")):
-                            set_weekly_transits(p["id"], st.user.email, _weekly_on)
-                            st.rerun()
-                        st.divider()
         else:
             st.caption("Log in to unlock full readings, email delivery, and saved profiles.")
             if st.button("Log in", width="stretch"):
