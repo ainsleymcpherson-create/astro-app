@@ -50,16 +50,16 @@ OFFERINGS = [
         "desc": "A short reading of that week's transits against your own "
                 "chart, delivered every Monday. Choose General, Romantic, "
                 "or Career — change it anytime.",
-        "page": "weekly_transits_signup_page.py",
-        "link_label": "Explore Astrology Services",
+        "page": "advanced_readings_page.py",
+        "link_label": "Explore Advanced Readings",
     },
     {
         "icon": "🪐",
         "name": "One-Time Transit Reading",
         "desc": "A full reading of the current transits against your "
                 "chart — a single reading, emailed shortly after payment.",
-        "page": "weekly_transits_signup_page.py",
-        "link_label": "Explore Astrology Services",
+        "page": "advanced_readings_page.py",
+        "link_label": "Explore Advanced Readings",
     },
     {
         "icon": "💬",
