@@ -186,15 +186,18 @@ pg = st.navigation(
 pg.run()
 
 with st.sidebar:
-    st.page_link("home_page.py", label="Home", icon="🏠")
+    st.page_link("home_page.py", label="Home")
     st.caption("READINGS")
-    st.page_link("personal_readings_page.py", label="Personal", icon="🔭")
-    st.page_link("synastry_readings_page.py", label="Synastry", icon="👥")
-    st.page_link("deep_dive_readings_page.py", label="Deep Dive", icon="🔍")
-    st.page_link("advanced_readings_page.py", label="Advanced Readings", icon="✨")
-    st.page_link("weekly_transits_signup_page.py", label="Astrology Services", icon="🌙")
-    st.page_link("resources_page.py", label="Resources", icon="📖")
-    st.page_link("my_account_page.py", label="My Account", icon="👤")
+    _indent, _nested = st.columns([1, 9])
+    with _nested:
+        st.page_link("personal_readings_page.py", label="Personal", icon="🔭")
+        st.page_link("synastry_readings_page.py", label="Synastry", icon="👥")
+        st.page_link("deep_dive_readings_page.py", label="Deep Dive", icon="🔍")
+    st.divider()
+    st.page_link("advanced_readings_page.py", label="Advanced Readings")
+    st.page_link("weekly_transits_signup_page.py", label="Astrology Services")
+    st.page_link("resources_page.py", label="Resources")
+    st.page_link("my_account_page.py", label="My Account")
 
 # --- Optional login (saved profiles) ---
 # Anonymous use is always fully available everywhere else in the app —
@@ -275,35 +278,6 @@ if "auth" in st.secrets:
                             )
                         except Exception as e:
                             st.error(f"Something went wrong setting up checkout: {e}")
-
-            # --- Saved profiles management ---
-            # Guarded separately from the login block above, since
-            # login can exist without the database being configured
-            # yet (e.g. mid-rollout) -- fails safe to just not
-            # showing this section, same pattern as everywhere else
-            # this app checks for optional infrastructure. Also
-            # skipped (rather than crashing) if user_email came back
-            # None for the reason noted above.
-            if user_email and "DATABASE_URL" in os.environ:
-                from profiles_db import list_profiles, delete_profile
-                with st.expander("My Profiles"):
-                    saved = list_profiles(user_email)
-                    if not saved:
-                        st.caption("No saved profiles yet.")
-                    for p in saved:
-                        with st.container(border=True):
-                            col_label, col_delete = st.columns([3, 1])
-                            with col_label:
-                                st.write(f"**{p['label']}**")
-                            with col_delete:
-                                if st.button("🗑️", key=f"del_profile_{p['id']}", help=f"Delete \"{p['label']}\""):
-                                    delete_profile(p["id"], user_email)
-                                    st.rerun()
-                            if p.get("weekly_transits"):
-                                st.caption("📅 Weekly transits: active")
-                            else:
-                                st.caption("Weekly transits are now part of the paid "
-                                           "[Astrology Services](/weekly-transits) plan.")
         else:
             st.caption("Log in to unlock full readings, email delivery, and saved profiles.")
             if st.button("Log in", width="stretch"):
