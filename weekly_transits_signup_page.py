@@ -121,8 +121,8 @@ if st.button("Sign me up — $5/month", width="stretch", type="primary"):
                     "quantity": 1,
                 }],
                 customer_email=email.strip(),
-                success_url="https://tenthhousereadings.com/?signup=success",
-                cancel_url="https://tenthhousereadings.com/?signup=cancelled",
+                success_url="https://tenthhousereadings.com/weekly-transits?signup=success",
+                cancel_url="https://tenthhousereadings.com/weekly-transits?signup=cancelled",
                 # Carries the collected birth data through to the webhook
                 # handler, which is where the actual profile gets created
                 # — Stripe returns this same metadata on the confirmed
