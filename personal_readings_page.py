@@ -17,6 +17,7 @@ GitHub and point Streamlit Cloud at it.
 """
 
 import os
+import contextlib
 import re
 import io
 from datetime import date as date_type, datetime, time as time_type, timezone
@@ -281,43 +282,61 @@ if "auth" in st.secrets and st.user.is_logged_in and "DATABASE_URL" in os.enviro
             selected_profile = next(p for p in saved_profiles if p["label"] == profile_choice)
             profile_key_suffix = str(selected_profile["id"])
 
-col1, col2, col3 = st.columns([1, 1.3, 1])
-with col1:
-    birth_date = st.date_input(
-        "Birth date",
-        value=selected_profile["birth_date"] if selected_profile else date_type(1989, 7, 5),
-        min_value=date_type(1900, 1, 1),
-        max_value=date_type.today(),
-        help="Tap to open the calendar picker.",
-        key=f"birth_date_{profile_key_suffix}",
+if selected_profile:
+    _sp_hour_12 = selected_profile["birth_time"].hour % 12 or 12 if selected_profile["birth_time"] else None
+    _sp_time_str = (
+        f"{_sp_hour_12}:{selected_profile['birth_time'].minute:02d} "
+        f"{'AM' if selected_profile['birth_time'].hour < 12 else 'PM'}"
+        if selected_profile["birth_time"] else "time unknown"
     )
-with col2:
-    default_time = (
-        selected_profile["birth_time"] if selected_profile and selected_profile["birth_time"]
-        else time_type(11, 51)
+    _sp_date_str = f"{selected_profile['birth_date'].strftime('%B')} {selected_profile['birth_date'].day}, {selected_profile['birth_date'].year}"
+    st.info(
+        f"**{selected_profile['label']}** — {_sp_date_str} at {_sp_time_str} — "
+        f"{selected_profile['location_str']}",
+        icon="📋",
     )
-    birth_time_val = st.time_input(
-        "Birth time" + (" (disabled)" if unknown_time else ""),
-        value=default_time,
-        disabled=unknown_time,
-        help="Tap to type a time directly or use the picker.",
-        key=f"birth_time_{profile_key_suffix}",
-    )
-    birth_hour = birth_time_val.hour % 12 or 12
-    birth_minute = f"{birth_time_val.minute:02d}"
-    birth_ampm = "AM" if birth_time_val.hour < 12 else "PM"
-with col3:
-    location_str = st.text_input(
-        "Birth location",
-        value=selected_profile["location_str"] if selected_profile else "Washington, DC, USA",
-        help="Be specific — add state/country if the place name is common",
-        key=f"location_str_{profile_key_suffix}",
-    )
-    _loc_found, _loc_address = geocode_location_quick(location_str)
-    if _loc_found:
-        st.caption(f"✓ {_loc_address}")
-    else:
-        st.caption("Location not yet confirmed — checked when you generate your reading")
+    _details_container = st.expander("Edit these details")
+else:
+    _details_container = contextlib.nullcontext()
+
+with _details_container:
+    col1, col2, col3 = st.columns([1, 1.3, 1])
+    with col1:
+        birth_date = st.date_input(
+            "Birth date",
+            value=selected_profile["birth_date"] if selected_profile else date_type(1989, 7, 5),
+            min_value=date_type(1900, 1, 1),
+            max_value=date_type.today(),
+            help="Tap to open the calendar picker.",
+            key=f"birth_date_{profile_key_suffix}",
+        )
+    with col2:
+        default_time = (
+            selected_profile["birth_time"] if selected_profile and selected_profile["birth_time"]
+            else time_type(11, 51)
+        )
+        birth_time_val = st.time_input(
+            "Birth time" + (" (disabled)" if unknown_time else ""),
+            value=default_time,
+            disabled=unknown_time,
+            help="Tap to type a time directly or use the picker.",
+            key=f"birth_time_{profile_key_suffix}",
+        )
+        birth_hour = birth_time_val.hour % 12 or 12
+        birth_minute = f"{birth_time_val.minute:02d}"
+        birth_ampm = "AM" if birth_time_val.hour < 12 else "PM"
+    with col3:
+        location_str = st.text_input(
+            "Birth location",
+            value=selected_profile["location_str"] if selected_profile else "Washington, DC, USA",
+            help="Be specific — add state/country if the place name is common",
+            key=f"location_str_{profile_key_suffix}",
+        )
+        _loc_found, _loc_address = geocode_location_quick(location_str)
+        if _loc_found:
+            st.caption(f"✓ {_loc_address}")
+        else:
+            st.caption("Location not yet confirmed — checked when you generate your reading")
 
 align_col1, align_col2, align_col3 = st.columns([1, 1.3, 1])
 with align_col2:
