@@ -141,6 +141,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+home = st.Page("home_page.py", title="Home", icon="🏠", default=True, url_path="")
 personal_readings = st.Page("personal_readings_page.py", title="Personal", icon="🔭")
 synastry_readings = st.Page("synastry_readings_page.py", title="Synastry", icon="👥")
 deep_dive_readings = st.Page("deep_dive_readings_page.py", title="Deep Dive", icon="🔍")
@@ -270,6 +271,7 @@ if "auth" in st.secrets:
                 st.login("auth0")
 
 pg = st.navigation({
+    "Home": [home],
     "Readings": [personal_readings, synastry_readings, deep_dive_readings],
     "Advanced Readings": [advanced_readings],
     "Astrology Services": [weekly_transits],
