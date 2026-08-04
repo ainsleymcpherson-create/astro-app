@@ -20,6 +20,7 @@ than managing a raw psycopg2 connection by hand.
 
 from __future__ import annotations
 import os
+import secrets
 from datetime import date as date_type, time as time_type
 
 import streamlit as st
@@ -67,6 +68,13 @@ def init_schema() -> None:
         """))
         session.execute(text(
             "ALTER TABLE saved_profiles ADD COLUMN IF NOT EXISTS person_name TEXT"
+        ))
+        session.execute(text(
+            "ALTER TABLE saved_profiles ADD COLUMN IF NOT EXISTS weekly_transits "
+            "BOOLEAN NOT NULL DEFAULT FALSE"
+        ))
+        session.execute(text(
+            "ALTER TABLE saved_profiles ADD COLUMN IF NOT EXISTS unsubscribe_token TEXT"
         ))
         session.commit()
 
@@ -210,3 +218,92 @@ def delete_profile(profile_id: int, owner_email: str) -> None:
             "DELETE FROM saved_profiles WHERE id = :id AND owner_email = :owner_email"
         ), {"id": profile_id, "owner_email": owner_email})
         session.commit()
+
+
+def set_weekly_transits(profile_id: int, owner_email: str, enabled: bool) -> None:
+    """
+    Turns weekly transit emails on or off for a profile. Scoped to
+    owner_email, same reasoning as delete_profile/update_profile.
+
+    Generates an unsubscribe_token the FIRST time a profile is turned
+    on, if it doesn't already have one -- lazily, rather than giving
+    every saved profile a token whether or not it's ever actually
+    used for weekly emails. The token is a long, unguessable random
+    string (not sequential, not derived from anything predictable)
+    since it doubles as the entire authentication for the one-click
+    unsubscribe link -- anyone who has it can turn off weekly emails
+    for that profile without logging in, by design, so it needs to be
+    infeasible to guess or enumerate.
+    """
+    conn = _get_conn()
+    with conn.session as session:
+        if enabled:
+            session.execute(text("""
+                UPDATE saved_profiles
+                SET weekly_transits = TRUE,
+                    unsubscribe_token = COALESCE(unsubscribe_token, :new_token)
+                WHERE id = :id AND owner_email = :owner_email
+            """), {
+                "id": profile_id,
+                "owner_email": owner_email,
+                "new_token": secrets.token_urlsafe(32),
+            })
+        else:
+            session.execute(text("""
+                UPDATE saved_profiles SET weekly_transits = FALSE
+                WHERE id = :id AND owner_email = :owner_email
+            """), {"id": profile_id, "owner_email": owner_email})
+        session.commit()
+
+
+def unsubscribe_by_token(token: str) -> str | None:
+    """
+    Turns off weekly transit emails for whichever profile owns this
+    token, with NO login required -- this is the one-click email-link
+    path, deliberately independent of the in-app toggle so someone
+    can opt out without needing to sign back in first. Returns the
+    profile's label if a match was found (so the caller can show a
+    friendly confirmation), or None if the token didn't match
+    anything -- e.g. an already-used/stale link, or a stray guess.
+    """
+    conn = _get_conn()
+    with conn.session as session:
+        result = session.execute(text("""
+            UPDATE saved_profiles SET weekly_transits = FALSE
+            WHERE unsubscribe_token = :token
+            RETURNING label
+        """), {"token": token})
+        row = result.fetchone()
+        session.commit()
+        return row[0] if row else None
+
+
+def list_weekly_subscribers() -> list[dict]:
+    """
+    Returns every profile (across ALL users) currently opted into
+    weekly transit emails, with everything the weekly job needs to
+    actually compute and send a reading -- birth data, resolved
+    coordinates, owner_email to send to, and unsubscribe_token to
+    include in the email. Used only by the worker's weekly job, never
+    by the main app.
+    """
+    conn = _get_conn()
+    df = conn.query(
+        "SELECT * FROM saved_profiles WHERE weekly_transits = TRUE",
+        ttl=0,
+    )
+    records = df.to_dict("records")
+    for r in records:
+        bd = r.get("birth_date")
+        if isinstance(bd, pd.Timestamp):
+            r["birth_date"] = bd.date()
+        bt = r.get("birth_time")
+        if bt is not None:
+            if isinstance(bt, pd.Timedelta):
+                total_seconds = int(bt.total_seconds())
+                r["birth_time"] = time_type(
+                    (total_seconds // 3600) % 24, (total_seconds // 60) % 60, total_seconds % 60
+                )
+            elif isinstance(bt, pd.Timestamp):
+                r["birth_time"] = bt.time()
+    return records
