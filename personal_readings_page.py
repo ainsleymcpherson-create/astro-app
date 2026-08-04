@@ -60,6 +60,7 @@ from prompt_builder import (
     build_relationship_synastry_summary_only_prompt,
 )
 from birth_input import resolve_birth_data, geocode_location_quick
+from profiles_db import safe_user_email
 from chart_wheel import (
     draw_chart_wheel, draw_bi_wheel, draw_chart_wheel_art, draw_bi_wheel_art,
     build_chart_data_table_html, build_synastry_data_table_html,
@@ -262,9 +263,10 @@ if reading_type in SYNASTRY_READING_TYPES:
 # too, rather than only birth data.
 selected_profile = None
 profile_key_suffix = "new"
-if "auth" in st.secrets and st.user.is_logged_in and "DATABASE_URL" in os.environ:
+_user_email = safe_user_email()
+if "auth" in st.secrets and st.user.is_logged_in and _user_email and "DATABASE_URL" in os.environ:
     from profiles_db import list_profiles
-    saved_profiles = list_profiles(st.user.email)
+    saved_profiles = list_profiles(_user_email)
     if saved_profiles:
         profile_choice = st.selectbox(
             "Use a saved profile",
@@ -349,7 +351,7 @@ with _details_container:
                 _, _update_address = geocode_location_quick(location_str)
                 update_profile(
                     profile_id=selected_profile["id"],
-                    owner_email=st.user.email,
+                    owner_email=_user_email,
                     label=selected_profile["label"],
                     person_name=person_name.strip() if person_name.strip() else None,
                     birth_date=birth_date,
@@ -390,7 +392,7 @@ with align_col2:
 # configured) ---
 save_this_profile = False
 profile_label = ""
-if "auth" in st.secrets and st.user.is_logged_in and "DATABASE_URL" in os.environ:
+if "auth" in st.secrets and st.user.is_logged_in and _user_email and "DATABASE_URL" in os.environ:
     save_this_profile = st.checkbox(
         "💾 Save this profile",
         value=False,
@@ -511,7 +513,7 @@ GEN_QUICK_EMAIL = "Generate Summary & Email Full Reading"
 # a single hardcoded account so development can keep using it as this
 # gets built out, without exposing it to anyone else.
 _is_logged_in = "auth" in st.secrets and st.user.is_logged_in
-_is_admin = _is_logged_in and (st.user.email or "").strip().lower() == "amcpherson89@gmail.com"
+_is_admin = _is_logged_in and (_user_email or "").strip().lower() == "amcpherson89@gmail.com"
 
 _generation_options = []
 if _is_admin:
@@ -1022,7 +1024,7 @@ if st.session_state.get("processing", False):
                 from profiles_db import save_profile
                 _, _resolved_address = geocode_location_quick(location_str)
                 save_profile(
-                    owner_email=st.user.email,
+                    owner_email=_user_email,
                     label=profile_label.strip(),
                     person_name=person_name.strip() if person_name.strip() else None,
                     birth_date=birth_date,
