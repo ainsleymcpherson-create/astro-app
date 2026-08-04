@@ -167,17 +167,23 @@ my_account = st.Page("my_account_page.py", title="My Account", icon="👤")
 # still works exactly the same, this only replaces what's actually
 # drawn in the sidebar.
 #
-# st.navigation() itself has to run BEFORE any st.page_link() calls
-# that reference these same pages -- it's what registers each page's
-# url_pathname internally, and st.page_link raises a KeyError trying
-# to look that up for a page that hasn't been registered yet. .run()
-# (which actually executes the selected page's script) is deferred to
-# the very end, after the rest of the sidebar has been built.
+# .run() has to actually execute BEFORE any st.page_link() call that
+# references these pages -- merely calling st.navigation() and
+# holding onto the returned object isn't enough to populate each
+# page's url_pathname internally; that registration genuinely happens
+# as part of .run() itself running, confirmed by every one of
+# Streamlit's own examples only ever calling st.page_link() from
+# INSIDE a sub-page's script (which only executes as part of .run()),
+# never from the entrypoint before .run() has run. Sidebar content
+# added after .run() still renders normally -- Streamlit doesn't tie
+# sidebar elements to a strict "before main content" ordering the way
+# this might suggest.
 pg = st.navigation(
     [home, personal_readings, synastry_readings, deep_dive_readings,
      advanced_readings, weekly_transits, resources, my_account],
     position="hidden",
 )
+pg.run()
 
 with st.sidebar:
     st.page_link("home_page.py", label="Home", icon="🏠")
@@ -243,7 +249,7 @@ if "auth" in st.secrets:
                 elif "STRIPE_SECRET_KEY" in os.environ and "STRIPE_FULL_ACCESS_PRICE_ID" in os.environ:
                     st.caption("Get unlimited full readings + email delivery across "
                                "Personal, Synastry, and Deep Dive.")
-                    if st.button("Get Full Access — $10/month", width="stretch"):
+                    if st.button("Get Full Access", width="stretch"):
                         import stripe
                         stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
                         try:
@@ -302,5 +308,3 @@ if "auth" in st.secrets:
             st.caption("Log in to unlock full readings, email delivery, and saved profiles.")
             if st.button("Log in", width="stretch"):
                 st.login("auth0")
-
-pg.run()
