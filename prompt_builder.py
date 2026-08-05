@@ -1363,7 +1363,7 @@ associations.
 Here is the full computed chart data — planets, Chiron, Lilith, and the Lunar \
 Nodes only (no Ascendant, houses, Vertex, or Arabic Parts, since none \
 of those are reliable without an exact birth time):
-
+{reference_block}
 {data_block}
 
 Now write the reading: opening overview, 2-4 themes each in the \
@@ -1390,15 +1390,17 @@ def build_interpretation_prompt_no_time(
     them by name occasionally. If age is given, places extra emphasis
     on life-stage-relevant placements — added emphasis, never exclusion.
     """
-    data_block = build_data_block_no_time(
+      data_block = build_data_block_no_time(
         chart, aspects, patterns, dignities, min_tightness=min_tightness,
     )
+    query = _build_retrieval_query(chart, aspects, dignities)
+    reference_block = _reference_context_block(query, category="personal_readings")
     return GENERAL_NO_TIME_INSTRUCTIONS.format(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         age_guidance=_age_guidance(age),
+        reference_block=reference_block,
     )
-
 
 # ---------------------------------------------------------------------------
 # Career/work-focused variant
