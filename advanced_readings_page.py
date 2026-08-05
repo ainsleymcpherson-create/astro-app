@@ -170,64 +170,114 @@ st.divider()
 
 # --- Purchase options ---
 if category == "Transits":
-    # Weekly and one-time transits keep their own separate pricing --
-    # never part of the $3/$10 unlock structure below, so this is a
-    # genuinely different purchase flow, not a variation of it.
-    if reading_type == "Weekly Transits":
-        st.subheader("Weekly Transits")
-        st.write("**\\$5/month**, cancel anytime.")
-        button_label = "Sign me up — $5/month"
-        stripe_mode = "subscription"
-        price_env = "STRIPE_WEEKLY_TRANSITS_PRICE_ID"
-    else:
+    # Weekly Transits always stays separately priced, even for Full
+    # Access subscribers -- it's a recurring email product, not a
+    # one-time reading, and was explicitly excluded from what the
+    # subscription covers. One-Time Transit is different: it's a
+    # single, in-app-style reading like Personal/Synastry/Deep Dive,
+    # so Full Access covers it the same way.
+    _is_logged_in = "auth" in st.secrets and st.user.is_logged_in
+    _user_email = safe_user_email() if _is_logged_in else None
+    _has_full_access = False
+    if _user_email and "DATABASE_URL" in os.environ:
+        from profiles_db import has_active_subscription
+        _has_full_access = has_active_subscription(_user_email)
+
+    if reading_type == "One-Time Transit" and _has_full_access:
         st.subheader("One-Time Transit Reading")
-        st.write("**\\$7**, one-time.")
-        button_label = "Get my reading — $7"
-        stripe_mode = "payment"
-        price_env = "STRIPE_ONE_TIME_TRANSIT_PRICE_ID"
+        st.success("✅ You have Full Access — generate this reading directly, no charge.")
+        if st.button("Generate Full Reading", width="stretch", type="primary"):
+            errors = []
+            if not label_a.strip():
+                errors.append("Please enter your name.")
+            if not email.strip() or "@" not in email:
+                errors.append("Please enter a valid email address.")
+            if not location_str.strip():
+                errors.append("Please enter your birth location.")
+            elif not geocode_location_quick(location_str)[0]:
+                errors.append("Couldn't confirm that location — please check it and try again.")
 
-    if price_env not in os.environ:
-        st.error("This option isn't fully configured yet — please try again later.")
-    elif st.button(button_label, width="stretch", type="primary"):
-        errors = []
-        if not label_a.strip():
-            errors.append("Please enter your name.")
-        if not email.strip() or "@" not in email:
-            errors.append("Please enter a valid email address.")
-        if not location_str.strip():
-            errors.append("Please enter your birth location.")
-        elif not geocode_location_quick(location_str)[0]:
-            errors.append("Couldn't confirm that location — please check it and try again.")
-
-        if errors:
-            for e in errors:
-                st.error(e)
-        else:
-            import stripe
-            stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
-            try:
-                metadata = {
-                    "product_type": "weekly" if reading_type == "Weekly Transits" else "one_time",
-                    "label": label_a.strip(),
-                    "birth_date": birth_date.isoformat(),
-                    "birth_time": birth_time_val.strftime("%H:%M"),
+            if errors:
+                for e in errors:
+                    st.error(e)
+            else:
+                # "Transits" (not "One-Time Transit") is the internal
+                # reading_type value _process_reading_job on the
+                # worker actually recognizes -- confirmed directly
+                # against the worker's code before wiring this up.
+                job_payload = {
+                    "reading_type": "Transits",
+                    "datetime_str": f"{birth_date.strftime('%B %d, %Y')} {birth_time_val.strftime('%I:%M %p')}",
                     "location_str": location_str.strip(),
+                    "unknown_time": unknown_time,
+                    "person_name": label_a.strip() or None,
+                    "email": email.strip(),
                 }
-                if reading_type == "Weekly Transits":
-                    metadata["theme"] = transit_theme
+                success, message = enqueue_full_reading_email(job_payload)
+                if success:
+                    st.success(message)
+                else:
+                    st.error(message)
 
-                checkout_session = stripe.checkout.Session.create(
-                    mode=stripe_mode,
-                    line_items=[{"price": os.environ[price_env], "quantity": 1}],
-                    customer_email=email.strip(),
-                    success_url="https://tenthhousereadings.com/advanced-readings?signup=success",
-                    cancel_url="https://tenthhousereadings.com/advanced-readings?signup=cancelled",
-                    metadata=metadata,
-                )
-                st.success("Click below to complete your payment securely with Stripe.")
-                st.link_button("Proceed to Secure Checkout →", checkout_session.url, width="stretch", type="primary")
-            except Exception as e:
-                st.error(f"Something went wrong setting up checkout: {e}")
+    else:
+        # Weekly and one-time transits keep their own separate pricing --
+        # never part of the $3/$10 unlock structure below, so this is a
+        # genuinely different purchase flow, not a variation of it.
+        if reading_type == "Weekly Transits":
+            st.subheader("Weekly Transits")
+            st.write("**\\$5/month**, cancel anytime.")
+            button_label = "Sign me up — $5/month"
+            stripe_mode = "subscription"
+            price_env = "STRIPE_WEEKLY_TRANSITS_PRICE_ID"
+        else:
+            st.subheader("One-Time Transit Reading")
+            st.write("**\\$7**, one-time.")
+            button_label = "Get my reading — $7"
+            stripe_mode = "payment"
+            price_env = "STRIPE_ONE_TIME_TRANSIT_PRICE_ID"
+
+        if price_env not in os.environ:
+            st.error("This option isn't fully configured yet — please try again later.")
+        elif st.button(button_label, width="stretch", type="primary"):
+            errors = []
+            if not label_a.strip():
+                errors.append("Please enter your name.")
+            if not email.strip() or "@" not in email:
+                errors.append("Please enter a valid email address.")
+            if not location_str.strip():
+                errors.append("Please enter your birth location.")
+            elif not geocode_location_quick(location_str)[0]:
+                errors.append("Couldn't confirm that location — please check it and try again.")
+
+            if errors:
+                for e in errors:
+                    st.error(e)
+            else:
+                import stripe
+                stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
+                try:
+                    metadata = {
+                        "product_type": "weekly" if reading_type == "Weekly Transits" else "one_time",
+                        "label": label_a.strip(),
+                        "birth_date": birth_date.isoformat(),
+                        "birth_time": birth_time_val.strftime("%H:%M"),
+                        "location_str": location_str.strip(),
+                    }
+                    if reading_type == "Weekly Transits":
+                        metadata["theme"] = transit_theme
+
+                    checkout_session = stripe.checkout.Session.create(
+                        mode=stripe_mode,
+                        line_items=[{"price": os.environ[price_env], "quantity": 1}],
+                        customer_email=email.strip(),
+                        success_url="https://tenthhousereadings.com/advanced-readings?signup=success",
+                        cancel_url="https://tenthhousereadings.com/advanced-readings?signup=cancelled",
+                        metadata=metadata,
+                    )
+                    st.success("Click below to complete your payment securely with Stripe.")
+                    st.link_button("Proceed to Secure Checkout →", checkout_session.url, width="stretch", type="primary")
+                except Exception as e:
+                    st.error(f"Something went wrong setting up checkout: {e}")
 
 else:
     _is_logged_in = "auth" in st.secrets and st.user.is_logged_in
