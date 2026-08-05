@@ -55,6 +55,10 @@ def _get_conn():
     secrets.toml, since this one's an env var, not part of the OIDC
     auth secrets file).
 
+    Three independent safeguards against the "stuck running
+    sql.query(...)" symptom observed in production, each covering a
+    different point where a hang can happen:
+
     pool_pre_ping tests each pooled connection with a cheap "SELECT 1"
     before handing it back out, rather than assuming a connection
     that's been sitting idle is still good. Without this, a
@@ -62,22 +66,34 @@ def _get_conn():
     Postgres services commonly do this after a period of inactivity)
     looks fine to the pool but hangs the next real query sent over it.
 
-    statement_timeout is a second, independent safety net -- even a
-    connection that IS genuinely alive can still hang forever if a
-    query gets stuck behind a lock (an uncommitted transaction
-    elsewhere holding a row/table lock, for instance) or some other
-    server-side stall. Without a timeout, that shows up exactly as
-    observed in production: an indefinite spinner with no error ever
-    surfacing, since the operation never actually completes either
-    way. 10 seconds is generous for anything this app's queries
-    actually do; past that, Postgres cancels the statement and raises
-    a clear, catchable error instead of hanging silently.
+    connect_timeout caps how long establishing a brand-new TCP
+    connection to the database is allowed to take, in seconds. This is
+    NOT the same failure mode pool_pre_ping guards against -- pre-ping
+    only re-tests connections already sitting in the pool; this covers
+    a hang while opening a connection that was never established in
+    the first place (a network hiccup, DNS taking too long, the
+    database temporarily unreachable). Without this, that kind of
+    stall has no ceiling at all.
+
+    statement_timeout caps how long a query is allowed to run once
+    it's actually executing on an already-open connection -- for
+    example if it gets stuck behind a lock held by some other
+    uncommitted transaction. This is the one added first; keeping it
+    alongside connect_timeout now covers the connection-establishment
+    stage too, not just the query-execution stage.
+
+    Together these turn every flavor of "hang with no error" into a
+    real, catchable error within about 10 seconds, rather than an
+    indefinite spinner.
     """
     database_url = os.environ["DATABASE_URL"]
     return st.connection(
         "profiles_db", type="sql", url=database_url,
         pool_pre_ping=True,
-        connect_args={"options": "-c statement_timeout=10000"},
+        connect_args={
+            "options": "-c statement_timeout=10000",
+            "connect_timeout": 10,
+        },
     )
 
 
