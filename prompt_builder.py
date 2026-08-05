@@ -858,12 +858,14 @@ def build_interpretation_prompt(
         chart, aspects, patterns, dignities, house_readings,
         min_tightness=min_tightness,
     )
+    query = _build_retrieval_query(chart, aspects, dignities)
+    reference_block = _reference_context_block(query, category="personal_readings")
     return INTERPRETATION_INSTRUCTIONS.format(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         age_guidance=_age_guidance(age),
+        reference_block=reference_block,
     )
-
 
 # ---------------------------------------------------------------------------
 # General reading — SUMMARY-ONLY fast variant
