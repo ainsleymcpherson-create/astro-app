@@ -14,16 +14,10 @@ across sections with different visual treatments.
 import streamlit as st
 
 st.title("🔭 Tenth House Readings")
-st.write(
+st.caption(
     "Real astrology, real insights. Every reading comes from your "
     "full chart, so it's true to you."
 )
-
-# --- One primary action, not several competing ones ---
-if st.button("Get Your Free Reading →", type="primary"):
-    st.switch_page("personal_readings_page.py")
-
-st.divider()
 
 st.write(
     "In astrology, the Tenth House is where your chart meets the world: "
@@ -34,6 +28,10 @@ st.write(
     "rather than vague affirmations dressed up in cosmic language. Real "
     "astrology to help you find your direction."
 )
+
+# --- One primary action, not several competing ones ---
+if st.button("Get Your Free Reading →", type="primary"):
+    st.switch_page("personal_readings_page.py")
 
 st.divider()
 
