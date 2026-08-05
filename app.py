@@ -3,26 +3,8 @@ app.py
 
 Entrypoint for the Tenth House Readings app. Uses Streamlit's native
 multi-page navigation (st.navigation + st.Page) to switch between
-four pages:
-  - "Personal Readings" (General, Career/Work, Transits — single-
-    person readings), in personal_readings_page.py
-  - "Synastry Readings" (Professional, Relationship, and Parent/Child
-    Synastry — two-person readings), in synastry_readings_page.py
-  - "Deep Dive Readings" (focused single-point readings, e.g. Lilith
-    — more topics to be added over time), in deep_dive_readings_page.py
-  - "Resources" (signs/planets/houses glossary, unchanged), in
-    resources_page.py
-
-The readings pages are near-identical copies of what used to be a
-single readings_page.py — same shared logic throughout (birth input,
-tabs, downloads, the email pipeline), just with each page's dropdown
-restricted to its own subset of reading types. Any change to shared
-logic needs to be made across ALL of personal_readings_page.py,
-synastry_readings_page.py, AND deep_dive_readings_page.py to stay in
-sync.
-
-This file itself stays intentionally small — it's just the router.
-All the actual logic lives in the page files.
+pages. This file itself stays intentionally small -- it's just the
+router. All the actual logic lives in the page files.
 """
 
 import os
@@ -31,23 +13,11 @@ import streamlit as st
 st.set_page_config(page_title="Tenth House Readings", layout="wide")
 
 # --- One-click unsubscribe from weekly transit emails ---
-# Deliberately independent of login -- the whole point of a one-click
-# unsubscribe link is that someone can act on it without needing to
-# sign back in first. The token in the URL is the entire
-# authentication for this action (see profiles_db.unsubscribe_by_token
-# for why that's safe to do). Checked here, at the very top of the
-# router, before any page renders, so it works regardless of which
-# page the link happens to land on.
 if "unsubscribe" in st.query_params and "DATABASE_URL" in os.environ:
     from profiles_db import unsubscribe_by_token
     _unsub_result = unsubscribe_by_token(st.query_params["unsubscribe"])
     del st.query_params["unsubscribe"]
     if _unsub_result:
-        # For paid (Stripe) subscribers, turning off the email flag
-        # alone isn't enough -- their card would keep getting charged
-        # $5/month even though the emails stopped. Cancel the actual
-        # subscription too, so unsubscribing here genuinely stops
-        # billing, not just delivery.
         _sub_id = _unsub_result.get("stripe_subscription_id")
         if _sub_id and "STRIPE_SECRET_KEY" in os.environ:
             try:
@@ -65,10 +35,6 @@ if "unsubscribe" in st.query_params and "DATABASE_URL" in os.environ:
         st.info("That unsubscribe link has already been used or is no longer valid.")
 
 # --- Manage subscription (change theme, or unsubscribe) ---
-# Same private-token authentication as the unsubscribe link above --
-# no login required, since paid weekly-transit subscribers never go
-# through Auth0 at all. Linked from the weekly email itself alongside
-# the unsubscribe link.
 if "manage" in st.query_params and "DATABASE_URL" in os.environ:
     from profiles_db import get_profile_by_token, set_theme_by_token
     _manage_token = st.query_params["manage"]
@@ -95,14 +61,7 @@ if "manage" in st.query_params and "DATABASE_URL" in os.environ:
     else:
         st.info("That management link has already been used or is no longer valid.")
 
-# Narrow the sidebar. Streamlit doesn't expose sidebar width as a
-# simple, reliably-available parameter across versions, so this uses
-# CSS instead. Recent Streamlit versions made the sidebar user-
-# resizable via a drag handle, which sets its width as an INLINE style
-# — inline styles override plain CSS rules, which is why a simple
-# width rule alone doesn't stick. Using !important on every relevant
-# property (and disabling the resize handle) forces it to actually
-# take effect and stay put.
+# Narrow the sidebar and style the signature arc divider.
 st.markdown(
     """
     <style>
@@ -120,13 +79,6 @@ st.markdown(
     [data-testid="stSidebar"][aria-expanded="false"] {
         margin-left: -240px !important;
     }
-
-    /* Signature element: every st.divider() renders a plain <hr> by
-       default. Replacing it with a shallow brass arc -- a fragment of
-       the same wheel this app actually computes for every chart --
-       instead of a generic flat line ties a structural, everyday UI
-       element back to the product's real subject rather than using it
-       as pure decoration. */
     hr {
         border: none !important;
         height: 20px !important;
@@ -158,26 +110,14 @@ my_account = st.Page("my_account_page.py", title="My Account", icon="👤")
 
 # --- Custom sidebar menu ---
 # st.navigation's own auto-generated menu can't mix flat top-level
-# pages with one nested group in the same call -- a dict turns EVERY
-# key into its own section header, even for sections with only one
-# page, which read as redundant (a header reading "Advanced Readings"
-# directly above a single link also reading "Advanced Readings").
-# Building the visible menu by hand instead, with position="hidden"
-# on st.navigation below so its own auto-menu never renders -- routing
-# still works exactly the same, this only replaces what's actually
-# drawn in the sidebar.
+# pages with one nested group in the same call. Building the visible
+# menu by hand instead, with position="hidden" below so its own
+# auto-menu never renders.
 #
 # .run() has to actually execute BEFORE any st.page_link() call that
-# references these pages -- merely calling st.navigation() and
-# holding onto the returned object isn't enough to populate each
-# page's url_pathname internally; that registration genuinely happens
-# as part of .run() itself running, confirmed by every one of
-# Streamlit's own examples only ever calling st.page_link() from
-# INSIDE a sub-page's script (which only executes as part of .run()),
-# never from the entrypoint before .run() has run. Sidebar content
-# added after .run() still renders normally -- Streamlit doesn't tie
-# sidebar elements to a strict "before main content" ordering the way
-# this might suggest.
+# references these pages -- that registration genuinely happens as
+# part of .run() itself running, not merely from calling
+# st.navigation() and holding the returned object.
 pg = st.navigation(
     [home, personal_readings, synastry_readings, deep_dive_readings,
      advanced_readings, weekly_transits, resources, my_account],
@@ -199,14 +139,6 @@ with st.sidebar:
     st.page_link("my_account_page.py", label="My Account")
 
 # --- Optional login (saved profiles) ---
-# Anonymous use is always fully available everywhere else in the app —
-# this only adds an optional "log in to save birth profiles"
-# convenience layer, per an explicit product decision to never gate
-# the core reading experience behind an account. Guarded by an "auth"
-# secrets check so the app runs identically whether or not Auth0
-# credentials have actually been configured yet (e.g. during initial
-# rollout, or in a local dev environment without them) — this check
-# fails safe, just hiding the login UI entirely, rather than crashing.
 if "auth" in st.secrets:
     with st.sidebar:
         st.divider()
@@ -217,10 +149,6 @@ if "auth" in st.secrets:
             if user_email:
                 st.caption(f"Signed in as {user_email}")
             else:
-                # is_logged_in was True but the email claim wasn't
-                # available this rerun (see safe_user_email's
-                # docstring) -- degrade gracefully rather than crash;
-                # a rerun a moment later almost always resolves it.
                 st.caption("Signed in")
             if st.button("Log out", width="stretch"):
                 st.logout()
