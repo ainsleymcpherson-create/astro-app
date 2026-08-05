@@ -10,12 +10,6 @@ router. All the actual logic lives in the page files.
 import os
 import streamlit as st
 
-# Small visible marker so it's easy to confirm at a glance whether a
-# given deploy actually picked up the latest app.py -- bump this
-# string whenever a new version of this file goes out. Shown at the
-# bottom of the sidebar, not meant to be a permanent feature.
-APP_BUILD_MARKER = "sidebar-resilience-fix (2026-08-04)"
-
 st.set_page_config(page_title="Tenth House Readings", layout="wide")
 
 # --- One-click unsubscribe from weekly transit emails ---
@@ -224,6 +218,3 @@ finally:
                 st.caption("Log in to unlock full readings, email delivery, and saved profiles.")
                 if st.button("Log in", width="stretch"):
                     st.login("auth0")
-
-    with st.sidebar:
-        st.caption(f"build: {APP_BUILD_MARKER}")
