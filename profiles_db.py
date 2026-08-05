@@ -54,9 +54,19 @@ def _get_conn():
     pattern as every other secret in this app — not through
     secrets.toml, since this one's an env var, not part of the OIDC
     auth secrets file).
+
+    pool_pre_ping tests each pooled connection with a cheap "SELECT 1"
+    before handing it back out, rather than assuming a connection
+    that's been sitting idle is still good. Without this, a
+    connection the database has already closed server-side (managed
+    Postgres services commonly do this after a period of inactivity)
+    looks fine to the pool but hangs the next real query sent over it
+    — matching a "stuck running sql.query(...)" symptom that shows up
+    intermittently rather than every time, since it depends on how
+    long a connection sat idle since its last use.
     """
     database_url = os.environ["DATABASE_URL"]
-    return st.connection("profiles_db", type="sql", url=database_url)
+    return st.connection("profiles_db", type="sql", url=database_url, pool_pre_ping=True)
 
 
 def init_schema() -> None:
