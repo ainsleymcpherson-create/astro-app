@@ -1826,7 +1826,7 @@ def build_career_summary_only_prompt(
     person_name: str | None = None,
 ) -> str:
     """Lean, fast counterpart to build_career_interpretation_prompt."""
-       data_block = build_data_block(
+    data_block = build_data_block(
         chart, aspects, patterns, dignities, house_readings,
         min_tightness=min_tightness,
     )
