@@ -2112,7 +2112,7 @@ def build_career_interpretation_prompt_no_time(
     solid: planets, dignity, and planet-to-planet aspects. If person_name
     is given, the reading will address them by name occasionally.
     """
-     data_block = build_data_block_no_time(
+    data_block = build_data_block_no_time(
         chart, aspects, patterns, dignities, min_tightness=min_tightness,
     )
     query = _build_retrieval_query(chart, aspects, dignities)
