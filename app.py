@@ -1,144 +1,229 @@
 """
-my_account_page.py
+app.py
 
-A dedicated, full-width account page -- everything that used to live
-cramped inside the sidebar's "My Profiles" section, given proper room:
-account info, Full Access subscription status (with a real cancel
-button, not just a status readout), saved birth profiles, and
-one-time purchase history.
-
-Requires login -- this is explicitly account-level, unlike most of
-the rest of this app which works fully anonymously. Fails safe (shows
-a login prompt rather than crashing) if auth or the database aren't
-configured, same pattern as everywhere else in this app.
-
-Deliberately avoids st.stop() for these guard conditions, using
-nested if/else instead -- app.py's sidebar-building code runs inside
-a finally block specifically so it survives whatever happens on the
-active page, but that depends on exceptions (including the one
-st.stop() raises internally) actually propagating back out through
-pg.run() the way plain Python exceptions do. Since that wasn't
-reliably true in production, this sidesteps the question entirely:
-a page that never raises anything can't be the reason the sidebar
-goes missing.
+Entrypoint for the Tenth House Readings app. Uses Streamlit's native
+multi-page navigation (st.navigation + st.Page) to switch between
+pages. This file itself stays intentionally small -- it's just the
+router. All the actual logic lives in the page files.
 """
 
 import os
-
 import streamlit as st
 
-from profiles_db import safe_user_email
+# Small visible marker so it's easy to confirm at a glance whether a
+# given deploy actually picked up the latest app.py -- bump this
+# string whenever a new version of this file goes out. Shown at the
+# bottom of the sidebar, not meant to be a permanent feature.
+APP_BUILD_MARKER = "sidebar-resilience-fix (2026-08-04)"
 
-st.title("👤 My Account")
+st.set_page_config(page_title="Tenth House Readings", layout="wide")
 
-if "auth" not in st.secrets or not st.user.is_logged_in:
-    st.info("Log in from the sidebar to see your account, subscriptions, and "
-             "saved profiles.")
-elif not safe_user_email():
-    st.info("Still finishing signing you in — try refreshing in a moment.")
-elif "DATABASE_URL" not in os.environ:
-    st.warning("Account features aren't available right now — check back soon.")
-else:
-    user_email = safe_user_email()
-
-    st.caption(f"Signed in as {user_email}")
-    st.divider()
-
-    # --- Full Access subscription ---
-    st.subheader("Full Access Subscription")
-    from profiles_db import get_subscription_details
-    sub = get_subscription_details(user_email)
-    if sub and sub.get("active"):
-        st.success("Active — unlimited full readings across Personal, Synastry, "
-                   "and Deep Dive.", icon="✅")
-        if st.button("Cancel subscription"):
-            if "STRIPE_SECRET_KEY" in os.environ and sub.get("stripe_subscription_id"):
+# --- One-click unsubscribe from weekly transit emails ---
+if "unsubscribe" in st.query_params and "DATABASE_URL" in os.environ:
+    from profiles_db import unsubscribe_by_token
+    _unsub_result = unsubscribe_by_token(st.query_params["unsubscribe"])
+    del st.query_params["unsubscribe"]
+    if _unsub_result:
+        _sub_id = _unsub_result.get("stripe_subscription_id")
+        if _sub_id and "STRIPE_SECRET_KEY" in os.environ:
+            try:
                 import stripe
                 stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
-                try:
-                    stripe.Subscription.cancel(sub["stripe_subscription_id"])
-                    from profiles_db import deactivate_subscription_by_id
-                    deactivate_subscription_by_id(sub["stripe_subscription_id"])
-                    st.success("Subscription cancelled.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Something went wrong cancelling: {e}")
-            else:
-                st.error("Couldn't find a subscription to cancel.")
+                stripe.Subscription.cancel(_sub_id)
+            except Exception as e:
+                st.warning(
+                    "Emails are turned off, but there was a problem canceling "
+                    f"the associated subscription automatically ({e}). Please "
+                    "contact support to confirm billing has stopped."
+                )
+        st.success(f"Weekly transit emails turned off for \"{_unsub_result['label']}\".", icon="✅")
     else:
-        st.write("Not subscribed. Get unlimited full readings + email delivery "
-                 "across Personal, Synastry, and Deep Dive for $10/month.")
-        st.page_link("advanced_readings_page.py", label="Get Full Access", icon="✨")
+        st.info("That unsubscribe link has already been used or is no longer valid.")
 
-    st.divider()
-
-    # --- Saved profiles ---
-    st.subheader("Saved Profiles")
-    from profiles_db import list_profiles, delete_profile
-    saved = list_profiles(user_email)
-    if not saved:
-        st.caption("No saved profiles yet — save one from any reading page.")
-    for p in saved:
-        with st.container(border=True):
-            col_label, col_delete = st.columns([3, 1])
-            with col_label:
-                st.write(f"**{p['label']}**")
-                _time_str = p["birth_time"].strftime("%I:%M %p") if p.get("birth_time") else "time unknown"
-                _bd = p["birth_date"]
-                _bd_str = f"{_bd.strftime('%B')} {_bd.day}, {_bd.year}" if hasattr(_bd, "strftime") else str(_bd)
-                st.caption(f"{_bd_str} "
-                           f"at {_time_str} — {p['location_str']}")
-            with col_delete:
-                if st.button("🗑️", key=f"acct_del_{p['id']}", help=f"Delete \"{p['label']}\""):
-                    delete_profile(p["id"], user_email)
-                    st.rerun()
-            if p.get("weekly_transits"):
-                st.caption(f"📅 Weekly transits: active ({p.get('transit_theme', 'General')})")
-
-    st.divider()
-
-    # --- Purchase history ---
-    st.subheader("Purchase History")
-    from profiles_db import list_purchase_history
-    history = list_purchase_history(user_email)
-    if not history:
-        st.caption("No one-time purchases yet.")
-    for h in history:
-        with st.container(border=True):
-            col_detail, col_amount = st.columns([3, 1])
-            with col_detail:
-                st.write(h.get("detail") or h.get("product_type"))
-                _created = h.get("created_at")
-                _date_str = f"{_created.strftime('%B')} {_created.day}, {_created.year}" if hasattr(_created, "strftime") else str(_created)
-                st.caption(_date_str)
-            with col_amount:
-                _cents = h.get("amount_cents")
-                if _cents:
-                    st.write(f"${_cents / 100:.2f}")
-
-    # --- Admin-only: active database connections ---
-    # Temporary diagnostic tool, not meant to be a permanent feature --
-    # added specifically to track down what's holding a lock during the
-    # "stuck running sql.query(...)" freeze. Queries Postgres's own
-    # pg_stat_activity system view, so it isn't affected by whatever might
-    # be blocking this app's own tables. Gated to the admin account only,
-    # same pattern used elsewhere in this app for admin-only tools.
-    if user_email == "amcpherson89@gmail.com":
+# --- Manage subscription (change theme, or unsubscribe) ---
+if "manage" in st.query_params and "DATABASE_URL" in os.environ:
+    from profiles_db import get_profile_by_token, set_theme_by_token
+    _manage_token = st.query_params["manage"]
+    _managed_profile = get_profile_by_token(_manage_token)
+    if _managed_profile:
+        st.subheader(f"Manage weekly transits for \"{_managed_profile['label']}\"")
+        _theme_options = ["General", "Romantic", "Career"]
+        _current_theme = _managed_profile.get("transit_theme") or "General"
+        _new_theme = st.radio(
+            "Reading theme",
+            options=_theme_options,
+            index=_theme_options.index(_current_theme) if _current_theme in _theme_options else 0,
+            help="Changes what your weekly transit reading focuses on going forward.",
+        )
+        if st.button("Save theme"):
+            _updated_label = set_theme_by_token(_manage_token, _new_theme)
+            if _updated_label:
+                st.success(f"Theme updated to {_new_theme} for \"{_updated_label}\".", icon="✅")
+            else:
+                st.error("That link is no longer valid.")
         st.divider()
-        st.subheader("🔧 Active DB Connections (admin)")
-        st.caption("Look for a row with state = \"idle in transaction\" and a "
-                   "large duration — that's a connection holding a lock open "
-                   "without an active query.")
-        from profiles_db import list_active_db_connections
-        try:
-            connections = list_active_db_connections()
-            if not connections:
-                st.caption("No active connections found.")
-            for c in connections:
-                with st.container(border=True):
-                    st.write(f"**pid {c.get('pid')}** — state: `{c.get('state')}` — "
-                             f"duration: {c.get('duration')}")
-                    if c.get("query"):
-                        st.code(c["query"], language="sql")
-        except Exception as e:
-            st.error(f"Couldn't fetch connection info: {e}")
+        st.caption("Want to stop weekly transit emails entirely?")
+        st.markdown(f"[Unsubscribe](?unsubscribe={_manage_token})")
+    else:
+        st.info("That management link has already been used or is no longer valid.")
+
+# Narrow the sidebar and style the signature arc divider.
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] {
+        width: 240px !important;
+        min-width: 240px !important;
+        max-width: 240px !important;
+        resize: none !important;
+    }
+    [data-testid="stSidebar"] > div:first-child {
+        width: 240px !important;
+        min-width: 240px !important;
+        max-width: 240px !important;
+    }
+    [data-testid="stSidebar"][aria-expanded="false"] {
+        margin-left: -240px !important;
+    }
+    hr {
+        border: none !important;
+        height: 20px !important;
+        margin: 1.5rem 0 !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 20'%3E%3Cpath d='M0,15 Q100,-5 200,15' stroke='%23C9A66B' stroke-width='1' fill='none' opacity='0.55'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+        background-size: 100% 100% !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+home = st.Page("home_page.py", title="Home", icon="🏠", default=True, url_path="")
+personal_readings = st.Page("personal_readings_page.py", title="Personal", icon="🔭")
+synastry_readings = st.Page("synastry_readings_page.py", title="Synastry", icon="👥")
+deep_dive_readings = st.Page("deep_dive_readings_page.py", title="Deep Dive", icon="🔍")
+advanced_readings = st.Page(
+    "advanced_readings_page.py", title="Advanced Readings", icon="✨",
+    url_path="advanced-readings",
+)
+weekly_transits = st.Page(
+    "weekly_transits_signup_page.py", title="Astrology Services", icon="🌙",
+    url_path="weekly-transits",
+)
+resources = st.Page("resources_page.py", title="Resources", icon="📖")
+my_account = st.Page("my_account_page.py", title="My Account", icon="👤")
+
+# --- Custom sidebar menu ---
+# st.navigation's own auto-generated menu can't mix flat top-level
+# pages with one nested group in the same call. Building the visible
+# menu by hand instead, with position="hidden" below so its own
+# auto-menu never renders.
+#
+# .run() has to actually execute BEFORE any st.page_link() call that
+# references these pages -- that registration genuinely happens as
+# part of .run() itself running, not merely from calling
+# st.navigation() and holding the returned object.
+pg = st.navigation(
+    [home, personal_readings, synastry_readings, deep_dive_readings,
+     advanced_readings, weekly_transits, resources, my_account],
+    position="hidden",
+)
+try:
+    pg.run()
+except Exception as e:
+    if type(e).__name__ == "StopException":
+        raise
+    st.exception(e)
+finally:
+    with st.sidebar:
+        st.page_link("home_page.py", label="Home")
+        st.write("READINGS")
+        _indent, _nested = st.columns([1, 9])
+        with _nested:
+            st.page_link("personal_readings_page.py", label="Personal", icon="🔭")
+            st.page_link("synastry_readings_page.py", label="Synastry", icon="👥")
+            st.page_link("deep_dive_readings_page.py", label="Deep Dive", icon="🔍")
+        st.page_link("advanced_readings_page.py", label="Advanced Readings")
+        st.page_link("weekly_transits_signup_page.py", label="Astrology Services")
+        st.page_link("resources_page.py", label="Resources")
+        st.page_link("my_account_page.py", label="My Account")
+
+    # --- Optional login (saved profiles) ---
+    if "auth" in st.secrets:
+        with st.sidebar:
+            st.divider()
+            if st.user.is_logged_in:
+                from profiles_db import safe_user_email
+                user_email = safe_user_email()
+
+                # safe_user_email() can transiently return None even while
+                # is_logged_in is True (see its docstring) -- without this
+                # fallback, that brief window makes every user_email-gated
+                # section below (including the All Access Tier / Get Full
+                # Access button) flicker in and out on whichever rerun
+                # happens to land during it. Once resolved successfully
+                # once this session, keep using that value through any
+                # later transient gap rather than losing it.
+                if user_email:
+                    st.session_state["_cached_user_email"] = user_email
+                elif "_cached_user_email" in st.session_state:
+                    user_email = st.session_state["_cached_user_email"]
+
+                if user_email:
+                    st.caption(f"Signed in as {user_email}")
+                else:
+                    st.caption("Signed in")
+                if st.button("Log out", width="stretch"):
+                    st.logout()
+
+                # Runs once here, right after login is confirmed -- needed
+                # before anything on this app (including other pages, like
+                # Advanced Readings and My Account) queries a table this
+                # migration is responsible for creating.
+                if user_email and "DATABASE_URL" in os.environ:
+                    from profiles_db import init_schema, has_active_subscription
+                    init_schema()
+                    # Gold "All Access Tier" is a status indicator for
+                    # people who already have the subscription --
+                    # type="primary" picks up the theme's brass color
+                    # automatically, same technique used for the
+                    # homepage's main CTA. "Get Full Access" is the actual
+                    # purchase path for people who don't have it yet.
+                    if has_active_subscription(user_email):
+                        if st.button("All Access Tier", width="stretch", type="primary"):
+                            st.switch_page("my_account_page.py")
+                    elif "STRIPE_SECRET_KEY" in os.environ and "STRIPE_FULL_ACCESS_PRICE_ID" in os.environ:
+                        if st.button("Get Full Access", width="stretch"):
+                            import stripe
+                            stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
+                            try:
+                                checkout_session = stripe.checkout.Session.create(
+                                    mode="subscription",
+                                    line_items=[{
+                                        "price": os.environ["STRIPE_FULL_ACCESS_PRICE_ID"],
+                                        "quantity": 1,
+                                    }],
+                                    customer_email=user_email,
+                                    success_url="https://tenthhousereadings.com/?signup=success",
+                                    cancel_url="https://tenthhousereadings.com/?signup=cancelled",
+                                    metadata={
+                                        "product_type": "full_access_subscription",
+                                        "label": user_email,
+                                    },
+                                )
+                                st.link_button(
+                                    "Proceed to Secure Checkout →",
+                                    checkout_session.url,
+                                    width="stretch",
+                                    type="primary",
+                                )
+                            except Exception as e:
+                                st.error(f"Something went wrong setting up checkout: {e}")
+            else:
+                st.caption("Log in to unlock full readings, email delivery, and saved profiles.")
+                if st.button("Log in", width="stretch"):
+                    st.login("auth0")
+
+    with st.sidebar:
+        st.caption(f"build: {APP_BUILD_MARKER}")
