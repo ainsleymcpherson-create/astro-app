@@ -2225,7 +2225,7 @@ tight, transit-appropriate orbs — only genuinely close, currently \
 active connections are included), and the person's natal essential \
 dignity for context. All mathematically precise, not approximated.
 {naming_note}
-
+{theme_note}
 Structure your answer as follows:
 
 First, provide an overview of what this current period is broadly \
@@ -2359,12 +2359,50 @@ three-part format above, then a closing conclusion.\
 """
 
 
+def _transit_theme_guidance(theme: str | None) -> str:
+    """
+    Shared helper for both transit prompt builders (full and
+    summary-only). General gets no special instruction -- the
+    existing "most significant transits" selection already covers
+    that case well on its own. Romantic and Career each redirect
+    which transits get prioritized without excluding genuinely
+    major transits outside that focus, since a reading that ignored
+    a huge, unmissable transit just because it fell outside the
+    requested theme would feel like it was hiding something.
+    """
+    if not theme or theme == "General":
+        return ""
+    if theme == "Romantic":
+        return (
+            "\nThis reading has a ROMANTIC/RELATIONSHIP FOCUS. When choosing "
+            "which transits to lead with, prioritize ones touching the 5th "
+            "house (romance), 7th house (partnership), 8th house (intimacy "
+            "and merging), Venus, Mars, or the Moon. A transit outside these "
+            "areas can still appear if it's genuinely too significant to "
+            "leave out, but the overview and the majority of themes should "
+            "center on what's happening romantically right now.\n"
+        )
+    if theme == "Career":
+        return (
+            "\nThis reading has a CAREER/WORK FOCUS. When choosing which "
+            "transits to lead with, prioritize ones touching the 10th house "
+            "(career and reputation), 6th house (daily work), 2nd house "
+            "(income and resources), Saturn, the Midheaven, or Jupiter. A "
+            "transit outside these areas can still appear if it's genuinely "
+            "too significant to leave out, but the overview and the "
+            "majority of themes should center on what's happening "
+            "professionally right now.\n"
+        )
+    return ""
+
+
 def build_transit_prompt(
     transiting_points: dict,
     transit_aspects: list,
     natal_dignities: dict[str, DignityResult],
     min_tightness: float = 1.0,
     person_name: str | None = None,
+    theme: str | None = None,
 ) -> str:
     """
     Builds a complete transit reading prompt: current sky positions,
@@ -2372,7 +2410,10 @@ def build_transit_prompt(
     natal dignity for context. Distinct from every other prompt builder
     in this file since it interprets the CURRENT sky against a fixed
     natal chart, rather than the natal chart alone. If person_name is
-    given, the reading will address them by name occasionally.
+    given, the reading will address them by name occasionally. If
+    theme is "Romantic" or "Career", the reading is redirected toward
+    that area of life; "General" or None leaves the existing
+    significance-based selection untouched.
     """
     data_block = build_transit_data_block(
         transiting_points, transit_aspects, natal_dignities,
@@ -2381,6 +2422,7 @@ def build_transit_prompt(
     return TRANSIT_INSTRUCTIONS.format(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
+        theme_note=_transit_theme_guidance(theme),
     )
 
 
@@ -2399,6 +2441,7 @@ the condensed, headline version, not the full reading.
 transiting positions, transit-to-natal aspects, and natal dignity for \
 context.
 {naming_note}
+{theme_note}
 Structure your answer as follows:
 
 First, a **Summary** of what this current period is broadly about — \
@@ -2457,8 +2500,10 @@ def build_transit_summary_only_prompt(
     natal_dignities: dict[str, DignityResult],
     min_tightness: float = 1.0,
     person_name: str | None = None,
+    theme: str | None = None,
 ) -> str:
-    """Lean, fast counterpart to build_transit_prompt."""
+    """Lean, fast counterpart to build_transit_prompt. theme works the
+    same way here as it does there -- see _transit_theme_guidance."""
     data_block = build_transit_data_block(
         transiting_points, transit_aspects, natal_dignities,
         min_tightness=min_tightness,
@@ -2466,6 +2511,7 @@ def build_transit_summary_only_prompt(
     return TRANSIT_SUMMARY_ONLY_INSTRUCTIONS.format(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
+        theme_note=_transit_theme_guidance(theme),
     )
 
 
