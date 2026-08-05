@@ -234,6 +234,7 @@ def _process_reading_job(job: dict) -> tuple[bool, str]:
             )
             prompt = build_transit_prompt(
                 transiting_points, transit_aspects, dignities, person_name=person_name,
+                theme=job.get("theme", "General"),
             )
 
         elif reading_type in ("Professional Synastry", "Relationship Synastry", "Parent/Child Synastry"):
@@ -549,6 +550,7 @@ def _process_weekly_transit_profile(profile: dict) -> tuple[bool, str]:
         prompt = build_transit_summary_only_prompt(
             transiting_points, transit_aspects, dignities,
             person_name=profile.get("person_name"),
+            theme=profile.get("transit_theme", "General"),
         )
 
         import anthropic
@@ -750,6 +752,7 @@ def stripe_webhook():
                 )
                 prompt = build_transit_prompt(
                     transiting_points, transit_aspects, dignities, person_name=label,
+                    theme=metadata.get("theme", "General"),
                 )
                 import anthropic
                 client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
