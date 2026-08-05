@@ -1442,7 +1442,7 @@ def build_interpretation_prompt_no_time(
     them by name occasionally. If age is given, places extra emphasis
     on life-stage-relevant placements — added emphasis, never exclusion.
     """
-      data_block = build_data_block_no_time(
+    data_block = build_data_block_no_time(
         chart, aspects, patterns, dignities, min_tightness=min_tightness,
     )
     query = _build_retrieval_query(chart, aspects, dignities)
