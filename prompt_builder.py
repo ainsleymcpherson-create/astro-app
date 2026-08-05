@@ -3451,7 +3451,7 @@ def build_relationship_synastry_summary_only_prompt(
             f'Person B as "{label_b}" instead of the generic labels.'
         )
 
-     data_block = build_synastry_data_block(
+    data_block = build_synastry_data_block(
         synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
         include_house_overlays=True,
     )
