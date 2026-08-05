@@ -40,19 +40,23 @@ from pathlib import Path
 
 import voyageai
 from pypdf import PdfReader
+from docx import Document
 
 # --- CONFIG ---
 SOURCE_DIR = Path("reference_docs")
 OUTPUT_PATH = Path("data/reference_embeddings.json")
 EMBED_MODEL = "voyage-3"
 MIN_CHUNK_CHARS = 200
-VALID_EXTENSIONS = {".pdf", ".txt", ".md"}
+VALID_EXTENSIONS = {".pdf", ".txt", ".md", ".docx"}
 
 
 def extract_text(path: Path) -> str:
     if path.suffix.lower() == ".pdf":
         reader = PdfReader(str(path))
         return "\n".join(page.extract_text() or "" for page in reader.pages)
+    if path.suffix.lower() == ".docx":
+        doc = Document(str(path))
+        return "\n".join(p.text for p in doc.paragraphs)
     return path.read_text(encoding="utf-8", errors="ignore")
 
 
