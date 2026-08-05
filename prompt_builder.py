@@ -1737,15 +1737,17 @@ def build_career_interpretation_prompt(
     person_name is given, the reading will address them by name
     occasionally.
     """
-    data_block = build_data_block(
+     data_block = build_data_block(
         chart, aspects, patterns, dignities, house_readings,
         min_tightness=min_tightness,
     )
+    query = _build_retrieval_query(chart, aspects, dignities)
+    reference_block = _reference_context_block(query, category="personal_readings")
     return CAREER_INTERPRETATION_INSTRUCTIONS.format(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
+        reference_block=reference_block,
     )
-
 
 # ---------------------------------------------------------------------------
 # Career reading — SUMMARY-ONLY fast variant
@@ -1824,15 +1826,17 @@ def build_career_summary_only_prompt(
     person_name: str | None = None,
 ) -> str:
     """Lean, fast counterpart to build_career_interpretation_prompt."""
-    data_block = build_data_block(
+       data_block = build_data_block(
         chart, aspects, patterns, dignities, house_readings,
         min_tightness=min_tightness,
     )
+    query = _build_retrieval_query(chart, aspects, dignities)
+    reference_block = _reference_context_block(query, category="personal_readings")
     return CAREER_SUMMARY_ONLY_INSTRUCTIONS.format(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
+        reference_block=reference_block,
     )
-
 # ---------------------------------------------------------------------------
 # Unknown birth time variant
 # ---------------------------------------------------------------------------
@@ -2085,7 +2089,7 @@ the SPECIFIC combination of placements you're given.
 Here is the full computed chart data — planets, Chiron, Lilith, and the Lunar \
 Nodes only (no Ascendant, houses, Vertex, or Arabic Parts, since none \
 of those are reliable without an exact birth time):
-
+{reference_block}
 {data_block}
 
 Now write the reading, organized under the headers above.\
@@ -2108,14 +2112,16 @@ def build_career_interpretation_prompt_no_time(
     solid: planets, dignity, and planet-to-planet aspects. If person_name
     is given, the reading will address them by name occasionally.
     """
-    data_block = build_data_block_no_time(
+     data_block = build_data_block_no_time(
         chart, aspects, patterns, dignities, min_tightness=min_tightness,
     )
-    return CAREER_NO_TIME_INSTRUCTIONS.format(
+    query = _build_retrieval_query(chart, aspects, dignities)
+    reference_block = _reference_context_block(query, category="personal_readings")
+    return CAREER_NO_TIME_SUMMARY_ONLY_INSTRUCTIONS.format(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
+        reference_block=reference_block,
     )
-
 
 CAREER_NO_TIME_SUMMARY_ONLY_INSTRUCTIONS = """\
 You are an experienced astrologer giving someone a SHORT, fast \
@@ -2169,7 +2175,7 @@ weight here since fewer other signals are available.
 - Be SELECTIVE.
 
 Here is the full computed chart data:
-
+{reference_block}
 {data_block}
 
 Now write the short reading. Keep it genuinely brief.\
@@ -2185,14 +2191,16 @@ def build_career_summary_only_prompt_no_time(
     person_name: str | None = None,
 ) -> str:
     """Lean, fast counterpart to build_career_interpretation_prompt_no_time."""
-    data_block = build_data_block_no_time(
+      data_block = build_data_block_no_time(
         chart, aspects, patterns, dignities, min_tightness=min_tightness,
     )
-    return CAREER_NO_TIME_SUMMARY_ONLY_INSTRUCTIONS.format(
+    query = _build_retrieval_query(chart, aspects, dignities)
+    reference_block = _reference_context_block(query, category="personal_readings")
+    return CAREER_NO_TIME_INSTRUCTIONS.format(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
+        reference_block=reference_block,
     )
-
 
 # ---------------------------------------------------------------------------
 # Transit reading — "what's currently activated" prompt
