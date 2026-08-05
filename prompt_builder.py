@@ -1737,7 +1737,7 @@ def build_career_interpretation_prompt(
     person_name is given, the reading will address them by name
     occasionally.
     """
-     data_block = build_data_block(
+    data_block = build_data_block(
         chart, aspects, patterns, dignities, house_readings,
         min_tightness=min_tightness,
     )
