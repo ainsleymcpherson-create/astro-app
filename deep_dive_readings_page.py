@@ -1440,28 +1440,39 @@ if st.session_state.get("results"):
 
     if r["reading_type"] == "Transits":
         who = label_a if label_a else r['datetime_str']
-        st.success(
-            f"Natal chart: {who} in {r['location_str']} "
+        st.caption(
+            f"\u2713 Natal chart: {who} in {r['location_str']} "
             f"({r['house_system_label']} houses) — Transits for {r['transit_date'].isoformat()}"
         )
     elif r["reading_type"] in SYNASTRY_READING_TYPES:
         who_a = label_a if label_a else f"Person A ({r['datetime_str']})"
         who_b = label_b if label_b else f"Person B ({r['datetime_str_b']})"
-        st.success(
-            f"{who_a} in {r['location_str']} — "
+        st.caption(
+            f"\u2713 {who_a} in {r['location_str']} — "
             f"{who_b} in {r['location_str_b']} "
             f"({r['house_system_label']} houses)"
         )
     else:
         who = label_a if label_a else r['datetime_str']
-        st.success(
-            f"Chart computed for {who} in {r['location_str']} "
+        st.caption(
+            f"\u2713 Chart computed for {who} in {r['location_str']} "
             f"({r['house_system_label']} houses, {r['reading_type']} reading)"
         )
 
-    tabs = st.tabs(["Interpretation", "Prompt", "Chart Wheel", "Points", "Aspects", "Patterns", "Dignity", "Houses"])
+    # Tab list varies by admin status (Prompt is admin-only) and has
+    # fewer entries than the raw data categories, since Points+Dignity
+    # and Aspects+Patterns are each combined into one tab -- a named
+    # dict lookup is used instead of positional tabs[N] indexing below,
+    # since that indexing would silently break every time the set of
+    # tabs changes (admin vs. not) rather than failing loudly.
+    tab_names = ["Interpretation"]
+    if _is_admin:
+        tab_names.append("Prompt")
+    tab_names += ["Chart Wheel", "Points & Dignity", "Aspects & Patterns", "Houses"]
+    tabs = st.tabs(tab_names)
+    tab_map = dict(zip(tab_names, tabs))
 
-    with tabs[0]:
+    with tab_map["Interpretation"]:
         if r.get("email_job_status"):
             success, message = r["email_job_status"]
             if success:
@@ -1629,19 +1640,20 @@ if st.session_state.get("results"):
                      "and recompute to get a live reading here — or use the "
                      "Prompt tab to copy it into Claude yourself for free.")
 
-    with tabs[1]:
-        st.write("Copy this into Claude.ai (or send it via the API yourself) "
-                 "to get the full written reading — free, no API call from this app.")
-        st.text_area("Full prompt", value=r["prompt"], height=500, label_visibility="collapsed")
-        st.download_button(
-            "Download prompt as .txt",
-            data=r["prompt"],
-            file_name="interpretation_prompt.txt",
-            mime="text/plain",
-            width="stretch",
-        )
+    if _is_admin:
+        with tab_map["Prompt"]:
+            st.write("Copy this into Claude.ai (or send it via the API yourself) "
+                     "to get the full written reading — free, no API call from this app.")
+            st.text_area("Full prompt", value=r["prompt"], height=500, label_visibility="collapsed")
+            st.download_button(
+                "Download prompt as .txt",
+                data=r["prompt"],
+                file_name="interpretation_prompt.txt",
+                mime="text/plain",
+                width="stretch",
+            )
 
-    with tabs[2]:
+    with tab_map["Chart Wheel"]:
         def show_wheel_with_download(fig, filename_suffix):
             st.pyplot(fig, width="stretch")
             buf = io.BytesIO()
@@ -1791,23 +1803,33 @@ if st.session_state.get("results"):
                     key="art_card_dl",
                 )
 
-    with tabs[3]:
+    with tab_map["Points & Dignity"]:
         if r["reading_type"] in SYNASTRY_READING_TYPES:
             st.subheader("Person A")
             points_df_a = points_to_dataframe(r["chart"])
             st.dataframe(points_df_a, width="stretch", hide_index=True)
             dataframe_download_and_copy(points_df_a, f"points_a_{r['birth_date'].isoformat()}.csv", "points_a")
+            dignity_df_a = dignities_to_dataframe(r["dignities"])
+            st.table(dignity_df_a.set_index("Planet"))
+            dataframe_download_and_copy(dignity_df_a, f"dignity_a_{r['birth_date'].isoformat()}.csv", "dignity_a")
 
+            st.divider()
             st.subheader("Person B")
             points_df_b = points_to_dataframe(r["chart_b"])
             st.dataframe(points_df_b, width="stretch", hide_index=True)
             dataframe_download_and_copy(points_df_b, f"points_b_{r['birth_date'].isoformat()}.csv", "points_b")
+            dignity_df_b = dignities_to_dataframe(r["dignities_b"])
+            st.table(dignity_df_b.set_index("Planet"))
+            dataframe_download_and_copy(dignity_df_b, f"dignity_b_{r['birth_date'].isoformat()}.csv", "dignity_b")
         else:
             points_df = points_to_dataframe(r["chart"])
             st.dataframe(points_df, width="stretch", hide_index=True)
             dataframe_download_and_copy(points_df, f"points_{r['birth_date'].isoformat()}.csv", "points")
+            dignity_df = dignities_to_dataframe(r["dignities"])
+            st.table(dignity_df.set_index("Planet"))
+            dataframe_download_and_copy(dignity_df, f"dignity_{r['birth_date'].isoformat()}.csv", "dignity")
 
-    with tabs[4]:
+    with tab_map["Aspects & Patterns"]:
         def show_split_aspects_table(df_builder, filename_prefix, key_prefix):
             """Renders Major and Minor aspect tables as two separate,
             clearly labeled sections, using the same df_builder function
@@ -1828,6 +1850,14 @@ if st.session_state.get("results"):
                 f"{key_prefix}_minor",
             )
 
+        def render_patterns_section(patterns, key_prefix, filename):
+            df = patterns_to_dataframe(patterns)
+            if df.empty:
+                st.info("No aspect patterns detected within the configured orbs.")
+            else:
+                st.dataframe(df, width="stretch", hide_index=True)
+                dataframe_download_and_copy(df, filename, key_prefix)
+
         if r["reading_type"] in SYNASTRY_READING_TYPES:
             st.write("**Cross-chart aspects** — Person A's point to Person B's point. "
                      "This is the actual synastry data the reading is built from. "
@@ -1843,6 +1873,8 @@ if st.session_state.get("results"):
                 lambda category: aspects_to_dataframe(r["aspects"], r["chart"], category=category),
                 "aspects_a", "aspects_a",
             )
+            st.subheader("Person A's Patterns")
+            render_patterns_section(r["patterns"], "patterns_a", f"patterns_a_{r['birth_date'].isoformat()}.csv")
 
             st.divider()
             st.subheader("Person B's own aspects (within their own chart)")
@@ -1850,47 +1882,18 @@ if st.session_state.get("results"):
                 lambda category: aspects_to_dataframe(r["aspects_b"], r["chart_b"], category=category),
                 "aspects_b", "aspects_b",
             )
+            st.subheader("Person B's Patterns")
+            render_patterns_section(r["patterns_b"], "patterns_b", f"patterns_b_{r['birth_date'].isoformat()}.csv")
         else:
             show_split_aspects_table(
                 lambda category: aspects_to_dataframe(r["aspects"], r["chart"], category=category),
                 "aspects", "aspects",
             )
-
-    with tabs[5]:
-        def render_patterns_section(patterns, key_prefix, filename):
-            df = patterns_to_dataframe(patterns)
-            if df.empty:
-                st.info("No aspect patterns detected within the configured orbs.")
-            else:
-                st.dataframe(df, width="stretch", hide_index=True)
-                dataframe_download_and_copy(df, filename, key_prefix)
-
-        if r["reading_type"] in SYNASTRY_READING_TYPES:
-            st.subheader("Person A's Patterns")
-            render_patterns_section(r["patterns"], "patterns_a", f"patterns_a_{r['birth_date'].isoformat()}.csv")
             st.divider()
-            st.subheader("Person B's Patterns")
-            render_patterns_section(r["patterns_b"], "patterns_b", f"patterns_b_{r['birth_date'].isoformat()}.csv")
-        else:
+            st.subheader("Patterns")
             render_patterns_section(r["patterns"], "patterns", f"patterns_{r['birth_date'].isoformat()}.csv")
 
-    with tabs[6]:
-        if r["reading_type"] in SYNASTRY_READING_TYPES:
-            st.subheader("Person A")
-            dignity_df_a = dignities_to_dataframe(r["dignities"])
-            st.table(dignity_df_a.set_index("Planet"))
-            dataframe_download_and_copy(dignity_df_a, f"dignity_a_{r['birth_date'].isoformat()}.csv", "dignity_a")
-
-            st.subheader("Person B")
-            dignity_df_b = dignities_to_dataframe(r["dignities_b"])
-            st.table(dignity_df_b.set_index("Planet"))
-            dataframe_download_and_copy(dignity_df_b, f"dignity_b_{r['birth_date'].isoformat()}.csv", "dignity_b")
-        else:
-            dignity_df = dignities_to_dataframe(r["dignities"])
-            st.table(dignity_df.set_index("Planet"))
-            dataframe_download_and_copy(dignity_df, f"dignity_{r['birth_date'].isoformat()}.csv", "dignity")
-
-    with tabs[7]:
+    with tab_map["Houses"]:
         def render_house_readings_section(house_readings, key_prefix, filename):
             house_lines = []
             for num, reading in house_readings.items():
