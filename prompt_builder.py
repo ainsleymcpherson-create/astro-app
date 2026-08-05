@@ -979,7 +979,7 @@ def build_summary_only_prompt(
     produce only the short Summary-length content per section. Much
     quicker and cheaper to generate than the full reading.
     """
-        data_block = build_data_block(
+    data_block = build_data_block(
         chart, aspects, patterns, dignities, house_readings,
         min_tightness=min_tightness,
     )
