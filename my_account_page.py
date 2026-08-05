@@ -109,3 +109,30 @@ for h in history:
             _cents = h.get("amount_cents")
             if _cents:
                 st.write(f"${_cents / 100:.2f}")
+
+# --- Admin-only: active database connections ---
+# Temporary diagnostic tool, not meant to be a permanent feature --
+# added specifically to track down what's holding a lock during the
+# "stuck running sql.query(...)" freeze. Queries Postgres's own
+# pg_stat_activity system view, so it isn't affected by whatever might
+# be blocking this app's own tables. Gated to the admin account only,
+# same pattern used elsewhere in this app for admin-only tools.
+if user_email == "amcpherson89@gmail.com":
+    st.divider()
+    st.subheader("🔧 Active DB Connections (admin)")
+    st.caption("Look for a row with state = \"idle in transaction\" and a "
+               "large duration — that's a connection holding a lock open "
+               "without an active query.")
+    from profiles_db import list_active_db_connections
+    try:
+        connections = list_active_db_connections()
+        if not connections:
+            st.caption("No active connections found.")
+        for c in connections:
+            with st.container(border=True):
+                st.write(f"**pid {c.get('pid')}** — state: `{c.get('state')}` — "
+                         f"duration: {c.get('duration')}")
+                if c.get("query"):
+                    st.code(c["query"], language="sql")
+    except Exception as e:
+        st.error(f"Couldn't fetch connection info: {e}")
