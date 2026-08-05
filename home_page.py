@@ -44,9 +44,7 @@ OFFERINGS = [
         "name": "Advanced Readings",
         "desc": "Access the in-depth details. Perfect for enhanced personal "
                 "understanding and deeper synastry conversations.",
-        "page": "advanced_readings_page.py",
         "url_path": "/advanced-readings",
-        "link_label": "Explore Advanced Readings",
     },
     {
         "icon": "🌙",
@@ -54,9 +52,7 @@ OFFERINGS = [
         "desc": "A short reading of that week's transits delivered every "
                 "Monday, or a single full transit reading whenever you "
                 "want one — both measured against your own chart.",
-        "page": "advanced_readings_page.py",
         "url_path": "/advanced-readings",
-        "link_label": "Explore Advanced Readings",
     },
     {
         "icon": "🔓",
@@ -64,9 +60,7 @@ OFFERINGS = [
         "desc": "Log in and subscribe for unlimited full readings and "
                 "email delivery across Personal, Synastry, and Deep Dive — "
                 "no per-reading purchases needed.",
-        "page": "advanced_readings_page.py",
         "url_path": "/advanced-readings",
-        "link_label": "Explore Advanced Readings",
     },
     {
         "icon": "💬",
@@ -74,9 +68,7 @@ OFFERINGS = [
         "desc": "Ask one specific question — anything from \"should I take "
                 "this job\" to \"what does this transit mean\" — and get a "
                 "real, focused answer.",
-        "page": "weekly_transits_signup_page.py",
         "url_path": "/weekly-transits",
-        "link_label": "Explore Astrology Services",
     },
 ]
 
@@ -87,4 +79,3 @@ for offering, col in zip(OFFERINGS, row1 + row2):
         with st.container(border=True):
             st.markdown(f"**[{offering['icon']} {offering['name']}]({offering['url_path']})**")
             st.write(offering["desc"])
-            st.page_link(offering["page"], label=offering["link_label"])
