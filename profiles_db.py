@@ -636,3 +636,29 @@ def list_purchase_history(owner_email: str) -> list[dict]:
         ttl=0,
     )
     return df.to_dict("records")
+
+
+def list_active_db_connections() -> list[dict]:
+    """
+    Diagnostic helper -- returns every current entry in Postgres's own
+    pg_stat_activity view: what every active connection is doing right
+    now, and how long it's been in that state. Built specifically to
+    track down a "stuck running sql.query(...)" symptom that turned
+    out to be a genuine statement_timeout cancellation (see the
+    QueryCanceled error this app started raising once that timeout
+    was added) -- the leading theory is some other connection sitting
+    "idle in transaction," holding a lock this app's own queries then
+    have to wait behind. Queries the system catalog itself, not any
+    of this app's own tables, so it isn't affected by whatever lock
+    might be blocking those.
+    """
+    conn = _get_conn()
+    df = conn.query(
+        "SELECT pid, state, query, query_start, "
+        "now() - COALESCE(state_change, query_start) AS duration "
+        "FROM pg_stat_activity "
+        "WHERE datname = current_database() "
+        "ORDER BY query_start",
+        ttl=0,
+    )
+    return df.to_dict("records")
