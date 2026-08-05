@@ -2413,7 +2413,7 @@ say so — a quiet, low-key period is a legitimate and useful finding, \
 not a failure to find something interesting.
 
 Here is the full computed transit data:
-{reference_data}
+{reference_block}
 {data_block}
 
 Now write the reading: opening overview, 2-4 themes each in the \
@@ -2928,15 +2928,17 @@ def build_professional_synastry_prompt(
             f'them makes the reading feel personal rather than clinical.'
         )
 
-    data_block = build_synastry_data_block(
+      data_block = build_synastry_data_block(
         synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
     )
+    query = _build_synastry_retrieval_query(synastry_result)
+    reference_block = _reference_context_block(query, category="synastry_readings")
     return PROFESSIONAL_SYNASTRY_INSTRUCTIONS.format(
         birth_time_status=birth_time_status,
         naming_note=naming_note,
         data_block=data_block,
+        reference_block=reference_block,
     )
-
 
 # ---------------------------------------------------------------------------
 # Professional synastry — SUMMARY-ONLY fast variant
@@ -2991,7 +2993,7 @@ negate-then-correct scaffolding.
 - Be SELECTIVE — cover what matters most.
 
 Here is the full computed synastry data for both people:
-
+{reference_block}
 {data_block}
 
 Now write the short reading. Keep it genuinely brief.\
@@ -3024,15 +3026,17 @@ def build_professional_synastry_summary_only_prompt(
             f'Person B as "{label_b}" instead of the generic labels.'
         )
 
-    data_block = build_synastry_data_block(
+      data_block = build_synastry_data_block(
         synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
     )
+    query = _build_synastry_retrieval_query(synastry_result)
+    reference_block = _reference_context_block(query, category="synastry_readings")
     return PROFESSIONAL_SYNASTRY_SUMMARY_ONLY_INSTRUCTIONS.format(
         birth_time_status=birth_time_status,
         naming_note=naming_note,
         data_block=data_block,
+        reference_block=reference_block,
     )
-
 
 # ---------------------------------------------------------------------------
 # Relationship synastry — traditional romantic compatibility reading
@@ -3287,7 +3291,7 @@ professional angle — direct romantic and emotional language is correct
 and expected throughout.
 
 Here is the full computed synastry data for both people:
-
+{reference_block}
 {data_block}
 
 Now write the reading, organized under the headers above.\
@@ -3332,15 +3336,18 @@ def build_relationship_synastry_prompt(
             f'them makes the reading feel personal rather than clinical.'
         )
 
-    data_block = build_synastry_data_block(
+      data_block = build_synastry_data_block(
         synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
         include_house_overlays=True,
     )
+    query = _build_synastry_retrieval_query(synastry_result)
+    reference_block = _reference_context_block(query, category="synastry_readings/relationship_synastry")
     return RELATIONSHIP_SYNASTRY_INSTRUCTIONS.format(
         birth_time_status=birth_time_status,
         naming_note=naming_note,
         data_block=data_block,
         relationship_stage_guidance=_relationship_stage_guidance(relationship_stage),
+        reference_block=reference_block,
     )
 
 
@@ -3410,7 +3417,7 @@ aspects.
 - Be SELECTIVE — cover what matters most.
 
 Here is the full computed synastry data for both people:
-
+{reference_block}
 {data_block}
 
 Now write the short reading. Keep it genuinely brief.\
@@ -3444,17 +3451,19 @@ def build_relationship_synastry_summary_only_prompt(
             f'Person B as "{label_b}" instead of the generic labels.'
         )
 
-    data_block = build_synastry_data_block(
+     data_block = build_synastry_data_block(
         synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
         include_house_overlays=True,
     )
+    query = _build_synastry_retrieval_query(synastry_result)
+    reference_block = _reference_context_block(query, category="synastry_readings/relationship_synastry")
     return RELATIONSHIP_SYNASTRY_SUMMARY_ONLY_INSTRUCTIONS.format(
         birth_time_status=birth_time_status,
         naming_note=naming_note,
         data_block=data_block,
         relationship_stage_guidance=_relationship_stage_guidance(relationship_stage, compact=True),
+        reference_block=reference_block,
     )
-
 
 
 # ---------------------------------------------------------------------------
@@ -3693,7 +3702,7 @@ the SPECIFIC combination of placements between these two actual charts.
 
 Here is the full computed synastry data for both people (Person A is
 the parent, Person B is the child):
-
+{reference_block}
 {data_block}
 
 Now write the reading, organized under the headers above.\
@@ -3739,12 +3748,14 @@ def build_parent_child_synastry_prompt(
         synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
         include_house_overlays=True,
     )
+    query = _build_synastry_retrieval_query(synastry_result)
+    reference_block = _reference_context_block(query, category="synastry_readings")
     return PARENT_CHILD_SYNASTRY_INSTRUCTIONS.format(
         birth_time_status=birth_time_status,
         naming_note=naming_note,
         data_block=data_block,
+        reference_block=reference_block,
     )
-
 
 # ---------------------------------------------------------------------------
 # Parent/Child synastry — SUMMARY-ONLY fast variant
@@ -3817,7 +3828,7 @@ the PARENT can consciously do — never toward what the child should fix.
 
 Here is the full computed synastry data for both people (Person A is
 the parent, Person B is the child):
-
+{reference_block}
 {data_block}
 
 Now write the short reading. Keep it genuinely brief.\
@@ -3855,12 +3866,14 @@ def build_parent_child_synastry_summary_only_prompt(
         synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
         include_house_overlays=True,
     )
+    query = _build_synastry_retrieval_query(synastry_result)
+    reference_block = _reference_context_block(query, category="synastry_readings")
     return PARENT_CHILD_SYNASTRY_SUMMARY_ONLY_INSTRUCTIONS.format(
         birth_time_status=birth_time_status,
         naming_note=naming_note,
         data_block=data_block,
+        reference_block=reference_block,
     )
-
 # ---------------------------------------------------------------------------
 # Lilith Deep Dive — single-point focused reading
 # ---------------------------------------------------------------------------
