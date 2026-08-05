@@ -24,10 +24,12 @@ import streamlit as st
 import pandas as pd
 import swisseph as swe
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Flowable
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import colors
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 # --- Ephemeris setup ---
 # Points at a local ./ephe folder (relative to this file) rather than
@@ -592,7 +594,79 @@ def dignities_to_dataframe(dignities):
     return pd.DataFrame(rows)
 
 
-def markdown_to_pdf_bytes(markdown_text: str, title: str) -> bytes:
+# --- PDF brand tokens, reused directly from the app's own theme ---
+_PDF_BRASS = colors.HexColor("#C9A66B")
+_PDF_INDIGO = colors.HexColor("#1B2036")
+_PDF_INDIGO_SOFT = colors.HexColor("#3A4266")
+
+# Fonts are bundled with the app itself (fonts/ directory alongside
+# this file) rather than referenced from a system path -- a path like
+# /usr/share/fonts/... may not exist at all on the actual deployment
+# environment, which would crash every single PDF download rather
+# than just looking wrong. Falls back to reportlab's built-in
+# Times-Roman/Helvetica if the bundled files are ever missing (e.g. a
+# deploy that didn't include the fonts/ folder), so a font problem
+# degrades to "slightly less elegant" rather than "PDF downloads are
+# completely broken."
+_PDF_FONT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
+_PDF_FONTS_AVAILABLE = False
+try:
+    pdfmetrics.registerFont(TTFont("PDFSerif", os.path.join(_PDF_FONT_DIR, "LiberationSerif-Regular.ttf")))
+    pdfmetrics.registerFont(TTFont("PDFSerif-Bold", os.path.join(_PDF_FONT_DIR, "LiberationSerif-Bold.ttf")))
+    pdfmetrics.registerFont(TTFont("PDFSerif-Italic", os.path.join(_PDF_FONT_DIR, "LiberationSerif-Italic.ttf")))
+    pdfmetrics.registerFont(TTFont("PDFSans", os.path.join(_PDF_FONT_DIR, "LiberationSans-Regular.ttf")))
+    pdfmetrics.registerFont(TTFont("PDFSans-Bold", os.path.join(_PDF_FONT_DIR, "LiberationSans-Bold.ttf")))
+    _PDF_FONTS_AVAILABLE = True
+except Exception:
+    pass
+
+_FONT_TITLE = "PDFSerif" if _PDF_FONTS_AVAILABLE else "Times-Roman"
+_FONT_HEADING = "PDFSerif-Bold" if _PDF_FONTS_AVAILABLE else "Times-Bold"
+_FONT_ITALIC = "PDFSerif-Italic" if _PDF_FONTS_AVAILABLE else "Times-Italic"
+_FONT_BODY = "PDFSans" if _PDF_FONTS_AVAILABLE else "Helvetica"
+_FONT_BODY_BOLD = "PDFSans-Bold" if _PDF_FONTS_AVAILABLE else "Helvetica-Bold"
+
+
+class _ArcDivider(Flowable):
+    """
+    The app's signature wheel-arc, redrawn as an actual vector shape
+    for the PDF rather than a plain horizontal rule -- a fragment of
+    the same wheel the app computes for every chart, echoed here
+    between the title and body and again between major sections.
+    """
+    def __init__(self, width=6.0 * inch, height=0.24 * inch):
+        Flowable.__init__(self)
+        self.width = width
+        self.height = height
+
+    def draw(self):
+        c = self.canv
+        c.saveState()
+        c.setStrokeColor(_PDF_BRASS)
+        c.setLineWidth(1)
+        w, h = self.width, self.height
+        p = c.beginPath()
+        p.moveTo(0, h * 0.4)
+        p.curveTo(w * 0.25, h * 1.3, w * 0.75, h * 1.3, w, h * 0.4)
+        c.drawPath(p, stroke=1, fill=0)
+        c.restoreState()
+
+    def wrap(self, availWidth, availHeight):
+        return (self.width, self.height)
+
+
+def _pdf_footer(canvas_obj, doc):
+    canvas_obj.saveState()
+    canvas_obj.setFont(_FONT_BODY, 8)
+    canvas_obj.setFillColor(_PDF_INDIGO_SOFT)
+    canvas_obj.drawCentredString(
+        letter[0] / 2, 0.5 * inch,
+        f"Tenth House Readings  \u00b7  Page {doc.page}",
+    )
+    canvas_obj.restoreState()
+
+
+def markdown_to_pdf_bytes(markdown_text: str, title: str, subtitle: str = "") -> bytes:
     """
     Converts the simple markdown structure our readings use (## headers,
     **bold** inline, plain paragraphs) into a nicely formatted PDF —
@@ -602,48 +676,68 @@ def markdown_to_pdf_bytes(markdown_text: str, title: str) -> bytes:
     Python with no system-level dependencies (unlike some PDF libraries),
     so it won't risk the kind of compiled-dependency build failures we
     hit with pyswisseph on Streamlit Cloud.
+
+    title is expected to already be in the "{Name}'s {Type} Reading"
+    form (built at the call site, since only the caller knows the
+    person's name and reading type separately). subtitle is the birth
+    detail line, rendered as a separate styled byline beneath the
+    title rather than folded into the title itself.
     """
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer, pagesize=letter,
-        topMargin=0.75 * inch, bottomMargin=0.75 * inch,
-        leftMargin=0.75 * inch, rightMargin=0.75 * inch,
+        topMargin=0.85 * inch, bottomMargin=0.85 * inch,
+        leftMargin=0.85 * inch, rightMargin=0.85 * inch,
     )
-    styles = getSampleStyleSheet()
     title_style = ParagraphStyle(
-        "ReadingTitle", parent=styles["Title"], spaceAfter=16,
+        "ReadingTitle", fontName=_FONT_TITLE, fontSize=23,
+        textColor=_PDF_INDIGO, leading=27, spaceAfter=4,
+    )
+    byline_style = ParagraphStyle(
+        "ReadingByline", fontName=_FONT_ITALIC, fontSize=11,
+        textColor=_PDF_INDIGO_SOFT, leading=15, spaceAfter=14,
     )
     heading_style = ParagraphStyle(
-        "ReadingHeading", parent=styles["Heading2"],
-        spaceBefore=16, spaceAfter=8, textColor=colors.HexColor("#2c3e50"),
+        "ReadingHeading", fontName=_FONT_HEADING, fontSize=14,
+        textColor=_PDF_BRASS, spaceBefore=4, spaceAfter=8, leading=17,
     )
     body_style = ParagraphStyle(
-        "ReadingBody", parent=styles["Normal"], spaceAfter=10, leading=15,
+        "ReadingBody", fontName=_FONT_BODY, fontSize=10.5,
+        textColor=_PDF_INDIGO, spaceAfter=10, leading=15.5,
     )
 
-    story = [Paragraph(title, title_style), Spacer(1, 12)]
+    story = [Paragraph(title, title_style)]
+    if subtitle:
+        story.append(Paragraph(subtitle, byline_style))
+    story.append(_ArcDivider())
+    story.append(Spacer(1, 14))
 
     def inline_format(text: str) -> str:
         # Escape XML-special characters first (reportlab's Paragraph
         # parses a small XML-like markup), then convert markdown bold
-        # syntax into reportlab's own <b> tag.
+        # syntax into reportlab's own <font> tag.
         text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
+        text = re.sub(r"\*\*(.+?)\*\*", rf'<font name="{_FONT_BODY_BOLD}">\1</font>', text)
         return text
 
+    _is_first_heading = True
     for raw_line in markdown_text.split("\n"):
         line = raw_line.strip()
         if not line:
             story.append(Spacer(1, 6))
             continue
-        if line.startswith("## "):
-            story.append(Paragraph(inline_format(line[3:]), heading_style))
-        elif line.startswith("### "):
-            story.append(Paragraph(inline_format(line[4:]), heading_style))
+        if line.startswith("## ") or line.startswith("### "):
+            heading_text = line[3:] if line.startswith("## ") else line[4:]
+            if not _is_first_heading:
+                story.append(Spacer(1, 4))
+                story.append(_ArcDivider())
+                story.append(Spacer(1, 10))
+            _is_first_heading = False
+            story.append(Paragraph(inline_format(heading_text), heading_style))
         else:
             story.append(Paragraph(inline_format(line), body_style))
 
-    doc.build(story)
+    doc.build(story, onFirstPage=_pdf_footer, onLaterPages=_pdf_footer)
     pdf_bytes = buffer.getvalue()
     buffer.close()
     return pdf_bytes
@@ -652,9 +746,7 @@ def markdown_to_pdf_bytes(markdown_text: str, title: str) -> bytes:
 def _reading_header_block(r: dict, label_a: str | None, label_b: str | None) -> str:
     """
     Builds the person + birth date/time line(s) shown at the top of a
-    reading -- before the Overview section -- both in the app display
-    and in downloaded PDFs. Both call sites use this exact same text
-    so the two stay consistent with each other.
+    reading -- before the Overview section -- in the app display.
     """
     if r["reading_type"] in SYNASTRY_READING_TYPES:
         name_a = label_a or "Person A"
@@ -668,6 +760,34 @@ def _reading_header_block(r: dict, label_a: str | None, label_b: str | None) -> 
         if r["reading_type"] == "Transits":
             line += f"  \nTransits for {r['transit_date'].isoformat()}"
         return line
+
+
+def _pdf_title_and_subtitle(r: dict, label_a: str | None, label_b: str | None) -> tuple[str, str]:
+    """
+    Builds the PDF's title ("{Name}'s {Type} Reading") and byline
+    (birth details, no name -- the name already lives in the title)
+    separately, since the PDF renders them with different styling
+    rather than as one combined block the way the app display does.
+    Falls back to a name-less title ("Personal Reading") rather than
+    an awkward possessive when no name was actually given, instead of
+    reusing _reading_header_block's "Birth Chart" placeholder as if it
+    were a real name.
+    """
+    if r["reading_type"] in SYNASTRY_READING_TYPES:
+        name_a = label_a or "Person A"
+        name_b = label_b or "Person B"
+        title = f"{name_a} &amp; {name_b}'s {r['reading_type']} Reading"
+        subtitle = (
+            f"{name_a}: {r['datetime_str']} \u00b7 {r['location_str']}<br/>"
+            f"{name_b}: {r['datetime_str_b']} \u00b7 {r['location_str_b']}"
+        )
+        return title, subtitle
+    else:
+        title = f"{label_a}'s {r['reading_type']} Reading" if label_a else f"{r['reading_type']} Reading"
+        subtitle = f"{r['datetime_str']} \u00b7 {r['location_str']}"
+        if r["reading_type"] == "Transits":
+            subtitle += f"<br/>Transits for {r['transit_date'].isoformat()}"
+        return title, subtitle
 
 
 def render_interpretation(text: str):
@@ -711,6 +831,8 @@ def render_interpretation(text: str):
         end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
         body = text[start:end].strip()
 
+        if i > 0:
+            st.divider()
         st.markdown(f"### {header}")
 
         summary_match = summary_pattern.search(body)
@@ -1348,16 +1470,13 @@ if st.session_state.get("results"):
                 st.warning(f"📧 {message}")
 
         if r["interpretation_text"]:
-            header_block = _reading_header_block(r, label_a, label_b)
-            st.markdown(header_block)
-            st.divider()
-            render_interpretation(r["interpretation_text"])
-            st.divider()
+            with st.container(border=True):
+                header_block = _reading_header_block(r, label_a, label_b)
+                st.markdown(header_block)
+                st.divider()
+                render_interpretation(r["interpretation_text"])
 
-            if r["reading_type"] in SYNASTRY_READING_TYPES:
-                title_who = f"{label_a or 'Person A'} & {label_b or 'Person B'}"
-            else:
-                title_who = label_a if label_a else r['datetime_str']
+            pdf_title, pdf_subtitle = _pdf_title_and_subtitle(r, label_a, label_b)
             date_str = r['birth_date'].isoformat()
 
             if r.get("want_full_now"):
@@ -1369,12 +1488,10 @@ if st.session_state.get("results"):
                 summary_text = extract_summary_only(r["interpretation_text"])
                 full_text = format_full_text_for_export(r["interpretation_text"])
                 summary_pdf_bytes = markdown_to_pdf_bytes(
-                    f"{header_block}\n\n{summary_text}",
-                    f"{r['reading_type']} — Summary — {title_who}",
+                    summary_text, f"{pdf_title} \u2014 Summary", pdf_subtitle,
                 )
                 full_pdf_bytes = markdown_to_pdf_bytes(
-                    f"{header_block}\n\n{full_text}",
-                    f"{r['reading_type']} Reading — {title_who}",
+                    full_text, pdf_title, pdf_subtitle,
                 )
 
                 st.subheader("Summary Version")
@@ -1427,8 +1544,7 @@ if st.session_state.get("results"):
                 # short summary content, so there's just one document
                 # to offer, not a redundant summary/full split.
                 pdf_bytes = markdown_to_pdf_bytes(
-                    f"{header_block}\n\n{r['interpretation_text']}",
-                    f"{r['reading_type']} — {title_who}",
+                    r["interpretation_text"], pdf_title, pdf_subtitle,
                 )
                 dl_col1, dl_col2 = st.columns(2)
                 with dl_col1:
