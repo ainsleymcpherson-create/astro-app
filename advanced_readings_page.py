@@ -102,12 +102,14 @@ with _selector_col:
         key=f"reading_type_{category}",
     )
     transit_theme = None
-    if reading_type == "Weekly Transits":
+    if reading_type in ("Weekly Transits", "One-Time Transit"):
         transit_theme = st.segmented_control(
             "Reading theme", options=["General", "Romantic", "Career"],
             default="General", required=True,
-            help="What your weekly reading focuses on. Changeable anytime "
-                 "later via a link included in your emails.",
+            help="What this reading focuses on." + (
+                " Changeable anytime later via a link included in your emails."
+                if reading_type == "Weekly Transits" else ""
+            ),
         )
 
 st.divider()
@@ -210,6 +212,7 @@ if category == "Transits":
                     "unknown_time": unknown_time,
                     "person_name": label_a.strip() or None,
                     "email": email.strip(),
+                    "theme": transit_theme,
                 }
                 success, message = enqueue_full_reading_email(job_payload)
                 if success:
@@ -260,9 +263,8 @@ if category == "Transits":
                         "birth_date": birth_date.isoformat(),
                         "birth_time": birth_time_val.strftime("%H:%M"),
                         "location_str": location_str.strip(),
+                        "theme": transit_theme,
                     }
-                    if reading_type == "Weekly Transits":
-                        metadata["theme"] = transit_theme
 
                     checkout_session = stripe.checkout.Session.create(
                         mode=stripe_mode,
