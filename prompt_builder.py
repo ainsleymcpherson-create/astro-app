@@ -1007,7 +1007,7 @@ def build_summary_only_prompt_no_time(
     matching build_interpretation_prompt_no_time's approach, rather
     than silently including unreliable house data.
     """
-        data_block = build_data_block_no_time(
+    data_block = build_data_block_no_time(
         chart, aspects, patterns, dignities,
         min_tightness=min_tightness,
     )
