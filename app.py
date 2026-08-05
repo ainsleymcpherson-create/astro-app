@@ -177,7 +177,25 @@ finally:
                 # migration is responsible for creating.
                 if user_email and "DATABASE_URL" in os.environ:
                     from profiles_db import init_schema, has_active_subscription
-                    init_schema()
+                    try:
+                        init_schema()
+                    except Exception:
+                        # A timeout here (lock contention from another
+                        # connection, most plausibly) shouldn't crash
+                        # the entire login flow over what's usually a
+                        # no-op schema check anyway -- these columns
+                        # almost certainly already exist from an
+                        # earlier successful run. Deliberately NOT
+                        # caught inside init_schema itself: letting the
+                        # exception reach here means @st.cache_resource
+                        # never caches a false "success," so the next
+                        # login attempt genuinely retries the migration
+                        # instead of silently skipping it forever.
+                        st.warning(
+                            "Some account features may be briefly limited "
+                            "while the database catches up — try refreshing "
+                            "in a moment."
+                        )
                     # Gold "All Access Tier" is a status indicator for
                     # people who already have the subscription --
                     # type="primary" picks up the theme's brass color
