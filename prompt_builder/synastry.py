@@ -698,7 +698,24 @@ End with a **Summary** for the Conclusion — 2-4 sentences.
 General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
 - NAME PLACEMENTS DIRECTLY using the inverted form, e.g. "Person A's \
-warmth (Venus)."
+warmth (Venus)." Gloss every aspect word too (trine, square, \
+conjunct, opposition) with a brief plain-language sense of what that \
+connection type feels like — never let a technical term sit bare.
+- ONE NEW PLACEMENT PER SENTENCE. Even in this short format, don't \
+stack multiple aspects or planets into one sentence with "and," \
+"plus," or a comma. Each sentence introduces ONE contact, glossed, \
+then lands on what it actually means for these two people — not just \
+that the contact exists. BAD: "Ainsley's North Node trine Sean's \
+Pluto, plus their tightly linked Parts of Fortune and Spirit, point \
+to a partnership that feels fated." GOOD: "Ainsley's sense of growth \
+(North Node) flows easily with Sean's instinct for transformation \
+(Pluto) — a trine, meaning this connection comes naturally rather \
+than needing to be forced. That ease shows up as each person quietly \
+pushing the other to become more of who they already are."
+- CASH OUT EVERY TECHNICAL STATEMENT INTO LIVED EXPERIENCE. Naming a \
+contact is only half the sentence — say what it actually looks like \
+between these two people day to day, not just that the placement \
+exists.
 - WRITE WITH CONFIDENCE, vary sentence length.
 - AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
 as a negation followed by a correction ("The work isn't about \
