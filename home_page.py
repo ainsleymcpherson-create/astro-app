@@ -15,9 +15,8 @@ import streamlit as st
 
 st.title("🔭 Tenth House Readings")
 st.write(
-    "Real astrology, computed for you. Every reading comes from your "
-    "full chart to ensure that the reading is as true-to-you as "
-    "possible."
+    "Real astrology, real insights. Every reading comes from your "
+    "full chart to ensure the reading is true to you."
 )
 
 # --- One primary action, not several competing ones ---
