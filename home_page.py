@@ -25,6 +25,18 @@ if st.button("Get Your Free Reading →", type="primary"):
 
 st.divider()
 
+st.write(
+    "In astrology, the Tenth House is where your chart meets the world: "
+    "your direction, your reputation, and what you're ultimately drawn "
+    "to building. That's the spirit behind every reading here; helping "
+    "you figure out where you are headed, and what (and what not) to "
+    "do in the process. Our readings are grounded in your actual chart "
+    "rather than vague affirmations dressed up in cosmic language. Real "
+    "astrology to help you find your direction."
+)
+
+st.divider()
+
 # --- Every paid offering shown together, same format, same weight ---
 st.subheader("Want more? Check out our premium tier options")
 
