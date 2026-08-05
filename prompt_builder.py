@@ -2191,7 +2191,7 @@ def build_career_summary_only_prompt_no_time(
     person_name: str | None = None,
 ) -> str:
     """Lean, fast counterpart to build_career_interpretation_prompt_no_time."""
-      data_block = build_data_block_no_time(
+    data_block = build_data_block_no_time(
         chart, aspects, patterns, dignities, min_tightness=min_tightness,
     )
     query = _build_retrieval_query(chart, aspects, dignities)
