@@ -549,7 +549,7 @@ the SPECIFIC combination of placements you're given, not stock keyword \
 associations.
 
 Here is the full computed chart data:
-
+{reference_block}
 {data_block}
 
 Now write the reading: opening overview, 2-4 themes each in the \
