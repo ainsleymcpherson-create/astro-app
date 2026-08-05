@@ -2477,7 +2477,7 @@ def build_transit_prompt(
     that area of life; "General" or None leaves the existing
     significance-based selection untouched.
     """
-     data_block = build_transit_data_block(
+    data_block = build_transit_data_block(
         transiting_points, transit_aspects, natal_dignities,
         min_tightness=min_tightness,
     )
@@ -2928,7 +2928,7 @@ def build_professional_synastry_prompt(
             f'them makes the reading feel personal rather than clinical.'
         )
 
-      data_block = build_synastry_data_block(
+    data_block = build_synastry_data_block(
         synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
     )
     query = _build_synastry_retrieval_query(synastry_result)
@@ -3026,7 +3026,7 @@ def build_professional_synastry_summary_only_prompt(
             f'Person B as "{label_b}" instead of the generic labels.'
         )
 
-      data_block = build_synastry_data_block(
+    data_block = build_synastry_data_block(
         synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
     )
     query = _build_synastry_retrieval_query(synastry_result)
@@ -3336,7 +3336,7 @@ def build_relationship_synastry_prompt(
             f'them makes the reading feel personal rather than clinical.'
         )
 
-      data_block = build_synastry_data_block(
+    data_block = build_synastry_data_block(
         synastry_result, dignities_a, dignities_b, min_tightness=min_tightness,
         include_house_overlays=True,
     )
