@@ -2413,7 +2413,7 @@ say so — a quiet, low-key period is a legitimate and useful finding, \
 not a failure to find something interesting.
 
 Here is the full computed transit data:
-
+{reference_data}
 {data_block}
 
 Now write the reading: opening overview, 2-4 themes each in the \
@@ -2477,16 +2477,18 @@ def build_transit_prompt(
     that area of life; "General" or None leaves the existing
     significance-based selection untouched.
     """
-    data_block = build_transit_data_block(
+     data_block = build_transit_data_block(
         transiting_points, transit_aspects, natal_dignities,
         min_tightness=min_tightness,
     )
+    query = _build_transit_retrieval_query(transit_aspects)
+    reference_block = _reference_context_block(query, category="personal_readings")
     return TRANSIT_INSTRUCTIONS.format(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         theme_note=_transit_theme_guidance(theme),
+        reference_block=reference_block,
     )
-
 
 # ---------------------------------------------------------------------------
 # Transit reading — SUMMARY-ONLY fast variant
@@ -2549,7 +2551,7 @@ the way a warm, wise reader who cares about them would.
 - Be SELECTIVE — prioritize the tightest, most active transits.
 
 Here is the current transit data:
-
+{reference_block}
 {data_block}
 
 Now write the short reading. Keep it genuinely brief.\
@@ -2566,14 +2568,18 @@ def build_transit_summary_only_prompt(
 ) -> str:
     """Lean, fast counterpart to build_transit_prompt. theme works the
     same way here as it does there -- see _transit_theme_guidance."""
+   
     data_block = build_transit_data_block(
         transiting_points, transit_aspects, natal_dignities,
         min_tightness=min_tightness,
     )
+    query = _build_transit_retrieval_query(transit_aspects)
+    reference_block = _reference_context_block(query, category="personal_readings")
     return TRANSIT_SUMMARY_ONLY_INSTRUCTIONS.format(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         theme_note=_transit_theme_guidance(theme),
+        reference_block=reference_block,
     )
 
 
