@@ -101,6 +101,14 @@ with _selector_col:
         default=CATEGORIES[category][0], required=True,
         key=f"reading_type_{category}",
     )
+    transit_theme = None
+    if reading_type == "Weekly Transits":
+        transit_theme = st.segmented_control(
+            "Reading theme", options=["General", "Romantic", "Career"],
+            default="General", required=True,
+            help="What your weekly reading focuses on. Changeable anytime "
+                 "later via a link included in your emails.",
+        )
 
 st.divider()
 
@@ -128,7 +136,6 @@ unknown_time = st.checkbox(
 )
 
 relationship_stage = None
-transit_theme = None
 
 if reading_type in SYNASTRY_READING_TYPES:
     st.divider()
@@ -156,15 +163,6 @@ if reading_type in SYNASTRY_READING_TYPES:
         )
 else:
     label_b = birth_date_b = birth_time_val_b = location_str_b = unknown_time_b = None
-
-if reading_type == "Weekly Transits":
-    st.divider()
-    transit_theme = st.radio(
-        "Reading theme",
-        options=["General", "Romantic", "Career"],
-        help="What your weekly reading focuses on. Changeable anytime later "
-             "via a link included in your emails.",
-    )
 
 st.divider()
 
