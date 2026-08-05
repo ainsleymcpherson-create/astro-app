@@ -3,16 +3,31 @@ One-time preprocessing script: chunk reference documents and embed them.
 Run this in Colab whenever you add/change reference material, then commit
 the resulting data/reference_embeddings.json to your repo.
 
-Expects reference_docs/ to contain subfolders by category, e.g.:
+Supports arbitrarily nested category folders, e.g.:
     reference_docs/
         personal_readings/
             dignities.pdf
-            house_meanings.pdf
-        synastry/
-            synastry_aspects.pdf
+        synastry_readings/
+            professional_synastry/
+                workplace_notes.pdf
+            relationship_synastry/
+                synastry_prompt_tweaks.pdf
+            parent_child_synastry/
+                family_notes.pdf
 
-Each chunk is tagged with its category (the subfolder name) so retrieval
-can later be filtered to only the relevant reading type.
+Each chunk is tagged with:
+  - category: the full relative folder path, e.g.
+    "synastry_readings/relationship_synastry"
+  - top_category: just the first path segment, e.g. "synastry_readings"
+This lets retrieval filter either broadly (top_category) or precisely
+(category) -- see retrieval.py.
+
+NOTE ON FILE TYPES: Google Drive ".gdoc" files are NOT real documents --
+they're small pointer/shortcut files linking back to the live Google
+Doc, with no actual text content. Open each doc directly in Google
+Docs and use File -> Download -> PDF (or "Web page (.html)"/plain
+text) to get a real file, then upload THAT into reference_docs/.
+".gdoc" files are silently skipped by this script.
 
 Requires: pip install voyageai pypdf
 Set VOYAGE_API_KEY as an environment variable before running.
@@ -27,10 +42,10 @@ import voyageai
 from pypdf import PdfReader
 
 # --- CONFIG ---
-SOURCE_DIR = Path("reference_docs")        # contains category subfolders
+SOURCE_DIR = Path("reference_docs")
 OUTPUT_PATH = Path("data/reference_embeddings.json")
-EMBED_MODEL = "voyage-3"                    # good general-purpose Voyage model
-MIN_CHUNK_CHARS = 200                       # skip tiny fragments
+EMBED_MODEL = "voyage-3"
+MIN_CHUNK_CHARS = 200
 VALID_EXTENSIONS = {".pdf", ".txt", ".md"}
 
 
@@ -41,11 +56,10 @@ def extract_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="ignore")
 
 
-def chunk_text(text: str, source_name: str, category: str) -> list[dict]:
+def chunk_text(text: str, source_name: str, category: str, top_category: str) -> list[dict]:
     """
     Split on blank-line-separated sections rather than fixed character
-    windows, so a chunk stays semantically whole (e.g. one planet-in-sign
-    entry, one house description).
+    windows, so a chunk stays semantically whole.
     """
     raw_sections = re.split(r"\n\s*\n", text)
 
@@ -57,13 +71,9 @@ def chunk_text(text: str, source_name: str, category: str) -> list[dict]:
                 "text": section,
                 "source": source_name,
                 "category": category,
+                "top_category": top_category,
             })
     return chunks
-
-
-def find_category_folders(source_dir: Path) -> list[Path]:
-    """Return immediate subfolders of source_dir; each one is a category."""
-    return [p for p in source_dir.iterdir() if p.is_dir()]
 
 
 def main():
@@ -73,33 +83,45 @@ def main():
         print(f"'{SOURCE_DIR}' not found — create it and add category subfolders.")
         return
 
-    category_folders = find_category_folders(SOURCE_DIR)
-
     all_chunks = []
+    skipped_gdocs = []
 
-    if category_folders:
-        # Subfolder mode: reference_docs/<category>/<files>
-        for folder in category_folders:
-            category = folder.name
-            for file_path in folder.glob("*"):
-                if file_path.suffix.lower() not in VALID_EXTENSIONS:
-                    continue
-                text = extract_text(file_path)
-                chunks = chunk_text(text, source_name=file_path.name, category=category)
-                all_chunks.extend(chunks)
-                print(f"[{category}] {file_path.name}: {len(chunks)} chunks")
-    else:
-        # Fallback: files directly in reference_docs/, no category
-        for file_path in SOURCE_DIR.glob("*"):
-            if file_path.suffix.lower() not in VALID_EXTENSIONS:
-                continue
-            text = extract_text(file_path)
-            chunks = chunk_text(text, source_name=file_path.name, category="general")
-            all_chunks.extend(chunks)
-            print(f"{file_path.name}: {len(chunks)} chunks")
+    # Walk every file at any depth under reference_docs/
+    for file_path in SOURCE_DIR.rglob("*"):
+        if not file_path.is_file():
+            continue
+
+        if file_path.suffix.lower() == ".gdoc":
+            skipped_gdocs.append(str(file_path.relative_to(SOURCE_DIR)))
+            continue
+
+        if file_path.suffix.lower() not in VALID_EXTENSIONS:
+            continue
+
+        # category = the file's folder path relative to reference_docs,
+        # e.g. "synastry_readings/relationship_synastry"
+        relative_dir = file_path.parent.relative_to(SOURCE_DIR)
+        category = relative_dir.as_posix()  # forward slashes, cross-platform
+        if category == ".":
+            category = "general"  # file sitting directly in reference_docs/
+        top_category = category.split("/")[0]
+
+        text = extract_text(file_path)
+        chunks = chunk_text(
+            text, source_name=file_path.name,
+            category=category, top_category=top_category,
+        )
+        all_chunks.extend(chunks)
+        print(f"[{category}] {file_path.name}: {len(chunks)} chunks")
+
+    if skipped_gdocs:
+        print(f"\nSkipped {len(skipped_gdocs)} .gdoc shortcut file(s) "
+              f"(not real documents -- see docstring):")
+        for g in skipped_gdocs:
+            print(f"  - {g}")
 
     if not all_chunks:
-        print("No chunks found — check reference_docs/ structure and file types.")
+        print("\nNo chunks found — check reference_docs/ structure and file types.")
         return
 
     # Embed in batches (Voyage has batch limits; 128 is safe)
