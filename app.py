@@ -123,93 +123,98 @@ pg = st.navigation(
      advanced_readings, weekly_transits, resources, my_account],
     position="hidden",
 )
-pg.run()
-
-with st.sidebar:
-    st.page_link("home_page.py", label="Home")
-    st.write("READINGS")
-    _indent, _nested = st.columns([1, 9])
-    with _nested:
-        st.page_link("personal_readings_page.py", label="Personal", icon="🔭")
-        st.page_link("synastry_readings_page.py", label="Synastry", icon="👥")
-        st.page_link("deep_dive_readings_page.py", label="Deep Dive", icon="🔍")
-    st.page_link("advanced_readings_page.py", label="Advanced Readings")
-    st.page_link("weekly_transits_signup_page.py", label="Astrology Services")
-    st.page_link("resources_page.py", label="Resources")
-    st.page_link("my_account_page.py", label="My Account")
-
-# --- Optional login (saved profiles) ---
-if "auth" in st.secrets:
+try:
+    pg.run()
+except Exception as e:
+    if type(e).__name__ == "StopException":
+        raise
+    st.exception(e)
+finally:
     with st.sidebar:
-        st.divider()
-        if st.user.is_logged_in:
-            from profiles_db import safe_user_email
-            user_email = safe_user_email()
+        st.page_link("home_page.py", label="Home")
+        st.write("READINGS")
+        _indent, _nested = st.columns([1, 9])
+        with _nested:
+            st.page_link("personal_readings_page.py", label="Personal", icon="🔭")
+            st.page_link("synastry_readings_page.py", label="Synastry", icon="👥")
+            st.page_link("deep_dive_readings_page.py", label="Deep Dive", icon="🔍")
+        st.page_link("advanced_readings_page.py", label="Advanced Readings")
+        st.page_link("weekly_transits_signup_page.py", label="Astrology Services")
+        st.page_link("resources_page.py", label="Resources")
+        st.page_link("my_account_page.py", label="My Account")
 
-            # safe_user_email() can transiently return None even while
-            # is_logged_in is True (see its docstring) -- without this
-            # fallback, that brief window makes every user_email-gated
-            # section below (including the All Access Tier / Get Full
-            # Access button) flicker in and out on whichever rerun
-            # happens to land during it. Once resolved successfully
-            # once this session, keep using that value through any
-            # later transient gap rather than losing it.
-            if user_email:
-                st.session_state["_cached_user_email"] = user_email
-            elif "_cached_user_email" in st.session_state:
-                user_email = st.session_state["_cached_user_email"]
+    # --- Optional login (saved profiles) ---
+    if "auth" in st.secrets:
+        with st.sidebar:
+            st.divider()
+            if st.user.is_logged_in:
+                from profiles_db import safe_user_email
+                user_email = safe_user_email()
 
-            if user_email:
-                st.caption(f"Signed in as {user_email}")
+                # safe_user_email() can transiently return None even while
+                # is_logged_in is True (see its docstring) -- without this
+                # fallback, that brief window makes every user_email-gated
+                # section below (including the All Access Tier / Get Full
+                # Access button) flicker in and out on whichever rerun
+                # happens to land during it. Once resolved successfully
+                # once this session, keep using that value through any
+                # later transient gap rather than losing it.
+                if user_email:
+                    st.session_state["_cached_user_email"] = user_email
+                elif "_cached_user_email" in st.session_state:
+                    user_email = st.session_state["_cached_user_email"]
+
+                if user_email:
+                    st.caption(f"Signed in as {user_email}")
+                else:
+                    st.caption("Signed in")
+                if st.button("Log out", width="stretch"):
+                    st.logout()
+
+                # Runs once here, right after login is confirmed -- needed
+                # before anything on this app (including other pages, like
+                # Advanced Readings and My Account) queries a table this
+                # migration is responsible for creating.
+                if user_email and "DATABASE_URL" in os.environ:
+                    from profiles_db import init_schema, has_active_subscription
+                    init_schema()
+                    # Gold "All Access Tier" is a status indicator for
+                    # people who already have the subscription --
+                    # type="primary" picks up the theme's brass color
+                    # automatically, same technique used for the
+                    # homepage's main CTA. "Get Full Access" is the actual
+                    # purchase path for people who don't have it yet.
+                    if has_active_subscription(user_email):
+                        if st.button("All Access Tier", width="stretch", type="primary"):
+                            st.switch_page("my_account_page.py")
+                    elif "STRIPE_SECRET_KEY" in os.environ and "STRIPE_FULL_ACCESS_PRICE_ID" in os.environ:
+                        if st.button("Get Full Access", width="stretch"):
+                            import stripe
+                            stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
+                            try:
+                                checkout_session = stripe.checkout.Session.create(
+                                    mode="subscription",
+                                    line_items=[{
+                                        "price": os.environ["STRIPE_FULL_ACCESS_PRICE_ID"],
+                                        "quantity": 1,
+                                    }],
+                                    customer_email=user_email,
+                                    success_url="https://tenthhousereadings.com/?signup=success",
+                                    cancel_url="https://tenthhousereadings.com/?signup=cancelled",
+                                    metadata={
+                                        "product_type": "full_access_subscription",
+                                        "label": user_email,
+                                    },
+                                )
+                                st.link_button(
+                                    "Proceed to Secure Checkout →",
+                                    checkout_session.url,
+                                    width="stretch",
+                                    type="primary",
+                                )
+                            except Exception as e:
+                                st.error(f"Something went wrong setting up checkout: {e}")
             else:
-                st.caption("Signed in")
-            if st.button("Log out", width="stretch"):
-                st.logout()
-
-            # Runs once here, right after login is confirmed -- needed
-            # before anything on this app (including other pages, like
-            # Advanced Readings and My Account) queries a table this
-            # migration is responsible for creating.
-            if user_email and "DATABASE_URL" in os.environ:
-                from profiles_db import init_schema, has_active_subscription
-                init_schema()
-                # Gold "All Access Tier" is a status indicator for
-                # people who already have the subscription --
-                # type="primary" picks up the theme's brass color
-                # automatically, same technique used for the
-                # homepage's main CTA. "Get Full Access" is the actual
-                # purchase path for people who don't have it yet.
-                if has_active_subscription(user_email):
-                    if st.button("All Access Tier", width="stretch", type="primary"):
-                        st.switch_page("my_account_page.py")
-                elif "STRIPE_SECRET_KEY" in os.environ and "STRIPE_FULL_ACCESS_PRICE_ID" in os.environ:
-                    if st.button("Get Full Access", width="stretch"):
-                        import stripe
-                        stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
-                        try:
-                            checkout_session = stripe.checkout.Session.create(
-                                mode="subscription",
-                                line_items=[{
-                                    "price": os.environ["STRIPE_FULL_ACCESS_PRICE_ID"],
-                                    "quantity": 1,
-                                }],
-                                customer_email=user_email,
-                                success_url="https://tenthhousereadings.com/?signup=success",
-                                cancel_url="https://tenthhousereadings.com/?signup=cancelled",
-                                metadata={
-                                    "product_type": "full_access_subscription",
-                                    "label": user_email,
-                                },
-                            )
-                            st.link_button(
-                                "Proceed to Secure Checkout →",
-                                checkout_session.url,
-                                width="stretch",
-                                type="primary",
-                            )
-                        except Exception as e:
-                            st.error(f"Something went wrong setting up checkout: {e}")
-        else:
-            st.caption("Log in to unlock full readings, email delivery, and saved profiles.")
-            if st.button("Log in", width="stretch"):
-                st.login("auth0")
+                st.caption("Log in to unlock full readings, email delivery, and saved profiles.")
+                if st.button("Log in", width="stretch"):
+                    st.login("auth0")
