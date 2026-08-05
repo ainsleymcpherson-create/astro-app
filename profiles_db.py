@@ -60,13 +60,25 @@ def _get_conn():
     that's been sitting idle is still good. Without this, a
     connection the database has already closed server-side (managed
     Postgres services commonly do this after a period of inactivity)
-    looks fine to the pool but hangs the next real query sent over it
-    — matching a "stuck running sql.query(...)" symptom that shows up
-    intermittently rather than every time, since it depends on how
-    long a connection sat idle since its last use.
+    looks fine to the pool but hangs the next real query sent over it.
+
+    statement_timeout is a second, independent safety net -- even a
+    connection that IS genuinely alive can still hang forever if a
+    query gets stuck behind a lock (an uncommitted transaction
+    elsewhere holding a row/table lock, for instance) or some other
+    server-side stall. Without a timeout, that shows up exactly as
+    observed in production: an indefinite spinner with no error ever
+    surfacing, since the operation never actually completes either
+    way. 10 seconds is generous for anything this app's queries
+    actually do; past that, Postgres cancels the statement and raises
+    a clear, catchable error instead of hanging silently.
     """
     database_url = os.environ["DATABASE_URL"]
-    return st.connection("profiles_db", type="sql", url=database_url, pool_pre_ping=True)
+    return st.connection(
+        "profiles_db", type="sql", url=database_url,
+        pool_pre_ping=True,
+        connect_args={"options": "-c statement_timeout=10000"},
+    )
 
 
 def init_schema() -> None:
