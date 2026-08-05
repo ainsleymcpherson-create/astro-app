@@ -146,6 +146,19 @@ if "auth" in st.secrets:
             from profiles_db import safe_user_email
             user_email = safe_user_email()
 
+            # safe_user_email() can transiently return None even while
+            # is_logged_in is True (see its docstring) -- without this
+            # fallback, that brief window makes every user_email-gated
+            # section below (including the All Access Tier / Get Full
+            # Access button) flicker in and out on whichever rerun
+            # happens to land during it. Once resolved successfully
+            # once this session, keep using that value through any
+            # later transient gap rather than losing it.
+            if user_email:
+                st.session_state["_cached_user_email"] = user_email
+            elif "_cached_user_email" in st.session_state:
+                user_email = st.session_state["_cached_user_email"]
+
             if user_email:
                 st.caption(f"Signed in as {user_email}")
             else:
