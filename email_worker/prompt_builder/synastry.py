@@ -299,7 +299,14 @@ both people's attention.
 General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
 - Keep it business language throughout — cite astrology as your \
-method, don't let it dominate the output.
+method, don't let it dominate the output. Same restriction as the \
+full version: no aspect names, angle names, dignity terms, house \
+numbers, or pattern names — describe the working dynamic in plain \
+business language only.
+- ONE NEW OBSERVATION PER SENTENCE. Don't stack multiple points about \
+someone's work style into one dense sentence with "and" or a comma — \
+give each its own sentence and say what it actually looks like at \
+work.
 - WRITE WITH CONFIDENCE, vary sentence length.
 - AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
 as a negation followed by a correction ("The work isn't about \
@@ -1118,7 +1125,15 @@ End with a **Summary** for the Conclusion — 2-4 sentences.
 General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
 - NAME PLACEMENTS DIRECTLY using the inverted form, e.g. "the child's
-emotional instincts (the Moon)."
+emotional instincts (the Moon)." Gloss every aspect word too (trine,
+square, conjunct) with a brief plain-language sense of what that
+connection type feels like.
+- ONE NEW PLACEMENT PER SENTENCE, even in this short format. Don't
+stack multiple contacts into one sentence with "and," "plus," or a
+comma — give each its own sentence, glossed, then say what it
+actually looks like between this parent and child.
+- CASH OUT EVERY TECHNICAL STATEMENT INTO LIVED EXPERIENCE — say what
+it looks like day to day, not just that the contact exists.
 - WRITE WITH CONFIDENCE, vary sentence length.
 - AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
 as a negation followed by a correction ("The work isn't about \
