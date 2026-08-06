@@ -24,6 +24,10 @@ your service's Environment tab):
                                on a domain verified in Resend)
     QSTASH_CURRENT_SIGNING_KEY  — from the Upstash QStash console
     QSTASH_NEXT_SIGNING_KEY     — from the Upstash QStash console
+    ASTROLOGER_NOTIFICATION_EMAIL — where Ask an Astrologer drafts get
+                               sent for review before being personally
+                               replied to the customer (see the "ask"
+                               branch in stripe_webhook below)
 """
 
 import os
@@ -178,10 +182,12 @@ def render_branded_email_html(title: str, subtitle: str, body_text: str) -> str:
 </table>
 """
 
+
 def send_email(
     to_address: str, subject: str, body_text: str,
     email_title: str | None = None, email_subtitle: str | None = None,
     pdf_bytes: bytes | None = None, pdf_filename: str | None = None,
+    reply_to: str | None = None,
 ) -> None:
     """
     Sends the finished reading via Resend's API, wrapped in the
@@ -194,6 +200,11 @@ def send_email(
     Resend's attachments API) alongside the styled HTML body — the
     email stays readable without opening anything, and the PDF is
     there for saving/printing/sharing.
+
+    If reply_to is given, replying to this email goes to that address
+    instead of RESEND_FROM_ADDRESS — used for Ask an Astrologer, where
+    the astrologer receives the draft and just hits reply to answer
+    the customer directly.
 
     Raises on failure so the caller can return a non-2xx response to
     QStash, triggering QStash's automatic retry.
@@ -214,6 +225,8 @@ def send_email(
             "filename": pdf_filename or "reading.pdf",
             "content": base64.b64encode(pdf_bytes).decode("ascii"),
         }]
+    if reply_to:
+        payload["reply_to"] = reply_to
     response = requests.post(
         "https://api.resend.com/emails",
         headers={
@@ -224,9 +237,6 @@ def send_email(
         timeout=30,
     )
     if not response.ok:
-        print(f"[email_worker] Resend rejected the send: {response.status_code} {response.text}")
-    response.raise_for_status()
-    
         # requests' raise_for_status() only reports the status code,
         # not Resend's actual error message — logging the real
         # response body here is what actually tells us WHY a 4xx
@@ -871,6 +881,33 @@ def stripe_webhook():
 
             elif product_type == "ask":
                 question = metadata.get("question", "").strip()
+
+                # Sent immediately, before AI generation even starts, so
+                # the customer gets fast confirmation rather than waiting
+                # on Claude -- the actual personalized answer comes later,
+                # by reply, once the astrologer reviews the AI draft below.
+                confirmation_body = (
+                    f"Thanks for your question — payment received!\n\n"
+                    f"**Your question:** \"{question}\"\n\n"
+                    f"Your birth chart has been pulled in, and your question "
+                    f"is now with Ainsley for a personal answer. You'll hear "
+                    f"back within 2-3 business days — no need to do anything "
+                    f"else in the meantime."
+                )
+                try:
+                    send_email(
+                        customer_email,
+                        "We've got your question — Tenth House Readings",
+                        confirmation_body,
+                        email_title="Your Question Has Been Received",
+                    )
+                    print(f"[email_worker] Confirmation sent to {customer_email}")
+                except Exception as e:
+                    # A failed confirmation shouldn't block the actual
+                    # answer generation below -- log it and keep going.
+                    print(f"[email_worker] Confirmation email failed for "
+                          f"{customer_email}: {e}")
+
                 chart = compute_full_chart(birth, house_system=b"P")
                 aspects = compute_aspects(chart, speeds=extract_speeds(chart))
                 patterns = find_all_patterns(chart, aspects)
@@ -890,18 +927,44 @@ def stripe_webhook():
                 ) as stream:
                     for text_chunk in stream.text_stream:
                         accumulated_text += text_chunk
+
+                # Sent to the astrologer for review, NOT directly to the
+                # customer -- Ask an Astrologer is a manually-reviewed
+                # service, not a fully automated one. The customer's
+                # email is set as reply_to, so replying to this email
+                # goes straight to them without needing to copy/paste
+                # anything.
                 ask_title = f"{label}'s Question, Answered" if label else "Your Question, Answered"
                 ask_pdf = markdown_to_pdf_bytes(accumulated_text, ask_title, "")
-                send_email(
-                    customer_email, "Your Question, Answered — Tenth House Readings", accumulated_text,
-                    email_title=ask_title, pdf_bytes=ask_pdf,
-                    pdf_filename="ask_an_astrologer.pdf",
-                )
+                astrologer_email = os.environ.get("ASTROLOGER_NOTIFICATION_EMAIL")
+                if not astrologer_email:
+                    print("[email_worker] ASTROLOGER_NOTIFICATION_EMAIL not set — "
+                          "Ask an Astrologer draft has nowhere to go!")
+                else:
+                    notification_body = (
+                        f"**New Ask an Astrologer submission**\n\n"
+                        f"**From:** {label} ({customer_email})\n\n"
+                        f"**Their question:** \"{question}\"\n\n"
+                        f"**AI-drafted answer below** — review, personalize, and reply "
+                        f"directly to this email to send it to {customer_email}.\n\n"
+                        f"{accumulated_text}"
+                    )
+                    send_email(
+                        astrologer_email,
+                        f"New Ask an Astrologer question from {label}",
+                        notification_body,
+                        email_title=ask_title, pdf_bytes=ask_pdf,
+                        pdf_filename="ask_an_astrologer_draft.pdf",
+                        reply_to=customer_email,
+                    )
+                    print(f"[email_worker] Ask an Astrologer draft sent for review "
+                          f"(customer: {customer_email})")
+
+                _question_preview = question if len(question) <= 100 else question[:97] + "..."
                 _record_purchase_worker(
                     customer_email, "ask_an_astrologer", f"Ask an Astrologer: \"{_question_preview}\"",
                     1000, data_object.get("id"),
                 )
-                print(f"[email_worker] Ask an Astrologer answer sent to {customer_email}")
 
             elif product_type == "reading_unlock":
                 # The $3 one-off unlock -- reuses _process_reading_job
