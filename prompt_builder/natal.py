@@ -523,6 +523,15 @@ actually looks like in this person's life, not just what it \
 technically is. This is the single most important rule even in a \
 short format: better to cover one placement well than five placements \
 vaguely.
+- ONE NEW PLACEMENT PER SENTENCE, even in this short format. Don't \
+stack multiple planets or aspects into one sentence with "and," \
+"plus," or a comma. BAD: "Your Mercury conjunct Venus, plus Jupiter \
+trine your Midheaven, point to a naturally persuasive, growth-oriented \
+communication style." GOOD: "Your quick mind (Mercury) sits right \
+beside your warmth (Venus) — a natural gift for saying things in a \
+way people actually want to hear. Your sense of growth (Jupiter) also \
+flows easily with your public role (the Midheaven), so opportunities \
+tend to find you rather than the other way around."
 - WRITE WITH CONFIDENCE, NOT HEDGING, and vary sentence length like \
 natural writing — mix short, punchy sentences with longer ones. Never \
 write a marathon sentence stacking multiple placements together.

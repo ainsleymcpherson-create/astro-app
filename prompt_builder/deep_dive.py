@@ -204,6 +204,13 @@ General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
 - NAME PLACEMENTS DIRECTLY using the inverted form, e.g. "this
 person's drive (Mars)."
+- ONE NEW PLACEMENT PER SENTENCE, even in this short format. Don't \
+stack multiple planets or aspects into one sentence with "and," \
+"plus," or a comma — give each its own sentence, glossed, then say \
+what it actually means.
+- CASH OUT EVERY TECHNICAL STATEMENT INTO LIVED EXPERIENCE — say \
+what it looks like in this person's life, not just what it \
+technically is.
 - WRITE WITH CONFIDENCE, vary sentence length.
 - AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
 as a negation followed by a correction ("The work isn't about \
@@ -442,6 +449,13 @@ General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
 - NAME PLACEMENTS DIRECTLY using the inverted form, e.g. "this
 person's drive (Mars)."
+- ONE NEW PLACEMENT PER SENTENCE, even in this short format. Don't \
+stack multiple planets or aspects into one sentence with "and," \
+"plus," or a comma — give each its own sentence, glossed, then say \
+what it actually means.
+- CASH OUT EVERY TECHNICAL STATEMENT INTO LIVED EXPERIENCE — say \
+what it looks like in this person's life, not just what it \
+technically is.
 - WRITE WITH CONFIDENCE, vary sentence length.
 - AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
 as a negation followed by a correction ("The work isn't about \
@@ -699,6 +713,13 @@ General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
 - NAME PLACEMENTS DIRECTLY using the inverted form, e.g. "this
 person's drive (Mars)."
+- ONE NEW PLACEMENT PER SENTENCE, even in this short format. Don't \
+stack multiple planets or aspects into one sentence with "and," \
+"plus," or a comma — give each its own sentence, glossed, then say \
+what it actually means.
+- CASH OUT EVERY TECHNICAL STATEMENT INTO LIVED EXPERIENCE — say \
+what it looks like in this person's life, not just what it \
+technically is.
 - WRITE WITH CONFIDENCE, vary sentence length.
 - AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
 as a negation followed by a correction ("The work isn't about \

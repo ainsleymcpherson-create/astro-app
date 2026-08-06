@@ -337,6 +337,14 @@ chunking, no bullets, no sub-labels.
 sign the first time it's named, briefly (2-3 words).
 - CASH OUT EVERY TECHNICAL STATEMENT INTO LIVED EXPERIENCE — say what \
 it looks like at work, not just what it technically is.
+- ONE NEW PLACEMENT PER SENTENCE, even in this short format. Don't \
+chain two or more planets or aspects together with "and," "plus," or \
+a comma. BAD: "Your Saturn in Capricorn, plus Mercury trine your \
+Midheaven, point to a disciplined, well-communicated career path." \
+GOOD: "Your discipline (Saturn) is right at home in Capricorn, giving \
+you real staying power on long projects. Your quick mind (Mercury) \
+also flows easily with your public role (the Midheaven), so you tend \
+to communicate your work clearly to the people who matter."
 - WRITE WITH CONFIDENCE, vary sentence length, never stack multiple \
 placements in one sentence.
 - AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
@@ -627,6 +635,10 @@ General guidelines:
 - NAME PLACEMENTS DIRECTLY using the inverted form. Gloss any sign the \
 first time it's named, briefly.
 - CASH OUT EVERY TECHNICAL STATEMENT INTO LIVED EXPERIENCE.
+- ONE NEW PLACEMENT PER SENTENCE, even in this short format. Don't \
+chain two or more planets or aspects together with "and," "plus," or \
+a comma — give each its own sentence, glossed, then say what it \
+actually means for how this person works.
 - WRITE WITH CONFIDENCE, vary sentence length, never stack multiple \
 placements in one sentence.
 - AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \

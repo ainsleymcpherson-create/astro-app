@@ -237,6 +237,9 @@ General guidelines:
 direction (transiting Saturn)." Gloss any sign the first time named.
 - CASH OUT EVERY TECHNICAL STATEMENT INTO LIVED EXPERIENCE — what does \
 this transit actually look like in daily life right now.
+- ONE NEW PLACEMENT PER SENTENCE, even in this short format. Don't \
+chain two or more transits together with "and," "plus," or a comma — \
+give each its own sentence, glossed, then say what it means right now.
 - WRITE WITH CONFIDENCE, vary sentence length, never stack multiple \
 placements in one sentence.
 - AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
