@@ -28,12 +28,14 @@ your service's Environment tab):
 
 import os
 import re
+import base64
 import traceback
 from datetime import datetime, timezone
 
 import requests
 from flask import Flask, request, jsonify
 from qstash import Receiver
+from pdf_utils import markdown_to_pdf_bytes, build_pdf_title_and_subtitle
 
 from sqlalchemy import create_engine, text as sql_text
 
@@ -116,42 +118,115 @@ def markdown_to_html(text: str) -> str:
     general-purpose markdown renderer; matches the same simple subset
     readings_page.py's PDF generator assumes (plus links, needed for
     the weekly-transit unsubscribe line).
+
+    Emits inline styles directly on each element rather than relying
+    on unstyled <h2>/<p> tags — most email clients (Gmail, Outlook)
+    strip <style> blocks or override defaults, so inline styling is
+    the only reliable way to keep the branded look.
     """
     html_lines = []
     for raw_line in text.split("\n"):
         line = raw_line.strip()
         if not line:
-            html_lines.append("<br>")
             continue
         line = line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         line = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", line)
-        line = re.sub(r"\[(.+?)\]\((.+?)\)", r'<a href="\2">\1</a>', line)
+        line = re.sub(r"\[(.+?)\]\((.+?)\)", r'<a href="\2" style="color:#C9A66B;">\1</a>', line)
         if line.startswith("## "):
-            html_lines.append(f"<h2>{line[3:]}</h2>")
+            html_lines.append(
+                f'<h2 style="color:#C9A66B;font-size:17px;margin:24px 0 10px 0;'
+                f"font-family:Georgia,'Times New Roman',serif;\">{line[3:]}</h2>"
+            )
         else:
-            html_lines.append(f"<p>{line}</p>")
+            html_lines.append(f'<p style="margin:0 0 12px 0;">{line}</p>')
     return "\n".join(html_lines)
 
 
-def send_email(to_address: str, subject: str, body_text: str) -> None:
-    """Sends the finished reading via Resend's API. Raises on failure
-    so the caller can return a non-2xx response to QStash, triggering
-    QStash's automatic retry."""
+def render_branded_email_html(title: str, subtitle: str, body_text: str) -> str:
+    """
+    Wraps the reading's converted HTML in a branded shell matching the
+    app's indigo/brass visual identity — table-based layout, since
+    many email clients ignore modern CSS (flex/grid) but consistently
+    respect table layout with inline styles.
+    """
+    body_html = markdown_to_html(body_text)
+    return f"""\
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F1EA;padding:32px 0;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border-radius:8px;overflow:hidden;font-family:Georgia,'Times New Roman',serif;">
+        <tr>
+          <td style="background-color:#1B2036;padding:28px 32px;">
+            <div style="color:#C9A66B;font-size:13px;letter-spacing:1px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Tenth House Readings</div>
+            <div style="color:#FFFFFF;font-size:22px;margin-top:6px;">{title}</div>
+            <div style="color:#9AA0C0;font-size:13px;margin-top:6px;font-family:Arial,Helvetica,sans-serif;">{subtitle}</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px;color:#1B2036;font-size:15px;line-height:1.6;">
+            {body_html}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 32px;background-color:#F4F1EA;text-align:center;">
+            <div style="color:#3A4266;font-size:11px;font-family:Arial,Helvetica,sans-serif;">Tenth House Readings &middot; <a href="https://tenthhousereadings.com" style="color:#C9A66B;">tenthhousereadings.com</a></div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+"""
+
+def send_email(
+    to_address: str, subject: str, body_text: str,
+    email_title: str | None = None, email_subtitle: str | None = None,
+    pdf_bytes: bytes | None = None, pdf_filename: str | None = None,
+) -> None:
+    """
+    Sends the finished reading via Resend's API, wrapped in the
+    branded HTML shell rather than plain unstyled markdown-to-HTML.
+    If email_title/email_subtitle aren't given, falls back to `subject`
+    with no subtitle — keeps this backward-compatible with call sites
+    sending a plain transactional message (welcome emails, etc.).
+
+    If pdf_bytes is given, attaches it as a PDF (base64-encoded, per
+    Resend's attachments API) alongside the styled HTML body — the
+    email stays readable without opening anything, and the PDF is
+    there for saving/printing/sharing.
+
+    Raises on failure so the caller can return a non-2xx response to
+    QStash, triggering QStash's automatic retry.
+    """
+    html = render_branded_email_html(
+        title=email_title or subject,
+        subtitle=email_subtitle or "",
+        body_text=body_text,
+    )
+    payload = {
+        "from": os.environ["RESEND_FROM_ADDRESS"],
+        "to": [to_address],
+        "subject": subject,
+        "html": html,
+    }
+    if pdf_bytes is not None:
+        payload["attachments"] = [{
+            "filename": pdf_filename or "reading.pdf",
+            "content": base64.b64encode(pdf_bytes).decode("ascii"),
+        }]
     response = requests.post(
         "https://api.resend.com/emails",
         headers={
             "Authorization": f"Bearer {os.environ['RESEND_API_KEY']}",
             "Content-Type": "application/json",
         },
-        json={
-            "from": os.environ["RESEND_FROM_ADDRESS"],
-            "to": [to_address],
-            "subject": subject,
-            "html": markdown_to_html(body_text),
-        },
+        json=payload,
         timeout=30,
     )
     if not response.ok:
+        print(f"[email_worker] Resend rejected the send: {response.status_code} {response.text}")
+    response.raise_for_status()
+    
         # requests' raise_for_status() only reports the status code,
         # not Resend's actual error message — logging the real
         # response body here is what actually tells us WHY a 4xx
@@ -308,8 +383,20 @@ def _process_reading_job(job: dict) -> tuple[bool, str]:
             print(f"[email_worker] {msg}")
             return False, msg
 
+        title, subtitle = build_pdf_title_and_subtitle(
+            reading_type, person_name, datetime_str, location_str,
+            person_name_b=job.get("person_name_b"),
+            datetime_str_b=job.get("datetime_str_b"),
+            location_str_b=job.get("location_str_b"),
+        )
+        pdf_bytes = markdown_to_pdf_bytes(accumulated_text, title, subtitle)
         subject = f"Your Full {reading_type} Reading — Tenth House Readings"
-        send_email(email_address, subject, accumulated_text)
+        send_email(
+            email_address, subject, accumulated_text,
+            email_title=title, email_subtitle=subtitle,
+            pdf_bytes=pdf_bytes,
+            pdf_filename=f"{reading_type.replace('/', '-')}_reading.pdf",
+        )
         print(f"[email_worker] Sent reading to {email_address}")
         return True, "sent"
 
@@ -570,10 +657,15 @@ def _process_weekly_transit_profile(profile: dict) -> tuple[bool, str]:
             f"\n\n---\n\n[Turn off weekly transit emails for {label}]({unsubscribe_url})"
         )
 
+        weekly_title = f"{label}'s Weekly Transits" if label else "Your Weekly Transits"
+        weekly_subtitle = f"Week of {datetime.utcnow().strftime('%B %d, %Y')}"
+        pdf_bytes = markdown_to_pdf_bytes(accumulated_text, weekly_title, weekly_subtitle)
         send_email(
             owner_email,
             f"Your Week Ahead — {label} — Tenth House Readings",
             accumulated_text,
+            email_title=weekly_title, email_subtitle=weekly_subtitle,
+            pdf_bytes=pdf_bytes, pdf_filename="weekly_transits.pdf",
         )
         return True, "sent"
     except Exception as e:
@@ -764,7 +856,13 @@ def stripe_webhook():
                 ) as stream:
                     for text_chunk in stream.text_stream:
                         accumulated_text += text_chunk
-                send_email(customer_email, "Your Transit Reading — Tenth House Readings", accumulated_text)
+                one_time_title = f"{label}'s Transit Reading" if label else "Your Transit Reading"
+                one_time_pdf = markdown_to_pdf_bytes(accumulated_text, one_time_title, "")
+                send_email(
+                    customer_email, "Your Transit Reading — Tenth House Readings", accumulated_text,
+                    email_title=one_time_title, pdf_bytes=one_time_pdf,
+                    pdf_filename="transit_reading.pdf",
+                )
                 _record_purchase_worker(
                     customer_email, "one_time_transit", f"One-Time Transit Reading — {label}",
                     700, data_object.get("id"),
@@ -792,8 +890,13 @@ def stripe_webhook():
                 ) as stream:
                     for text_chunk in stream.text_stream:
                         accumulated_text += text_chunk
-                send_email(customer_email, "Your Question, Answered — Tenth House Readings", accumulated_text)
-                _question_preview = question if len(question) <= 100 else question[:97] + "..."
+                ask_title = f"{label}'s Question, Answered" if label else "Your Question, Answered"
+                ask_pdf = markdown_to_pdf_bytes(accumulated_text, ask_title, "")
+                send_email(
+                    customer_email, "Your Question, Answered — Tenth House Readings", accumulated_text,
+                    email_title=ask_title, pdf_bytes=ask_pdf,
+                    pdf_filename="ask_an_astrologer.pdf",
+                )
                 _record_purchase_worker(
                     customer_email, "ask_an_astrologer", f"Ask an Astrologer: \"{_question_preview}\"",
                     1000, data_object.get("id"),
