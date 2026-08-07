@@ -902,6 +902,22 @@ structure, IN THIS ORDER:
     and Y," "a tension between A and B," "a bridge connecting C and \
     D") rather than describing a person, it hasn't done its job yet — \
     keep going until it lands on something recognizably human.
+    (e) DEFINING THE POINT INSTEAD OF INTERPRETING IT. Explaining what \
+    a placement generically REPRESENTS is not the same as saying \
+    something true about THIS person. A sentence that could appear \
+    unchanged in anyone's reading, because it only defines a term \
+    rather than making a claim about the person in front of you, has \
+    failed — no matter how well-glossed it is. Real failure case: "Her \
+    South Node sits in Virgo — the point describing her comfort zone, \
+    the automatic patterns she falls back on." This sentence never \
+    actually says what her comfort zone or automatic patterns are — it \
+    just names the point's job description. Rewritten correctly: "Her \
+    South Node sits in Virgo, precise and duty-driven. That's her \
+    comfort zone — being useful, being needed, fixing what's broken, \
+    often before anyone even asks." Every sentence that names a point \
+    should be checked against this test: could this exact sentence be \
+    pasted into a stranger's reading without anyone noticing? If yes, \
+    it defined the term instead of interpreting the chart.
   PURE DESCRIPTION SHOULD NEVER OUTWEIGH MEANING. If you notice \
   yourself writing two or more sentences in a row that only state \
   positions, aspects, or houses without landing on what it means or \
