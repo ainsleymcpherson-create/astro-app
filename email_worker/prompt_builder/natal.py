@@ -267,6 +267,30 @@ lead-in. THEN follow with a four-part structure, IN THIS ORDER:
     and Y," "a tension between A and B," "a bridge connecting C and \
     D") rather than describing a person, it hasn't done its job yet — \
     keep going until it lands on something recognizably human.
+    (e) DEFINING THE POINT INSTEAD OF INTERPRETING IT. Explaining what \
+    a placement generically REPRESENTS is not the same as saying \
+    something true about THIS person. A sentence that could appear \
+    unchanged in anyone's reading, because it only defines a term \
+    rather than making a claim about the person in front of you, has \
+    failed — no matter how well-glossed it is. Real failure case: "The \
+    South Node and Vertex sit in Virgo, essentially exact on her \
+    Descendant — the angle describing what she looks for in a partner \
+    and how she shows up in close relationships." This sentence never \
+    actually says what she looks for or how she shows up — it just \
+    names the angle's job description. It also crams three points \
+    (South Node, Vertex, Descendant) into one sentence, which the ONE \
+    NEW PLACEMENT PER SENTENCE rule below already forbids. Rewritten \
+    correctly, across separate sentences that each land on something \
+    real: "Her South Node sits in Virgo, precise and duty-driven. \
+    That's her comfort zone — being useful, being needed, fixing what's \
+    broken. Her Vertex sits there too, almost exactly on her \
+    Descendant, the angle tied to what she looks for in a partner. \
+    Together, that pulls her toward partners who need fixing or \
+    organizing — competence read as attraction, long before anything \
+    else does." Every sentence that names a point should be checked \
+    against this test: could this exact sentence be pasted into a \
+    stranger's reading without anyone noticing? If yes, it defined the \
+    term instead of interpreting the chart.
   PURE DESCRIPTION SHOULD NEVER OUTWEIGH MEANING. If you notice \
   yourself writing two or more sentences in a row that only state \
   positions, aspects, or houses without landing on what it means or \
