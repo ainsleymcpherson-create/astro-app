@@ -149,6 +149,22 @@ def resolve_birth_data(datetime_str: str, location_str: str, verbose: bool = Tru
     return BirthData(dt_utc=utc_dt, latitude=lat, longitude=lon)
 
 
+import time
+
+# Debounce for the live "as you type" checker specifically — Streamlit
+# reruns the whole script on every keystroke, so without this,
+# geocode_location_quick would fire a fresh network request for every
+# partial string someone types ("W", "Wa", "Was", ...), easily exceeding
+# Nominatim's 1-request-per-second limit well before anyone finishes
+# typing a real location. This caps live checks to roughly once every
+# 1.5 seconds regardless of typing speed, across all concurrent users
+# on this process — a live check that's skipped just means "not
+# confirmed yet" for a moment, which is harmless UI feedback, not a
+# real failure the way a rate-limited submission-time lookup would be.
+_LAST_LIVE_GEOCODE_CALL: dict[str, float] = {"time": 0.0}
+_LIVE_GEOCODE_MIN_INTERVAL = 1.5  # seconds
+
+
 def geocode_location_quick(location_str: str) -> tuple[bool, str | None]:
     """
     Quick, single-attempt geocode check meant for live UI feedback as
@@ -173,6 +189,12 @@ def geocode_location_quick(location_str: str) -> tuple[bool, str | None]:
     confirmed here is already cached by the time the real submission
     happens, so nothing gets geocoded twice.
 
+    Debounced (see _LIVE_GEOCODE_MIN_INTERVAL above) so rapid typing
+    can't hammer Nominatim with a request per keystroke — a skipped
+    check just returns "not confirmed yet," which is fine here since
+    this function's whole job is soft, live feedback, not a source of
+    truth.
+
     Returns (found, resolved_display_address_or_None).
     """
     cache_key = location_str.strip().lower()
@@ -181,6 +203,16 @@ def geocode_location_quick(location_str: str) -> tuple[bool, str | None]:
     if cache_key in _GEOCODE_CACHE:
         _, _, address = _GEOCODE_CACHE[cache_key]
         return True, address
+
+    now = time.monotonic()
+    if now - _LAST_LIVE_GEOCODE_CALL["time"] < _LIVE_GEOCODE_MIN_INTERVAL:
+        # Too soon since the last live network call — skip this one
+        # rather than risk piling onto a rate limit. Not cached as a
+        # negative result, so the very next rerun (e.g. once typing
+        # pauses) will try again normally.
+        return False, None
+    _LAST_LIVE_GEOCODE_CALL["time"] = now
+
     try:
         geolocator = Nominatim(
             user_agent="tenth-house-readings-astro-app (contact: via GitHub repo)",
