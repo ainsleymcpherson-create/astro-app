@@ -1237,118 +1237,103 @@ if st.session_state.get("processing", False):
                         "prompt below is still available to copy manually."
                     )
                 else:
-                    try:
-                        client = anthropic.Anthropic(api_key=api_key)
-                        with st.spinner("Generating interpretation with Claude "
-                                         "(this may take a couple minutes). "
-                                         "Keep this tab open and in the foreground "
-                                         "until it finishes."):
-                            # Streaming is required here rather than a plain
-                            # blocking call: with max_tokens this high, the
-                            # SDK estimates generation could exceed its
-                            # 10-minute non-streaming timeout and refuses to
-                            # run without it.
-                            #
-                            # IMPORTANT: we iterate the RAW stream events
-                            # (not just stream.text_stream) so we can show
-                            # live progress during BOTH phases of
-                            # generation — this model does a lot of internal
-                            # "thinking" before writing any visible text,
-                            # and stream.text_stream only yields the text
-                            # portion, leaving the thinking phase completely
-                            # silent. A long silent gap either way is what
-                            # can get killed by an infrastructure-level
-                            # idle-connection timeout — tearing down this
-                            # whole script AFTER Claude has already
-                            # generated (and billed) the tokens, but BEFORE
-                            # we ever get to save or show the result. That
-                            # was the actual cause of "the API runs but
-                            # returns nothing."
-                            live_preview = st.empty()
-                            accumulated_text = ""
-                            thinking_chars = 0
-                            update_counter = 0
-                            api_prompt = quick_summary_prompt if quick_summary_prompt else prompt
-                            api_max_tokens = 8000 if quick_summary_prompt else 32000
-                            with client.messages.stream(
-                                model="claude-sonnet-5",
-                                max_tokens=api_max_tokens,
-                                messages=[{"role": "user", "content": api_prompt}],
-                            ) as stream:
-                                for event in stream:
-                                    if event.type != "content_block_delta":
-                                        continue
-                                    delta_type = getattr(event.delta, "type", None)
-                                    update_counter += 1
-                                    if delta_type == "thinking_delta":
-                                        thinking_chars += len(event.delta.thinking)
-                                        if update_counter % 5 == 0:
-                                            live_preview.markdown(
-                                                f"🤔 *Thinking through the chart... "
-                                                f"({thinking_chars} characters of "
-                                                f"reasoning so far — this part "
-                                                f"doesn't show in the final reading, "
-                                                f"it's just to confirm this is "
-                                                f"actively working.)*"
-                                            )
-                                    elif delta_type == "text_delta":
-                                        accumulated_text += event.delta.text
-                                        if update_counter % 3 == 0:
-                                            live_preview.markdown(accumulated_text + " ▌")
-                                live_preview.markdown(accumulated_text)
-                                response = stream.get_final_message()
+                    max_attempts = 2
+                    result_text = ""
+                    stop_reason = None
+                    response = None
+                    last_exception = None
 
-                        result_text = accumulated_text
-                        stop_reason = getattr(response, "stop_reason", "unknown")
+                    for attempt_num in range(1, max_attempts + 1):
+                        try:
+                            client = anthropic.Anthropic(api_key=api_key)
+                            spinner_text = (
+                                "Generating interpretation with Claude "
+                                "(this may take a couple minutes). Keep this "
+                                "tab open and in the foreground until it finishes."
+                                if attempt_num == 1 else
+                                "First attempt didn't finish cleanly — retrying automatically..."
+                            )
+                            with st.spinner(spinner_text):
+                                live_preview = st.empty()
+                                accumulated_text = ""
+                                thinking_chars = 0
+                                update_counter = 0
+                                api_prompt = quick_summary_prompt if quick_summary_prompt else prompt
+                                api_max_tokens = 16000 if quick_summary_prompt else 32000
+                                with client.messages.stream(
+                                    model="claude-sonnet-5",
+                                    max_tokens=api_max_tokens,
+                                    messages=[{"role": "user", "content": api_prompt}],
+                                ) as stream:
+                                    for event in stream:
+                                        if event.type != "content_block_delta":
+                                            continue
+                                        delta_type = getattr(event.delta, "type", None)
+                                        update_counter += 1
+                                        if delta_type == "thinking_delta":
+                                            thinking_chars += len(event.delta.thinking)
+                                            if update_counter % 5 == 0:
+                                                live_preview.markdown(
+                                                    f"🤔 *Thinking through the chart... "
+                                                    f"({thinking_chars} characters of "
+                                                    f"reasoning so far — this part "
+                                                    f"doesn't show in the final reading, "
+                                                    f"it's just to confirm this is "
+                                                    f"actively working.)*"
+                                                )
+                                        elif delta_type == "text_delta":
+                                            accumulated_text += event.delta.text
+                                            if update_counter % 3 == 0:
+                                                live_preview.markdown(accumulated_text + " ▌")
+                                    live_preview.markdown(accumulated_text)
+                                    response = stream.get_final_message()
 
-                        if result_text and stop_reason == "max_tokens":
-                            # There IS text, but the response was cut
-                            # off mid-generation before finishing — show
-                            # it with a clear warning rather than
-                            # silently presenting partial content as if
-                            # it were the complete reading.
-                            interpretation_text = (
-                                result_text +
-                                "\n\n---\n\n⚠️ **This response was cut off before finishing** "
-                                "(hit the token limit). What's above may be incomplete — "
-                                "increase max_tokens in app.py if this keeps happening."
-                            )
-                        elif result_text:
-                            interpretation_text = result_text
-                        else:
-                            # The call succeeded but returned no usable
-                            # text — surface this as an error rather
-                            # than silently falling back to the generic
-                            # "check the box" message, which would hide
-                            # a real problem. Summarize block types/sizes
-                            # instead of dumping raw content, since a
-                            # thinking block's signature can be tens of
-                            # thousands of characters of base64 — useless
-                            # for debugging and unreadable in the UI.
-                            block_summary = ", ".join(
-                                f"{getattr(b, 'type', 'unknown')} "
-                                f"({len(getattr(b, 'thinking', '') or getattr(b, 'text', '') or '')} chars)"
-                                for b in response.content
-                            )
-                            interpretation_error = (
-                                f"Claude ran out of room before writing the answer "
-                                f"(stop_reason: {stop_reason}). This model spent its "
-                                f"whole token budget on internal reasoning first. "
-                                f"Content blocks received: {block_summary}. "
-                                f"Try increasing max_tokens further in app.py if this "
-                                f"keeps happening."
-                            )
-                        # Clear the raw live-typing preview now that the
-                        # final, nicely-formatted version will render below
-                        # via the normal results display.
-                        live_preview.empty()
-                    except Exception as e:
+                            result_text = accumulated_text
+                            stop_reason = getattr(response, "stop_reason", "unknown")
+                            live_preview.empty()
+                            last_exception = None
+
+                            if result_text and stop_reason != "max_tokens":
+                                break
+
+                            if attempt_num < max_attempts:
+                                continue
+
+                        except Exception as e:
+                            last_exception = e
+                            if attempt_num < max_attempts:
+                                continue
+
+                    if last_exception is not None:
                         import traceback
                         interpretation_error = (
-                            f"Claude API call failed: {type(e).__name__}: {e}\n\n"
+                            f"Claude API call failed after {max_attempts} attempts: "
+                            f"{type(last_exception).__name__}: {last_exception}\n\n"
                             f"Full traceback:\n{traceback.format_exc()}"
                         )
-
+                    elif result_text and stop_reason == "max_tokens":
+                        interpretation_text = (
+                            result_text +
+                            "\n\n---\n\n⚠️ **This response was cut off before finishing** "
+                            "(hit the token limit, even after an automatic retry). "
+                            "What's above may be incomplete — increase max_tokens in "
+                            "app.py if this keeps happening."
+                        )
+                    elif result_text:
+                        interpretation_text = result_text
+                    else:
+                        block_summary = ", ".join(
+                            f"{getattr(b, 'type', 'unknown')} "
+                            f"({len(getattr(b, 'thinking', '') or getattr(b, 'text', '') or '')} chars)"
+                            for b in (response.content if response else [])
+                        )
+                        interpretation_error = (
+                            f"Claude ran out of room before writing the answer, "
+                            f"even after an automatic retry (stop_reason: {stop_reason}). "
+                            f"Content blocks received: {block_summary}. "
+                            f"Try increasing max_tokens further in app.py if this "
+                            f"keeps happening."
+                        )
         email_job_status = None
         if want_email_full:
             if not email_address or "@" not in email_address:
