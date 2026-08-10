@@ -467,24 +467,24 @@ mathematically precise, not approximated.
 {naming_note}{age_guidance}
 Structure your answer as follows:
 
-First, a **Summary** of the whole chart — exactly that bolded label, \
-then 2-4 plain-language sentences distilling the single most important \
-takeaway from the whole chart. This must genuinely stand alone and be \
-specific to THIS chart — a real claim the data supports, not a generic \
-truth about human psychology that could open anyone's reading. Head \
-this section with the exact markdown heading "## Overview".
+Open with 2-4 plain-language sentences distilling the single most \
+important takeaway from the whole chart. This must genuinely stand \
+alone and be specific to THIS chart — a real claim the data supports, \
+not a generic truth about human psychology that could open anyone's \
+reading. Head this section with the exact markdown heading "## Overview".
 
 Then, identify the 2-3 biggest THEMES in the chart — which placements \
 reinforce each other, which create tension, and why. For each theme, \
 format its heading as a markdown H2 heading — exactly "## Theme Name" \
-— then write ONLY a **Summary:** block for it: 2-4 plain-language \
-sentences distilling that theme's real takeaway. Do NOT write "What \
-This Means," "Advice," or "Astrological Basis" sections — summary \
-only, for every theme.
+— then write ONLY 2-4 plain-language sentences distilling that \
+theme's real takeaway. Do NOT write "What This Means," "Advice," or \
+"Astrological Basis" sections, and do NOT label the paragraph \
+"Summary" — the whole reading is already a summary, so that label \
+would be redundant on every section.
 
-End with a **Summary** for the Conclusion — 2-4 sentences distilling \
-what actually matters most, without repeating the Overview. Head this \
-section with the exact markdown heading "## Conclusion".
+End with a 2-4 sentence Conclusion distilling what actually matters \
+most, without repeating the Overview. Head this section with the \
+exact markdown heading "## Conclusion".
 
 General guidelines:
 - EVERY section is Summary-only. Nowhere in this reading should there \
