@@ -836,6 +836,56 @@ def markdown_to_pdf_bytes(markdown_text: str, title: str, subtitle: str = "") ->
     return pdf_bytes
 
 
+def _get_or_build_pdf(cache_key: str, markdown_text: str, title: str, subtitle: str = "") -> bytes | None:
+    """
+    Wraps markdown_to_pdf_bytes with two things it doesn't have on its
+    own: caching, and a validity check.
+
+    CACHING: Streamlit reruns this ENTIRE script on every widget
+    interaction anywhere on the page, and without caching that means
+    markdown_to_pdf_bytes was being called fresh on every single rerun
+    -- even ones triggered by something unrelated, like switching tabs
+    -- regenerating identical PDF bytes from scratch every time. Beyond
+    the wasted work, this is also believed to widen the window for a
+    known Streamlit bug where st.download_button's in-memory file
+    manager loses track of a just-(re)generated blob across a rerun,
+    especially on Streamlit Cloud -- see
+    https://github.com/streamlit/streamlit/issues/3832 and
+    https://github.com/streamlit/streamlit/issues/4347. Caching by a
+    hash of the actual content means a genuinely new or edited reading
+    still regenerates correctly; only redundant reruns of the same
+    reading get served from cache.
+
+    VALIDITY CHECK: if PDF generation ever fails outright, or produces
+    something that isn't actually a valid PDF, this returns None
+    instead of corrupt/partial bytes -- so the caller can show a clear
+    warning rather than silently offering a download button for a file
+    that will fail to open.
+    """
+    import hashlib
+    content_hash = hashlib.sha256(
+        f"{markdown_text}|{title}|{subtitle}".encode("utf-8")
+    ).hexdigest()[:16]
+    cache = st.session_state.setdefault("_pdf_cache", {})
+    full_key = f"{cache_key}_{content_hash}"
+    cached = cache.get(full_key)
+    if cached is not None:
+        return cached
+    try:
+        pdf_bytes = markdown_to_pdf_bytes(markdown_text, title, subtitle)
+    except Exception:
+        return None
+    if not pdf_bytes or not pdf_bytes.startswith(b"%PDF") or len(pdf_bytes) < 200:
+        return None
+    # Drop any now-stale cache entry for this same slot under a
+    # different (outdated) content hash, so the cache doesn't grow
+    # unbounded across an edited/regenerated reading.
+    for stale_key in [k for k in cache if k.startswith(f"{cache_key}_") and k != full_key]:
+        del cache[stale_key]
+    cache[full_key] = pdf_bytes
+    return pdf_bytes
+
+
 def _reading_header_block(r: dict, label_a: str | None, label_b: str | None) -> str:
     """
     Builds the person + birth date/time line(s) shown at the top of a
@@ -1597,22 +1647,30 @@ if st.session_state.get("results"):
                 # here, worth offering separately.
                 summary_text = extract_summary_only(r["interpretation_text"])
                 full_text = format_full_text_for_export(r["interpretation_text"])
-                summary_pdf_bytes = markdown_to_pdf_bytes(
-                    summary_text, f"{pdf_title} \u2014 Summary", pdf_subtitle,
+                summary_pdf_bytes = _get_or_build_pdf(
+                    "reading_summary_pdf", summary_text, f"{pdf_title} \u2014 Summary", pdf_subtitle,
                 )
-                full_pdf_bytes = markdown_to_pdf_bytes(
-                    full_text, pdf_title, pdf_subtitle,
+                full_pdf_bytes = _get_or_build_pdf(
+                    "reading_full_pdf", full_text, pdf_title, pdf_subtitle,
                 )
 
                 st.subheader("Summary Version")
                 sum_col1, sum_col2 = st.columns(2)
                 with sum_col1:
-                    st.download_button(
-                        "📄 Download as .pdf", data=summary_pdf_bytes,
-                        file_name=f"reading_summary_{date_str}.pdf",
-                        mime="application/pdf", width="stretch",
-                        key="summary_pdf_dl",
-                    )
+                    if summary_pdf_bytes:
+                        st.download_button(
+                            "📄 Download as .pdf", data=summary_pdf_bytes,
+                            file_name=f"reading_summary_{date_str}.pdf",
+                            mime="application/pdf", width="stretch",
+                            key="summary_pdf_dl",
+                        )
+                    else:
+                        st.warning(
+                            "⚠️ Couldn't generate the summary PDF right now — "
+                            "this is usually transient. Try again in a moment, "
+                            "or use the .txt download in the meantime.",
+                            icon="⚠️",
+                        )
                 with sum_col2:
                     st.download_button(
                         "Download as .txt", data=summary_text,
@@ -1630,12 +1688,20 @@ if st.session_state.get("results"):
                 st.subheader("Full Version")
                 full_col1, full_col2 = st.columns(2)
                 with full_col1:
-                    st.download_button(
-                        "📄 Download as .pdf", data=full_pdf_bytes,
-                        file_name=f"reading_full_{date_str}.pdf",
-                        mime="application/pdf", width="stretch",
-                        key="full_pdf_dl",
-                    )
+                    if full_pdf_bytes:
+                        st.download_button(
+                            "📄 Download as .pdf", data=full_pdf_bytes,
+                            file_name=f"reading_full_{date_str}.pdf",
+                            mime="application/pdf", width="stretch",
+                            key="full_pdf_dl",
+                        )
+                    else:
+                        st.warning(
+                            "⚠️ Couldn't generate the full-reading PDF right now — "
+                            "this is usually transient. Try again in a moment, "
+                            "or use the .txt download in the meantime.",
+                            icon="⚠️",
+                        )
                 with full_col2:
                     st.download_button(
                         "Download as .txt", data=full_text,
@@ -1653,19 +1719,27 @@ if st.session_state.get("results"):
                 # Quick-summary modes: interpretation_text is already
                 # short summary content, so there's just one document
                 # to offer, not a redundant summary/full split.
-                pdf_bytes = markdown_to_pdf_bytes(
-                    r["interpretation_text"], pdf_title, pdf_subtitle,
+                pdf_bytes = _get_or_build_pdf(
+                    "reading_pdf", r["interpretation_text"], pdf_title, pdf_subtitle,
                 )
                 dl_col1, dl_col2 = st.columns(2)
                 with dl_col1:
-                    st.download_button(
-                        "📄 Download as .pdf",
-                        data=pdf_bytes,
-                        file_name=f"reading_{date_str}.pdf",
-                        mime="application/pdf",
-                        width="stretch",
-                        key="reading_pdf_dl",
-                    )
+                    if pdf_bytes:
+                        st.download_button(
+                            "📄 Download as .pdf",
+                            data=pdf_bytes,
+                            file_name=f"reading_{date_str}.pdf",
+                            mime="application/pdf",
+                            width="stretch",
+                            key="reading_pdf_dl",
+                        )
+                    else:
+                        st.warning(
+                            "⚠️ Couldn't generate the PDF right now — this is "
+                            "usually transient. Try again in a moment, or use "
+                            "the .txt download in the meantime.",
+                            icon="⚠️",
+                        )
                 with dl_col2:
                     st.download_button(
                         "Download as .txt",
