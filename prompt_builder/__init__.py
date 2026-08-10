@@ -40,6 +40,9 @@ from .shared import (
     format_house_overlay_section,
     build_synastry_data_block,
     TIME_DEPENDENT_POINTS,
+    PROMPT_CACHE_SPLIT_MARKER,
+    split_prompt_for_caching,
+    strip_cache_marker,
 )
 
 from .natal import (
