@@ -16,6 +16,7 @@ from .shared import (
     build_data_block, build_data_block_no_time,
     _single_person_naming_note,
     _reference_context_block, _build_retrieval_query,
+    PROMPT_CACHE_SPLIT_MARKER,
 )
 
 CAREER_INTERPRETATION_INSTRUCTIONS = """\
@@ -24,7 +25,6 @@ is not very well versed in astrology, focused specifically on work and \
 career. You have access to the exact computed placements, aspects, \
 patterns, dignities, and house conditions below — all mathematically \
 precise, not approximated.
-{naming_note}
 
 Traditionally, work-relevant signal concentrates in a few specific \
 places — the 10th house and its ruler (career, public role, authority), \
@@ -243,6 +243,7 @@ if it touches a career house, north/south node).
 - Avoid generic, could-apply-to-anyone language. Ground every claim in \
 the SPECIFIC combination of placements you're given.
 
+{cache_marker}{naming_note}
 Here is the full computed chart data — placements (sign, house, \
 retrograde status), aspects (orb = how exact; applying = still \
 building, separating = past exact and fading), aspect patterns, \
@@ -279,6 +280,7 @@ def build_career_interpretation_prompt(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -295,7 +297,7 @@ complete, in-depth version separately if they want it.
 You have access to this person's full computed chart data — planetary \
 positions, dignity, aspects, patterns, and house placements, all \
 mathematically precise.
-{naming_note}
+
 Structure your answer as follows:
 
 Open with 2-4 plain-language sentences distilling the single most \
@@ -349,6 +351,7 @@ negate-then-correct scaffolding.
 orb values.
 - Be SELECTIVE — cover what matters most, not everything.
 
+{cache_marker}{naming_note}
 Here is the full computed chart data:
 {reference_block}
 {data_block}
@@ -377,6 +380,7 @@ def build_career_summary_only_prompt(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -395,7 +399,6 @@ house placements, Vertex, or either Arabic Part, because all of those \
 require an exact birth time to calculate correctly and would be \
 unreliable guesses otherwise. Do not speculate about houses, rising \
 sign, or any of the excluded points — work entirely with what's given.
-{naming_note}
 
 Without house placements, work-relevant signal instead concentrates in \
 the planets themselves and their conditions: the Sun (core identity and \
@@ -553,6 +556,7 @@ exactly one dignity status.
 - Avoid generic, could-apply-to-anyone language. Ground every claim in \
 the SPECIFIC combination of placements you're given.
 
+{cache_marker}{naming_note}
 Here is the full computed chart data — planets, Chiron, Lilith, and the Lunar \
 Nodes only (no Ascendant, houses, Vertex, or Arabic Parts, since none \
 of those are reliable without an exact birth time):
@@ -585,6 +589,7 @@ def build_career_interpretation_prompt_no_time(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -595,7 +600,7 @@ headline version, not the full reading. This person's exact birth \
 time is unknown, so houses, the Ascendant, Midheaven, Vertex, and the \
 Arabic Parts are excluded — work only with planets, dignity, and \
 planet-to-planet aspects.
-{naming_note}
+
 Structure your answer as follows:
 
 Open with 2-4 plain-language sentences distilling the single most \
@@ -642,6 +647,7 @@ weight here since fewer other signals are available.
 - NEVER quote numeric degrees or orb values.
 - Be SELECTIVE.
 
+{cache_marker}{naming_note}
 Here is the full computed chart data:
 {reference_block}
 {data_block}
@@ -668,4 +674,5 @@ def build_career_summary_only_prompt_no_time(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
