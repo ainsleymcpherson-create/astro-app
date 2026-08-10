@@ -15,6 +15,7 @@ from .shared import (
     build_data_block, build_data_block_no_time,
     _single_person_naming_note, _age_guidance,
     _reference_context_block, _build_retrieval_query,
+    PROMPT_CACHE_SPLIT_MARKER,
 )
 
 INTERPRETATION_INSTRUCTIONS = """\
@@ -22,7 +23,6 @@ You are an experienced astrologer giving a natal chart reading to \
 someone who is not very well versed in astrology. You have access to \
 the exact computed placements, aspects, patterns, dignities, and house \
 conditions below — all mathematically precise, not approximated.
-{naming_note}{age_guidance}
 
 First, provide an overview of the chart and what the reading \
 uncovered — an orientation before the detailed themes, written as \
@@ -388,6 +388,7 @@ the reading genuinely accessible to a broad, non-astrology audience.
 the SPECIFIC combination of placements you're given, not stock keyword \
 associations.
 
+{cache_marker}{naming_note}{age_guidance}
 Here is the full computed chart data:
 {reference_block}
 {data_block}
@@ -429,6 +430,7 @@ def build_interpretation_prompt(
         naming_note=_single_person_naming_note(person_name),
         age_guidance=_age_guidance(age),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -446,7 +448,7 @@ entire job is to be genuinely useful and specific while staying short.
 You have access to this person's full computed chart data — planetary \
 positions, dignity, aspects, patterns, and house placements, all \
 mathematically precise, not approximated.
-{naming_note}{age_guidance}
+
 Structure your answer as follows:
 
 Open with 2-4 plain-language sentences distilling the single most \
@@ -522,6 +524,7 @@ all of that into words.
 patterns that matter most, rather than trying to cover everything the \
 full reading would.
 
+{cache_marker}{naming_note}{age_guidance}
 Here is the full computed chart data:
 {reference_block}
 {data_block}
@@ -559,6 +562,7 @@ def build_summary_only_prompt(
         naming_note=_single_person_naming_note(person_name),
         age_guidance=_age_guidance(age, compact=True),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -588,6 +592,7 @@ def build_summary_only_prompt_no_time(
         naming_note=_single_person_naming_note(person_name),
         age_guidance=_age_guidance(age, compact=True),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -606,7 +611,6 @@ either Arabic Part (Part of Fortune/Spirit), because all of those \
 require an exact birth time to calculate correctly and would be \
 unreliable guesses otherwise. Do not speculate about houses, rising \
 sign, or any of the excluded points — work entirely with what's given.
-{naming_note}{age_guidance}
 
 First, provide an overview of the chart and what the reading \
 uncovered — an orientation before the detailed themes, written as \
@@ -947,6 +951,7 @@ not the way a fortune teller would.
 the SPECIFIC combination of placements you're given, not stock keyword \
 associations.
 
+{cache_marker}{naming_note}{age_guidance}
 Here is the full computed chart data — planets, Chiron, Lilith, and the Lunar \
 Nodes only (no Ascendant, houses, Vertex, or Arabic Parts, since none \
 of those are reliable without an exact birth time):
@@ -985,4 +990,5 @@ def build_interpretation_prompt_no_time(
         naming_note=_single_person_naming_note(person_name),
         age_guidance=_age_guidance(age),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
