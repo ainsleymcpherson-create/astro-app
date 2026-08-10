@@ -17,6 +17,25 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+python3 << 'EOF'
+with open("app.py", "r") as f:
+    content = f.read()
+
+old = "load_dotenv()"
+new = '''load_dotenv()
+import streamlit as _debug_st
+_debug_st.write(f"ENV CHECK — ANTHROPIC: {bool(os.environ.get('ANTHROPIC_API_KEY'))}, VOYAGE: {bool(os.environ.get('VOYAGE_API_KEY'))}")'''
+
+if old in content:
+    content = content.replace(old, new, 1)
+    with open("app.py", "w") as f:
+        f.write(content)
+    print("Inserted top-level env check into app.py")
+else:
+    print("Could NOT find target -- no changes made")
+EOF
+
+
 import streamlit as st
 
 st.set_page_config(page_title="Tenth House Readings", layout="wide")
