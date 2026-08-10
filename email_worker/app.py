@@ -430,6 +430,45 @@ def _process_reading_job(job: dict) -> tuple[bool, str]:
         return False, msg
 
 
+def _send_email_change_confirmation(job: dict) -> tuple[bool, str]:
+    """
+    Sends the "confirm your new email" link for the My Account "add
+    another login email" flow. The link itself does the actual
+    linking (see profiles_db.confirm_email_change / app.py's
+    ?confirm_email= handler) -- this function only ever sends mail,
+    it never touches the database, keeping the actual account-linking
+    decision entirely in the main app's hands.
+    """
+    to_email = job.get("to_email")
+    token = job.get("token")
+    if not to_email or not token:
+        return False, "Missing to_email or token in job payload"
+
+    app_base_url = os.environ.get("APP_BASE_URL", "https://tenthhousereadings.com")
+    confirm_url = f"{app_base_url}/?confirm_email={token}"
+
+    body = (
+        f"Click the link below to confirm this email for your Tenth "
+        f"House Readings account. Once confirmed, you'll be able to "
+        f"log in with either this email or the one you're currently "
+        f"using — both reach the same saved profiles, subscription, "
+        f"and purchase history.\n\n"
+        f"[Confirm this email]({confirm_url})\n\n"
+        f"This link expires in 24 hours. If you didn't request this, "
+        f"you can safely ignore this email — nothing will change."
+    )
+    try:
+        send_email(
+            to_email,
+            "Confirm your new email — Tenth House Readings",
+            body,
+            email_title="Confirm Your Email",
+        )
+        return True, "sent"
+    except Exception as e:
+        return False, f"Couldn't send confirmation email: {type(e).__name__}: {e}"
+
+
 @app.route("/generate-and-email", methods=["POST"])
 def generate_and_email():
     # Verify this request genuinely came from QStash, not some random
@@ -450,6 +489,20 @@ def generate_and_email():
         job = request.get_json(force=True)
     except Exception as e:
         return jsonify({"error": f"Invalid job payload: {e}"}), 400
+
+    # Not every job on this endpoint is "generate a reading" -- the
+    # My Account "add another login email" flow reuses this same
+    # QStash-signed endpoint to send a lightweight confirmation email,
+    # since RESEND_API_KEY/RESEND_FROM_ADDRESS only live here, not in
+    # the main Streamlit app's secrets. Dispatch on "kind" rather than
+    # adding a whole second route, so this stays the one signature-
+    # verified entry point QStash needs to know about.
+    if job.get("kind") == "email_change_confirmation":
+        success, message = _send_email_change_confirmation(job)
+        if success:
+            return jsonify({"status": "sent"}), 200
+        else:
+            return jsonify({"error": message}), 500
 
     # Deliberately BLOCKING, not backgrounded. An earlier version of
     # this endpoint responded immediately and did the real work in a
