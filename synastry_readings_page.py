@@ -137,6 +137,151 @@ def get_secret(name: str):
     return os.environ.get(name)
 
 
+def _generate_reading_live(api_prompt: str, max_tokens: int = 32000) -> tuple[str | None, str | None]:
+    """
+    Runs a live, billed Claude API call and streams the result, with one
+    automatic retry on an empty or cut-off response. Extracted from the
+    original inline generation block so both the normal "Generate Full
+    Reading" flow and the $3 unlock's in-app claim flow (see the
+    "_unlock_claim" handling further down) share one tested code path
+    instead of two copies that could drift apart.
+
+    Returns (interpretation_text, interpretation_error) -- exactly one
+    of the two is set. Assumes ANTHROPIC_AVAILABLE and a valid api_key
+    have already been checked by the caller.
+    """
+    api_key = get_api_key()
+    if not ANTHROPIC_AVAILABLE:
+        return None, (
+            "The `anthropic` package isn't installed. Run "
+            "`pip install anthropic` and restart the app."
+        )
+    if not api_key:
+        return None, (
+            "No API key found. Add ANTHROPIC_API_KEY as a Colab "
+            "secret, or set it as an environment variable. The "
+            "prompt below is still available to copy manually."
+        )
+
+    max_attempts = 2
+    result_text = ""
+    stop_reason = None
+    response = None
+    last_exception = None
+
+    for attempt_num in range(1, max_attempts + 1):
+        try:
+            client = anthropic.Anthropic(api_key=api_key)
+            spinner_text = (
+                "Generating interpretation with Claude "
+                "(this may take a couple minutes). Keep this "
+                "tab open and in the foreground until it finishes."
+                if attempt_num == 1 else
+                "First attempt didn't finish cleanly — retrying automatically..."
+            )
+            with st.spinner(spinner_text):
+                # Streaming is required here rather than a plain
+                # blocking call: with max_tokens this high, the
+                # SDK estimates generation could exceed its
+                # 10-minute non-streaming timeout and refuses to
+                # run without it.
+                #
+                # IMPORTANT: we iterate the RAW stream events
+                # (not just stream.text_stream) so we can show
+                # live progress during BOTH phases of
+                # generation — this model does a lot of internal
+                # "thinking" before writing any visible text,
+                # and stream.text_stream only yields the text
+                # portion, leaving the thinking phase completely
+                # silent.
+                live_preview = st.empty()
+                accumulated_text = ""
+                thinking_chars = 0
+                update_counter = 0
+                with client.messages.stream(
+                    model="claude-sonnet-5",
+                    max_tokens=max_tokens,
+                    messages=[{"role": "user", "content": api_prompt}],
+                ) as stream:
+                    for event in stream:
+                        if event.type != "content_block_delta":
+                            continue
+                        delta_type = getattr(event.delta, "type", None)
+                        update_counter += 1
+                        if delta_type == "thinking_delta":
+                            thinking_chars += len(event.delta.thinking)
+                            if update_counter % 5 == 0:
+                                live_preview.markdown(
+                                    f"🤔 *Thinking through the chart... "
+                                    f"({thinking_chars} characters of "
+                                    f"reasoning so far — this part "
+                                    f"doesn't show in the final reading, "
+                                    f"it's just to confirm this is "
+                                    f"actively working.)*"
+                                )
+                        elif delta_type == "text_delta":
+                            accumulated_text += event.delta.text
+                            if update_counter % 3 == 0:
+                                live_preview.markdown(accumulated_text + " ▌")
+                    live_preview.markdown(accumulated_text)
+                    response = stream.get_final_message()
+
+            result_text = accumulated_text
+            stop_reason = getattr(response, "stop_reason", "unknown")
+            live_preview.empty()
+            last_exception = None
+
+            # A clean, complete generation — stop retrying.
+            if result_text and stop_reason != "max_tokens":
+                break
+
+            # Otherwise (empty result, or cut off before
+            # finishing) — worth one automatic retry before
+            # giving up.
+            if attempt_num < max_attempts:
+                continue
+
+        except Exception as e:
+            last_exception = e
+            if attempt_num < max_attempts:
+                continue
+
+    if last_exception is not None:
+        import traceback
+        return None, (
+            f"Claude API call failed after {max_attempts} attempts: "
+            f"{type(last_exception).__name__}: {last_exception}\n\n"
+            f"Full traceback:\n{traceback.format_exc()}"
+        )
+    elif result_text and stop_reason == "max_tokens":
+        # Cut off even after retrying — show it with a
+        # clear warning rather than silently presenting
+        # partial content as if it were complete.
+        return (
+            result_text +
+            "\n\n---\n\n⚠️ **This response was cut off before finishing** "
+            "(hit the token limit, even after an automatic retry). "
+            "What's above may be incomplete — increase max_tokens in "
+            "app.py if this keeps happening."
+        ), None
+    elif result_text:
+        return result_text, None
+    else:
+        # Ran out of attempts with no usable text at all.
+        block_summary = ", ".join(
+            f"{getattr(b, 'type', 'unknown')} "
+            f"({len(getattr(b, 'thinking', '') or getattr(b, 'text', '') or '')} chars)"
+            for b in (response.content if response else [])
+        )
+        return None, (
+            f"Claude ran out of room before writing the answer, "
+            f"even after an automatic retry (stop_reason: {stop_reason}). "
+            f"Content blocks received: {block_summary}. "
+            f"Try increasing max_tokens further in app.py if this "
+            f"keeps happening."
+        )
+
+
 def enqueue_full_reading_email(job_payload: dict) -> tuple[bool, str]:
     """
     Publishes a job to QStash, which will call the email worker (a
@@ -181,6 +326,15 @@ st.caption("Compares two people's charts — for a professional working "
            "dynamic or a traditional romantic compatibility reading — "
            "with full support for Part of Fortune, Nodes, Vertex, "
            "Chiron, and dignity.")
+
+# Reserves this page position now, at script-execution order, even
+# though it's filled in later (near "if submitted:") once every
+# helper function it needs (render_interpretation, _get_or_build_pdf,
+# _generate_reading_live, etc.) has actually been defined further
+# down this same script. st.empty() is what makes that split between
+# "reserve the slot early" and "fill it in late" possible in
+# Streamlit -- content written into it later still renders here.
+_unlock_claim_slot = st.empty()
 
 COFFEE_URL = "https://buymeacoffee.com/tenthhousereadings"
 
@@ -1106,6 +1260,133 @@ def text_download_and_copy(text: str, filename: str, key_prefix: str):
         )
 
 
+# --- Redeem a $3 reading unlock chosen for in-app delivery ---
+# app.py already re-verified the Stripe payment directly against
+# Stripe's API before it ever set "_unlock_claim" in session_state and
+# switched to this page -- this block trusts that it's already been
+# checked, and just needs to turn it into an actual reading.
+_unlock_claim = st.session_state.get("_unlock_claim")
+if _unlock_claim and _unlock_claim.get("reading_type") in SYNASTRY_READING_TYPES:
+    # Consumed immediately, before generation even starts -- a rerun
+    # triggered by anything else on this page (or a page refresh)
+    # must not be able to trigger a second generation off the same
+    # $3 purchase. The already-generated result below is kept in
+    # "_unlock_result" instead, which is what actually persists and
+    # keeps rendering across reruns.
+    del st.session_state["_unlock_claim"]
+    with _unlock_claim_slot.container():
+        _uc_label = _unlock_claim.get("label") or "Person A"
+        _uc_label_b = _unlock_claim.get("label_b") or "Person B"
+        _uc_reading_type = _unlock_claim.get("reading_type", "Professional Synastry")
+        st.success(
+            f"🎉 Payment confirmed for {_uc_label} & {_uc_label_b}'s "
+            f"{_uc_reading_type} reading — generating it now. This can take "
+            f"a few minutes; keep this tab open until it finishes.",
+            icon="🎉",
+        )
+        with st.spinner("Setting up both charts..."):
+            _uc_bd = datetime.strptime(_unlock_claim["birth_date"], "%Y-%m-%d")
+            _uc_bt = datetime.strptime(_unlock_claim["birth_time"], "%H:%M")
+            _uc_datetime_str = f"{_uc_bd.strftime('%B %d, %Y')} {_uc_bt.strftime('%I:%M %p')}"
+            _uc_unknown_time = _unlock_claim.get("unknown_time") == "true"
+            _uc_birth = resolve_birth_data(_uc_datetime_str, _unlock_claim["location_str"], verbose=False)
+            _uc_chart = compute_full_chart(_uc_birth, house_system=b"P")
+            _uc_aspects = compute_aspects(_uc_chart, speeds=extract_speeds(_uc_chart))
+            _uc_patterns = find_all_patterns(_uc_chart, _uc_aspects)
+            _uc_dignities = compute_chart_dignities(_uc_chart)
+            _uc_house_readings = build_house_readings(_uc_chart)
+
+            _uc_bd_b = datetime.strptime(_unlock_claim["birth_date_b"], "%Y-%m-%d")
+            _uc_bt_b = datetime.strptime(_unlock_claim["birth_time_b"], "%H:%M")
+            _uc_datetime_str_b = f"{_uc_bd_b.strftime('%B %d, %Y')} {_uc_bt_b.strftime('%I:%M %p')}"
+            _uc_unknown_time_b = _unlock_claim.get("unknown_time_b") == "true"
+            _uc_birth_b = resolve_birth_data(_uc_datetime_str_b, _unlock_claim["location_str_b"], verbose=False)
+            _uc_chart_b = compute_full_chart(_uc_birth_b, house_system=b"P")
+            _uc_aspects_b = compute_aspects(_uc_chart_b, speeds=extract_speeds(_uc_chart_b))
+            _uc_patterns_b = find_all_patterns(_uc_chart_b, _uc_aspects_b)
+            _uc_dignities_b = compute_chart_dignities(_uc_chart_b)
+            _uc_house_readings_b = build_house_readings(_uc_chart_b)
+
+            _uc_synastry_result = compute_full_synastry(
+                _uc_chart, _uc_chart_b,
+                person_a_time_known=not _uc_unknown_time,
+                person_b_time_known=not _uc_unknown_time_b,
+            )
+
+            if _uc_reading_type == "Relationship Synastry":
+                _uc_prompt = build_relationship_synastry_prompt(
+                    _uc_synastry_result, _uc_dignities, _uc_dignities_b,
+                    person_a_name=_unlock_claim.get("label"), person_b_name=_unlock_claim.get("label_b"),
+                    relationship_stage=_unlock_claim.get("relationship_stage"),
+                )
+            elif _uc_reading_type == "Parent/Child Synastry":
+                _uc_prompt = build_parent_child_synastry_prompt(
+                    _uc_synastry_result, _uc_dignities, _uc_dignities_b,
+                    person_a_name=_unlock_claim.get("label"), person_b_name=_unlock_claim.get("label_b"),
+                )
+            else:
+                _uc_prompt = build_professional_synastry_prompt(
+                    _uc_synastry_result, _uc_dignities, _uc_dignities_b,
+                    person_a_name=_unlock_claim.get("label"), person_b_name=_unlock_claim.get("label_b"),
+                )
+        _uc_text, _uc_error = _generate_reading_live(_uc_prompt, max_tokens=32000)
+        st.session_state["_unlock_result"] = {
+            "text": _uc_text, "error": _uc_error,
+            "label": _unlock_claim.get("label"), "label_b": _unlock_claim.get("label_b"),
+            "reading_type": _uc_reading_type,
+        }
+
+_unlock_result = st.session_state.get("_unlock_result")
+if _unlock_result and _unlock_result.get("reading_type") in SYNASTRY_READING_TYPES:
+    with _unlock_claim_slot.container():
+        _ur_label = _unlock_result.get("label") or "Person A"
+        _ur_label_b = _unlock_result.get("label_b") or "Person B"
+        if _unlock_result.get("text"):
+            _ur_col1, _ur_col2 = st.columns([5, 1])
+            with _ur_col1:
+                st.subheader(
+                    f"{_ur_label} & {_ur_label_b}'s Full "
+                    f"{_unlock_result.get('reading_type', 'Professional Synastry')} Reading"
+                )
+            with _ur_col2:
+                if st.button("✕ Dismiss", key="dismiss_unlock_result"):
+                    del st.session_state["_unlock_result"]
+                    st.rerun()
+            render_interpretation(_unlock_result["text"])
+            _ur_pdf_title = (
+                f"{_ur_label} & {_ur_label_b}'s "
+                f"{_unlock_result.get('reading_type', 'Professional Synastry')} Reading"
+            )
+            _ur_pdf_bytes = _get_or_build_pdf("unlock_claim_pdf", _unlock_result["text"], _ur_pdf_title, "")
+            _ur_dl1, _ur_dl2 = st.columns(2)
+            with _ur_dl1:
+                if _ur_pdf_bytes:
+                    st.download_button(
+                        "📄 Download as .pdf", data=_ur_pdf_bytes,
+                        file_name="full_reading.pdf", mime="application/pdf",
+                        width="stretch", key="unlock_claim_pdf_dl",
+                    )
+                else:
+                    st.warning(
+                        "⚠️ Couldn't generate the PDF right now — this is usually "
+                        "transient. Try again in a moment, or use the .txt "
+                        "download in the meantime.", icon="⚠️",
+                    )
+            with _ur_dl2:
+                st.download_button(
+                    "Download as .txt", data=_unlock_result["text"],
+                    file_name="full_reading.txt", mime="text/plain",
+                    width="stretch", key="unlock_claim_txt_dl",
+                )
+        elif _unlock_result.get("error"):
+            st.error(
+                f"Something went wrong generating your reading: "
+                f"{_unlock_result['error']}\n\nYour payment is safe — contact "
+                f"support and we'll make sure you get your reading."
+            )
+        st.divider()
+
+
 if submitted:
     # Two-phase pattern: set processing=True and rerun IMMEDIATELY,
     # before doing any actual work. This lets the "Compute Chart"
@@ -1287,117 +1568,10 @@ if st.session_state.get("processing", False):
         interpretation_error = None
 
         if generate_live:
-            if not ANTHROPIC_AVAILABLE:
-                interpretation_error = (
-                    "The `anthropic` package isn't installed. Run "
-                    "`pip install anthropic` and restart the app."
-                )
-            else:
-                api_key = get_api_key()
-                if not api_key:
-                    interpretation_error = (
-                        "No API key found. Add ANTHROPIC_API_KEY as a Colab "
-                        "secret, or set it as an environment variable. The "
-                        "prompt below is still available to copy manually."
-                    )
-                else:
-                    max_attempts = 2
-                    result_text = ""
-                    stop_reason = None
-                    response = None
-                    last_exception = None
+            api_prompt = quick_summary_prompt if quick_summary_prompt else prompt
+            api_max_tokens = 16000 if quick_summary_prompt else 32000
+            interpretation_text, interpretation_error = _generate_reading_live(api_prompt, api_max_tokens)
 
-                    for attempt_num in range(1, max_attempts + 1):
-                        try:
-                            client = anthropic.Anthropic(api_key=api_key)
-                            spinner_text = (
-                                "Generating interpretation with Claude "
-                                "(this may take a couple minutes). Keep this "
-                                "tab open and in the foreground until it finishes."
-                                if attempt_num == 1 else
-                                "First attempt didn't finish cleanly — retrying automatically..."
-                            )
-                            with st.spinner(spinner_text):
-                                live_preview = st.empty()
-                                accumulated_text = ""
-                                thinking_chars = 0
-                                update_counter = 0
-                                api_prompt = quick_summary_prompt if quick_summary_prompt else prompt
-                                api_max_tokens = 16000 if quick_summary_prompt else 32000
-                                with client.messages.stream(
-                                    model="claude-sonnet-5",
-                                    max_tokens=api_max_tokens,
-                                    messages=[{"role": "user", "content": api_prompt}],
-                                ) as stream:
-                                    for event in stream:
-                                        if event.type != "content_block_delta":
-                                            continue
-                                        delta_type = getattr(event.delta, "type", None)
-                                        update_counter += 1
-                                        if delta_type == "thinking_delta":
-                                            thinking_chars += len(event.delta.thinking)
-                                            if update_counter % 5 == 0:
-                                                live_preview.markdown(
-                                                    f"🤔 *Thinking through the chart... "
-                                                    f"({thinking_chars} characters of "
-                                                    f"reasoning so far — this part "
-                                                    f"doesn't show in the final reading, "
-                                                    f"it's just to confirm this is "
-                                                    f"actively working.)*"
-                                                )
-                                        elif delta_type == "text_delta":
-                                            accumulated_text += event.delta.text
-                                            if update_counter % 3 == 0:
-                                                live_preview.markdown(accumulated_text + " ▌")
-                                    live_preview.markdown(accumulated_text)
-                                    response = stream.get_final_message()
-
-                            result_text = accumulated_text
-                            stop_reason = getattr(response, "stop_reason", "unknown")
-                            live_preview.empty()
-                            last_exception = None
-
-                            if result_text and stop_reason != "max_tokens":
-                                break
-
-                            if attempt_num < max_attempts:
-                                continue
-
-                        except Exception as e:
-                            last_exception = e
-                            if attempt_num < max_attempts:
-                                continue
-
-                    if last_exception is not None:
-                        import traceback
-                        interpretation_error = (
-                            f"Claude API call failed after {max_attempts} attempts: "
-                            f"{type(last_exception).__name__}: {last_exception}\n\n"
-                            f"Full traceback:\n{traceback.format_exc()}"
-                        )
-                    elif result_text and stop_reason == "max_tokens":
-                        interpretation_text = (
-                            result_text +
-                            "\n\n---\n\n⚠️ **This response was cut off before finishing** "
-                            "(hit the token limit, even after an automatic retry). "
-                            "What's above may be incomplete — increase max_tokens in "
-                            "app.py if this keeps happening."
-                        )
-                    elif result_text:
-                        interpretation_text = result_text
-                    else:
-                        block_summary = ", ".join(
-                            f"{getattr(b, 'type', 'unknown')} "
-                            f"({len(getattr(b, 'thinking', '') or getattr(b, 'text', '') or '')} chars)"
-                            for b in (response.content if response else [])
-                        )
-                        interpretation_error = (
-                            f"Claude ran out of room before writing the answer, "
-                            f"even after an automatic retry (stop_reason: {stop_reason}). "
-                            f"Content blocks received: {block_summary}. "
-                            f"Try increasing max_tokens further in app.py if this "
-                            f"keeps happening."
-                        )
         email_job_status = None
         if want_email_full:
             if not email_address or "@" not in email_address:
@@ -1665,8 +1839,18 @@ if st.session_state.get("results"):
                     st.divider()
                     st.subheader("Want the full reading?")
                     st.write("Unlock the complete, in-depth version of this reading "
-                             "and have it emailed to you — a one-time purchase, no "
-                             "account needed.")
+                             "for a one-time $3 purchase, no account needed.")
+                    delivery_choice = st.radio(
+                        "How would you like to receive it?",
+                        options=["📧 Email it to me", "⚡ Generate it here now"],
+                        horizontal=True,
+                        key="unlock_delivery_choice",
+                        help="Email: arrives in a few minutes, no need to keep this "
+                             "tab open. Generate here: streams live on this page "
+                             "right after payment, same as the email version, but "
+                             "you'll need to stay on this tab until it finishes.",
+                    )
+                    delivery = "in_app" if delivery_choice == "⚡ Generate it here now" else "email"
                     if st.button("Unlock full reading — $3", width="stretch", type="primary"):
                         import stripe
                         stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
@@ -1679,6 +1863,7 @@ if st.session_state.get("results"):
                                 "birth_time": birth_time_val.strftime("%H:%M"),
                                 "location_str": r["location_str"],
                                 "unknown_time": "true" if unknown_time else "false",
+                                "delivery": delivery,
                             }
                             if r["reading_type"] in SYNASTRY_READING_TYPES:
                                 metadata["label_b"] = label_b or ""
@@ -1688,13 +1873,25 @@ if st.session_state.get("results"):
                                 metadata["unknown_time_b"] = "true" if unknown_time_b else "false"
                                 if r["reading_type"] == "Relationship Synastry" and relationship_stage:
                                     metadata["relationship_stage"] = relationship_stage
+                            # For in-app delivery, the redirect back needs the
+                            # Checkout Session ID so app.py can re-verify the
+                            # payment against Stripe's API before granting
+                            # anything -- see the "unlock_session_id" handling
+                            # in app.py. {CHECKOUT_SESSION_ID} is a literal
+                            # Stripe template token, substituted by Stripe
+                            # itself at redirect time, not by this code.
+                            success_url = (
+                                "https://tenthhousereadings.com/?unlock_session_id={CHECKOUT_SESSION_ID}"
+                                if delivery == "in_app"
+                                else "https://tenthhousereadings.com/?signup=success"
+                            )
                             checkout_session = stripe.checkout.Session.create(
                                 mode="payment",
                                 line_items=[{
                                     "price": os.environ["STRIPE_ONE_TIME_READING_UNLOCK_PRICE_ID"],
                                     "quantity": 1,
                                 }],
-                                success_url="https://tenthhousereadings.com/?signup=success",
+                                success_url=success_url,
                                 cancel_url="https://tenthhousereadings.com/?signup=cancelled",
                                 metadata=metadata,
                             )
