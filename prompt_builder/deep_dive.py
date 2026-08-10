@@ -182,17 +182,18 @@ Lilith has NO traditional dignity status — never invent one.
 {naming_note}
 Structure your answer as follows:
 
-First, a **Summary** of this person's Lilith placement overall —
-exactly that bolded label, then 2-4 plain-language sentences. Head
-this "## Overview".
+Open with 2-4 plain-language sentences on this person's Lilith
+placement overall. Head this "## Overview".
 
 Then, for EACH of these four sections — Lilith by Sign, Lilith by
 House, Lilith's Aspects, Integration — format its heading as a
-markdown H2 heading exactly matching that name, then write ONLY a
-**Summary:** block: 2-4 plain-language sentences. Do NOT write "What
-This Means," "Advice," or "Astrological Basis" — summary only.
+markdown H2 heading exactly matching that name, then write ONLY 2-4
+plain-language sentences. Do NOT write "What This Means," "Advice,"
+or "Astrological Basis" sections, and do NOT label the paragraph
+"Summary" — the whole reading is already a summary, so that label
+would be redundant on every section.
 
-End with a **Summary** for the Conclusion — 2-4 sentences.
+End with a 2-4 sentence Conclusion.
 
 General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
@@ -417,17 +418,18 @@ Chiron has NO traditional dignity status — never invent one.
 {naming_note}
 Structure your answer as follows:
 
-First, a **Summary** of this person's Chiron placement overall —
-exactly that bolded label, then 2-4 plain-language sentences. Head
-this "## Overview".
+Open with 2-4 plain-language sentences on this person's Chiron
+placement overall. Head this "## Overview".
 
 Then, for EACH of these four sections — Chiron by Sign, Chiron by
 House, Chiron's Aspects, Integration — format its heading as a
-markdown H2 heading exactly matching that name, then write ONLY a
-**Summary:** block: 2-4 plain-language sentences. Do NOT write "What
-This Means," "Advice," or "Astrological Basis" — summary only.
+markdown H2 heading exactly matching that name, then write ONLY 2-4
+plain-language sentences. Do NOT write "What This Means," "Advice,"
+or "Astrological Basis" sections, and do NOT label the paragraph
+"Summary" — the whole reading is already a summary, so that label
+would be redundant on every section.
 
-End with a **Summary** for the Conclusion — 2-4 sentences.
+End with a 2-4 sentence Conclusion.
 
 General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
@@ -672,17 +674,18 @@ The Nodes have NO traditional dignity status — never invent one.
 {naming_note}
 Structure your answer as follows:
 
-First, a **Summary** of this person's nodal axis overall — exactly
-that bolded label, then 2-4 plain-language sentences. Head this
-"## Overview".
+Open with 2-4 plain-language sentences on this person's nodal axis
+overall. Head this "## Overview".
 
 Then, for EACH of these four sections — The Axis by Sign, The Axis by
 House, The Axis's Aspects, Integration — format its heading as a
-markdown H2 heading exactly matching that name, then write ONLY a
-**Summary:** block: 2-4 plain-language sentences. Do NOT write "What
-This Means," "Advice," or "Astrological Basis" — summary only.
+markdown H2 heading exactly matching that name, then write ONLY 2-4
+plain-language sentences. Do NOT write "What This Means," "Advice,"
+or "Astrological Basis" sections, and do NOT label the paragraph
+"Summary" — the whole reading is already a summary, so that label
+would be redundant on every section.
 
-End with a **Summary** for the Conclusion — 2-4 sentences.
+End with a 2-4 sentence Conclusion.
 
 General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
