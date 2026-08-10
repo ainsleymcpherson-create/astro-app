@@ -40,11 +40,51 @@ def safe_user_email() -> str | None:
     unlucky rerun during that window degrades gracefully (saved
     profiles just don't load for that rerun) instead of taking down
     the entire page with an uncaught exception.
+
+    Also resolves through account_email_aliases (see
+    resolve_account_email): the raw email Auth0 asserts on login is
+    NOT necessarily the same email every other table in this file
+    keys on. If this person has confirmed an "add another login
+    email" request, the raw login email gets swapped out here for
+    their account's canonical primary_email, so saved profiles, the
+    subscription, and purchase history all stay reachable no matter
+    which linked email they actually logged in with. Every existing
+    call site gets this for free, with no changes needed elsewhere.
+    Falls back to the raw email unresolved if DATABASE_URL isn't set,
+    or if the lookup itself fails for any reason — a broken alias
+    lookup should degrade to "no aliasing," never to "can't tell who's
+    logged in."
     """
     try:
-        return st.user.email
+        raw_email = st.user.email
     except AttributeError:
         return None
+    if not raw_email or "DATABASE_URL" not in os.environ:
+        return raw_email
+    try:
+        return resolve_account_email(raw_email)
+    except Exception:
+        return raw_email
+
+
+def resolve_account_email(logged_in_email: str) -> str:
+    """
+    Maps a raw, freshly-asserted login email to its account's
+    canonical primary_email via account_email_aliases, if a confirmed
+    email-change request has ever linked them. Returns the input
+    unchanged if there's no alias row for it, which is the case for
+    every account that's never used the "add another login email"
+    feature — the vast majority of users, so this is a no-op for them.
+    """
+    conn = _get_conn()
+    df = conn.query(
+        "SELECT primary_email FROM account_email_aliases WHERE alias_email = :alias_email",
+        params={"alias_email": logged_in_email},
+        ttl=0,
+    )
+    if df.empty:
+        return logged_in_email
+    return df.iloc[0]["primary_email"]
 
 
 def _get_conn():
@@ -174,6 +214,49 @@ def init_schema() -> None:
                 amount_cents INTEGER,
                 stripe_session_id TEXT,
                 created_at TIMESTAMP NOT NULL DEFAULT NOW()
+            )
+        """))
+        # Cosmetic account-level info that doesn't belong keyed to any
+        # single saved birth profile -- currently just a display name.
+        # Keyed by primary_email (see account_email_aliases below),
+        # never used to look anything else up.
+        session.execute(text("""
+            CREATE TABLE IF NOT EXISTS account_profile (
+                primary_email TEXT PRIMARY KEY,
+                display_name TEXT,
+                updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+            )
+        """))
+        # Lets one account be reachable by logging in with more than
+        # one email (e.g. after a confirmed "change my email"
+        # request). alias_email is a login email that resolves to
+        # primary_email -- see resolve_account_email/safe_user_email,
+        # which every other table's owner_email lookups go through.
+        # Deliberately does NOT touch saved_profiles/
+        # account_subscriptions/purchase_history's schema at all:
+        # those keep using owner_email exactly as today, they just
+        # always receive an already-resolved canonical email now.
+        session.execute(text("""
+            CREATE TABLE IF NOT EXISTS account_email_aliases (
+                alias_email TEXT PRIMARY KEY,
+                primary_email TEXT NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW()
+            )
+        """))
+        # Pending "add another login email" requests. A row here does
+        # NOT grant anything by itself -- account_email_aliases only
+        # gets a new row once someone actually clicks the confirmation
+        # link sent to new_email, proving they control that inbox.
+        # used_at makes each token single-use; expires_at bounds how
+        # long a stale, unconfirmed request stays valid.
+        session.execute(text("""
+            CREATE TABLE IF NOT EXISTS email_change_requests (
+                token TEXT PRIMARY KEY,
+                primary_email TEXT NOT NULL,
+                new_email TEXT NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                expires_at TIMESTAMP NOT NULL,
+                used_at TIMESTAMP
             )
         """))
         session.commit()
@@ -662,3 +745,162 @@ def list_active_db_connections() -> list[dict]:
         ttl=0,
     )
     return df.to_dict("records")
+
+
+def get_display_name(primary_email: str) -> str | None:
+    """Returns the account's display name, or None if never set."""
+    conn = _get_conn()
+    df = conn.query(
+        "SELECT display_name FROM account_profile WHERE primary_email = :primary_email",
+        params={"primary_email": primary_email},
+        ttl=0,
+    )
+    if df.empty:
+        return None
+    return df.iloc[0]["display_name"]
+
+
+def set_display_name(primary_email: str, display_name: str) -> None:
+    """Upserts the account's display name. Purely cosmetic -- shown on
+    the account page, never used to key any other table."""
+    conn = _get_conn()
+    with conn.session as session:
+        session.execute(text("""
+            INSERT INTO account_profile (primary_email, display_name, updated_at)
+            VALUES (:primary_email, :display_name, NOW())
+            ON CONFLICT (primary_email) DO UPDATE
+                SET display_name = EXCLUDED.display_name, updated_at = NOW()
+        """), {"primary_email": primary_email, "display_name": display_name})
+        session.commit()
+
+
+def list_linked_emails(primary_email: str) -> list[str]:
+    """Every additional email confirmed to log into this account,
+    beyond the primary_email itself -- shown on the account page so
+    it's clear which emails currently work."""
+    conn = _get_conn()
+    df = conn.query(
+        "SELECT alias_email FROM account_email_aliases "
+        "WHERE primary_email = :primary_email ORDER BY created_at",
+        params={"primary_email": primary_email},
+        ttl=0,
+    )
+    return df["alias_email"].tolist()
+
+
+def request_email_change(primary_email: str, new_email: str) -> tuple[bool, str]:
+    """
+    Starts an email-change request: generates a confirmation token
+    good for 24 hours and stores it, but does NOT touch
+    account_email_aliases yet -- that only happens once the new
+    email's actual owner clicks the confirmation link (see
+    confirm_email_change), so nobody can link an email they don't
+    control just by typing it into this form.
+
+    Refuses upfront if new_email already has history anywhere (saved
+    profiles, a subscription, purchases) or is already linked to any
+    account (including this one) -- silently merging two people's
+    paid history together needs a human, not an automatic guess, so
+    this points to contacting support instead.
+
+    Returns (True, token) on success, or (False, a user-facing
+    explanation) if the new email can't be used right now.
+    """
+    new_email = new_email.strip().lower()
+    if not new_email or "@" not in new_email or "." not in new_email.split("@")[-1]:
+        return False, "That doesn't look like a valid email address."
+    if new_email == primary_email.strip().lower():
+        return False, "That's already your current email."
+
+    conn = _get_conn()
+
+    already_linked = conn.query(
+        "SELECT 1 FROM account_email_aliases WHERE alias_email = :email "
+        "UNION SELECT 1 FROM account_email_aliases WHERE primary_email = :email",
+        params={"email": new_email},
+        ttl=0,
+    )
+    if not already_linked.empty:
+        return False, (
+            "That email is already linked to an account. If this is "
+            "your own other account, contact support to merge them."
+        )
+
+    existing_history = conn.query(
+        "SELECT 1 FROM saved_profiles WHERE owner_email = :email "
+        "UNION SELECT 1 FROM account_subscriptions WHERE owner_email = :email "
+        "UNION SELECT 1 FROM purchase_history WHERE owner_email = :email",
+        params={"email": new_email},
+        ttl=0,
+    )
+    if not existing_history.empty:
+        return False, (
+            "That email already has its own saved profiles or purchase "
+            "history. Contact support if you'd like these accounts merged."
+        )
+
+    token = secrets.token_urlsafe(32)
+    with conn.session as session:
+        session.execute(text("""
+            INSERT INTO email_change_requests (token, primary_email, new_email, expires_at)
+            VALUES (:token, :primary_email, :new_email, NOW() + INTERVAL '24 hours')
+        """), {"token": token, "primary_email": primary_email, "new_email": new_email})
+        session.commit()
+    return True, token
+
+
+def confirm_email_change(token: str) -> tuple[bool, str]:
+    """
+    Completes an email-change request -- called when someone clicks
+    the confirmation link sent to the NEW email address. Only links
+    the new email as an alias of the requesting account once the
+    token itself is confirmed valid, unused, and not expired, which is
+    proof whoever clicked actually controls that inbox.
+
+    The UPDATE ... RETURNING marks the token used atomically with the
+    validity check, so two near-simultaneous clicks on the same link
+    can't both succeed. The alias INSERT's own ON CONFLICT DO NOTHING
+    + RETURNING covers the rarer race of two different accounts
+    requesting the same new_email concurrently -- whichever gets
+    confirmed first wins, the second reports failure instead of
+    silently doing nothing.
+
+    Returns (True, the newly-linked email) on success, or (False, a
+    user-facing explanation) otherwise.
+    """
+    conn = _get_conn()
+    with conn.session as session:
+        result = session.execute(text("""
+            UPDATE email_change_requests
+            SET used_at = NOW()
+            WHERE token = :token AND used_at IS NULL AND expires_at > NOW()
+            RETURNING primary_email, new_email
+        """), {"token": token})
+        row = result.fetchone()
+        if row is None:
+            check = session.execute(text(
+                "SELECT used_at FROM email_change_requests WHERE token = :token"
+            ), {"token": token}).fetchone()
+            session.commit()
+            if check is None:
+                return False, "This confirmation link isn't valid."
+            elif check[0] is not None:
+                return False, "This confirmation link has already been used."
+            else:
+                return False, "This confirmation link has expired — request a new one from My Account."
+
+        primary_email, new_email = row[0], row[1]
+        insert_result = session.execute(text("""
+            INSERT INTO account_email_aliases (alias_email, primary_email)
+            VALUES (:alias_email, :primary_email)
+            ON CONFLICT (alias_email) DO NOTHING
+            RETURNING alias_email
+        """), {"alias_email": new_email, "primary_email": primary_email})
+        inserted = insert_result.fetchone()
+        session.commit()
+        if inserted is None:
+            return False, (
+                "That email was already linked to a different account "
+                "in the meantime — contact support if this seems wrong."
+            )
+        return True, new_email
