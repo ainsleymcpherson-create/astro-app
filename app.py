@@ -239,7 +239,14 @@ finally:
                     user_email = st.session_state["_cached_user_email"]
 
                 if user_email:
-                    st.caption(f"Signed in as {user_email}")
+                    st.caption("Signed in as")
+                    # st.page_link rather than plain text -- Streamlit's
+                    # markdown renderer auto-links bare email addresses
+                    # into "mailto:" links, which would pop open the
+                    # user's email client instead of doing anything
+                    # useful here. This makes the email itself a real
+                    # in-app navigation link to My Account instead.
+                    st.page_link("my_account_page.py", label=user_email)
                 else:
                     st.caption("Signed in")
                 if st.button("Log out", width="stretch"):
