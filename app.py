@@ -61,6 +61,61 @@ if "manage" in st.query_params and "DATABASE_URL" in os.environ:
     else:
         st.info("That management link has already been used or is no longer valid.")
 
+# --- Claim a $3 reading unlock chosen for in-app delivery ---
+# Stripe's success_url redirect is NEVER trusted on its own to grant
+# anything -- same rule the webhook itself follows (see
+# email_worker/app.py's stripe_webhook docstring). This block
+# re-verifies the payment directly against Stripe's API using the
+# Checkout Session ID before it stores anything in session_state or
+# hands control to a reading page, so a forged or guessed query
+# param can't grant a free reading.
+if "unlock_session_id" in st.query_params and "STRIPE_SECRET_KEY" in os.environ:
+    _unlock_session_id = st.query_params["unlock_session_id"]
+    del st.query_params["unlock_session_id"]
+    # Session-scoped, not a database record -- good enough to stop the
+    # obvious "hit refresh/back and claim it twice" case within one
+    # browser session without needing new persistent storage for a $3
+    # product. It does not stop the link being reused from a different
+    # browser/session; that's an accepted tradeoff at this price point.
+    _claimed_ids = st.session_state.setdefault("_claimed_unlock_session_ids", set())
+    if _unlock_session_id in _claimed_ids:
+        st.info("That reading has already been generated. Check the "
+                "page you were on, or your email if you chose that "
+                "delivery option instead.")
+    else:
+        try:
+            import stripe
+            stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
+            _checkout_session = stripe.checkout.Session.retrieve(_unlock_session_id)
+        except Exception as e:
+            _checkout_session = None
+            st.error(f"Couldn't verify that payment ({type(e).__name__}: {e}). "
+                      "If you were just charged, contact support and we'll sort it out.")
+        if _checkout_session is not None:
+            _metadata = _checkout_session.get("metadata") or {}
+            _paid = _checkout_session.get("payment_status") == "paid"
+            _is_unlock = _metadata.get("product_type") == "reading_unlock"
+            _is_in_app = _metadata.get("delivery") == "in_app"
+            if not (_paid and _is_unlock and _is_in_app):
+                # Covers: payment didn't actually complete, this session
+                # ID belongs to a different product, or the person chose
+                # email delivery (in which case there's nothing to claim
+                # here -- the webhook already handles it separately).
+                st.info("Nothing to claim here. If you chose email "
+                        "delivery, check your inbox in a few minutes.")
+            else:
+                _claimed_ids.add(_unlock_session_id)
+                _reading_type = _metadata.get("reading_type", "General")
+                _target_page = {
+                    "General": "personal_readings_page.py",
+                    "Career / Work": "personal_readings_page.py",
+                    "Professional Synastry": "synastry_readings_page.py",
+                    "Relationship Synastry": "synastry_readings_page.py",
+                    "Parent/Child Synastry": "synastry_readings_page.py",
+                }.get(_reading_type, "deep_dive_readings_page.py")
+                st.session_state["_unlock_claim"] = dict(_metadata)
+                st.switch_page(_target_page)
+
 # Narrow the sidebar and style the signature arc divider.
 st.markdown(
     """
