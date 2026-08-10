@@ -277,22 +277,21 @@ BIRTH TIME STATUS: {birth_time_status}
 {naming_note}
 Structure your answer as follows:
 
-First, a **Summary** of the working dynamic — exactly that bolded \
-label, then 2-4 plain-language sentences, purely from a professional \
-perspective, no astrology in it. Head this "## Overview".
+Open with 2-4 plain-language sentences on the working dynamic, purely \
+from a professional perspective, no astrology in it. Head this "## Overview".
 
 Then, for EACH of these two sections — Detail: Person A, and Detail: \
 Person B — format its heading as a markdown H2 heading exactly \
 matching that name (substituting the person's actual name if provided, \
-e.g. "## Detail: Maria"), then write ONLY a **Summary:** block: 2-4 \
-plain-language sentences focused on THAT person as a professional, \
-with at most a brief reference to the other person. Do NOT write \
-"Working Implications," "Advice," or "Astrological Basis" — summary \
-only.
+e.g. "## Detail: Maria"), then write ONLY 2-4 plain-language sentences \
+focused on THAT person as a professional, with at most a brief \
+reference to the other person. Do NOT write "Working Implications," \
+"Advice," or "Astrological Basis" sections, and do NOT label the \
+paragraph "Summary" — the whole reading is already a summary, so that \
+label would be redundant on every section.
 
-End with a **Summary** for the Conclusion — 2-4 sentences bringing \
-the two together: how they mesh, and the main friction point worth \
-both people's attention.
+End with a 2-4 sentence Conclusion bringing the two together: how \
+they mesh, and the main friction point worth both people's attention.
 
 General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
@@ -676,19 +675,19 @@ BIRTH TIME STATUS: {birth_time_status}
 {naming_note}{relationship_stage_guidance}
 Structure your answer as follows:
 
-First, a **Summary** of the connection between these two people — \
-exactly that bolded label, then 2-4 plain-language sentences. Head \
-this "## Overview".
+Open with 2-4 plain-language sentences on the connection between \
+these two people. Head this "## Overview".
 
 Then, for EACH of these five sections — Emotional Connection, \
 Attraction & Chemistry, Communication & Daily Connection, Values, \
 Commitment & Long-Term Potential, Friction Points To Navigate — \
 format its heading as a markdown H2 heading exactly matching that \
-name, then write ONLY a **Summary:** block: 2-4 plain-language \
-sentences. Do NOT write "What This Means," "Advice," or "Astrological \
-Basis" — summary only.
+name, then write ONLY 2-4 plain-language sentences. Do NOT write \
+"What This Means," "Advice," or "Astrological Basis" sections, and \
+do NOT label the paragraph "Summary" — the whole reading is already \
+a summary, so that label would be redundant on every section.
 
-End with a **Summary** for the Conclusion — 2-4 sentences.
+End with a 2-4 sentence Conclusion.
 
 General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
@@ -1092,19 +1091,19 @@ BIRTH TIME STATUS: {birth_time_status}
 {naming_note}
 Structure your answer as follows:
 
-First, a **Summary** of the bond between this parent and child —
-exactly that bolded label, then 2-4 plain-language sentences. Head
-this "## Overview".
+Open with 2-4 plain-language sentences on the bond between this
+parent and child. Head this "## Overview".
 
 Then, for EACH of these five sections — Emotional Attunement & Nurture,
 Communication & Understanding, Encouragement, Identity & Being Seen,
 Structure, Discipline & Authority, Friction Points & Growth Areas —
 format its heading as a markdown H2 heading exactly matching that
-name, then write ONLY a **Summary:** block: 2-4 plain-language
-sentences. Do NOT write "What This Means," "Advice," or "Astrological
-Basis" — summary only.
+name, then write ONLY 2-4 plain-language sentences. Do NOT write
+"What This Means," "Advice," or "Astrological Basis" sections, and
+do NOT label the paragraph "Summary" — the whole reading is already
+a summary, so that label would be redundant on every section.
 
-End with a **Summary** for the Conclusion — 2-4 sentences.
+End with a 2-4 sentence Conclusion.
 
 General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
