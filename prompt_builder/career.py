@@ -33,12 +33,11 @@ the 2nd house (what you're compensated for, material self-worth), the \
 Midheaven itself, and the planets Sun, Saturn, Mars, Mercury, and Venus \
 (identity, discipline/structure, drive and assertion, communication and \
 thinking style, and relational/diplomatic style, respectively). Weight \
-these more heavily than you would in a general reading — but don't \
-ignore other placements if they genuinely bear on work (a Grand Trine \
-touching the Midheaven, a Yod apex sitting in the 6th house, Chiron in \
-a career-relevant house, etc. all still matter here). That being said, \
-take a look at the entire chart and look for areas that may not be in \
-the traditional work-relevant signals.
+these more heavily than you would in a general reading, but don't \
+ignore other placements that genuinely bear on work — a Grand Trine \
+touching the Midheaven, a Yod apex in the 6th house, Chiron in a \
+career-relevant house — and stay open to signal elsewhere in the chart \
+too.
 
 Structure your answer as follows:
 
@@ -84,31 +83,23 @@ hours, or do they prefer to keep their work and home life separate?
 
 HAPPINESS AT WORK — What genuinely brings this person fulfillment or \
 satisfaction in a work context, and what's likely to frustrate or drain \
-them? Ground this in specific chart placements (but provide a \
-description with limited astrological jargon) rather than generic "you \
-like variety" statements. Include a focus on the houses that deal with \
-career, even if they are empty. Include any other positive aspects that \
-would contribute to a happy work environment. Also include details \
-about the type of workplace that a person would be most interested in \
-(do they like to be on their feet all day, on the move, stationary, do \
-they prefer a solitary environment or something more social)? Ground \
-this in helping the person identify what makes them truly happy in a \
-professional context. Include the 5th house, as this can indicate what \
-makes a person truly happy or where their creativity would be best \
-focused.
+them? Ground this in specific chart placements (with limited \
+astrological jargon) rather than generic "you like variety" statements \
+— including the houses that deal with career (even if empty) and the \
+5th house, which can point to what makes them truly happy or where \
+their creativity is best focused. Also cover the type of workplace \
+they'd be most drawn to: on their feet all day vs. stationary, \
+solitary vs. social.
 
-WORK CULTURE AND STYLE: How does this person show up for work? Do they \
-prefer remote work or in-office interaction? Draw on the 6th house \
-(daily work relationships), Mercury (communication style), Venus \
-(relational/diplomatic approach), Mars (how they handle disagreement or \
-assertion), and the Moon (emotional needs in a working relationship) as \
-relevant. Do they leave things to the last minute or do they structure \
-their delivery over time? Include anything else about what type of \
-environment they prefer and what they do not prefer. Include a special \
-focus on the 3rd, 6th, 10th and 11th houses. How does this person \
-actually approach getting things done — pace, structure, flexibility, \
-independent, collaborative? Are they likely to follow through or are \
-they more scattered? Also consider: Mars, Saturn, Mercury, 6th house.
+WORK CULTURE AND STYLE: How does this person show up for work — remote \
+or in-office, last-minute or structured over time, independent or \
+collaborative, likely to follow through or more scattered? Draw on the \
+3rd, 6th, 10th, and 11th houses, plus Mercury (communication style), \
+Venus (relational/diplomatic approach), Mars (how they handle \
+disagreement or assertion), Saturn (structure and follow-through), and \
+the Moon (emotional needs in a working relationship) as relevant. \
+Include anything else about what environment they prefer and what they \
+do not.
 
 PROFESSIONAL GROWTH TRAJECTORY: what does this person's chart say about \
 where their career might be going? Are they going to struggle through a \
@@ -138,15 +129,9 @@ section headers, not for these bookending pieces.
 Professional Growth Trajectory), OPEN EACH SECTION with 1-2 sentences \
 of brief plain-language prose summarizing the main takeaway of that \
 section — no bolding, no chunking, just a short lead-in sentence or \
-two, similar in style to the Overview. THEN, after that brief summary, \
-follow with the three-part structure below. Every one of the six \
-sections should have this same shape: short prose summary first, then \
-chunked detail.
-- FOR THE SIX SECTION HEADERS ONLY (Professional Strengths through \
-Professional Growth Trajectory), USE A THREE-PART FORMAT AT THE \
-SECTION LEVEL, not per individual claim. Structure the detail AFTER \
-the brief summary above as exactly three consolidated parts, IN THIS \
-ORDER:
+two, similar in style to the Overview. THEN follow with a three-part \
+format AT THE SECTION LEVEL (not per individual claim), as exactly \
+three consolidated parts, IN THIS ORDER:
     **Career Implications:** Written FIRST. Do NOT write this as one \
     dense paragraph — break it into 2-4 short, scannable chunks, each \
     just 1-3 sentences, using either short bullet points or brief bolded \
