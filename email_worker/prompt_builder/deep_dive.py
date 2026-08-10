@@ -15,6 +15,7 @@ from house_interpretation import HouseReading
 from .shared import (
     build_data_block, _single_person_naming_note,
     _reference_context_block, _build_retrieval_query,
+    PROMPT_CACHE_SPLIT_MARKER,
 )
 
 # ---------------------------------------------------------------------------
@@ -38,7 +39,7 @@ on her sign (the FLAVOR raw instinct takes), her house (WHERE in life
 it gets stirred up or needs to be owned), and her aspects (which other
 parts of the personality get tangled up with this instinct — smoothly
 or with friction).
-{naming_note}
+
 Structure your answer as follows:
 
 ## Overview
@@ -136,6 +137,7 @@ the SPECIFIC combination of sign, house, and aspects given below —
 never a generic "Lilith means repressed desire" gloss with nothing
 chart-specific attached to it.
 
+{cache_marker}{naming_note}
 Here is the full computed chart data — pay closest attention to \
 Lilith's own entry and any aspect lines involving her, with the rest \
 provided as supporting context:
@@ -166,6 +168,7 @@ def build_lilith_deep_dive_prompt(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -179,7 +182,7 @@ rather than owned. This is NOT a whole-chart reading — focus entirely
 on Lilith; every other placement is supporting context only.
 
 Lilith has NO traditional dignity status — never invent one.
-{naming_note}
+
 Structure your answer as follows:
 
 Open with 2-4 plain-language sentences on this person's Lilith
@@ -221,6 +224,7 @@ case study.
 person understand and reclaim it, don't reinforce shame.
 - Be SELECTIVE — cover what matters most.
 
+{cache_marker}{naming_note}
 Here is the full computed chart data — pay closest attention to
 Lilith's own entry and any aspect lines involving her:
 {reference_block}
@@ -250,6 +254,7 @@ def build_lilith_deep_dive_summary_only_prompt(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -275,7 +280,7 @@ as a concept doesn't apply to it) — never invent one. Focus instead on
 its sign (the FLAVOR the wound takes), its house (WHERE in life it's
 most active), and its aspects (which other parts of the personality
 get tangled up with this wound — smoothly or with friction).
-{naming_note}
+
 Structure your answer as follows:
 
 ## Overview
@@ -373,6 +378,7 @@ the SPECIFIC combination of sign, house, and aspects given below —
 never a generic "Chiron means a core wound" gloss with nothing
 chart-specific attached to it.
 
+{cache_marker}{naming_note}
 Here is the full computed chart data — pay closest attention to \
 Chiron's own entry and any aspect lines involving it, with the rest \
 provided as supporting context:
@@ -403,6 +409,7 @@ def build_chiron_deep_dive_prompt(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -415,7 +422,7 @@ reading — focus entirely on Chiron; every other placement is
 supporting context only.
 
 Chiron has NO traditional dignity status — never invent one.
-{naming_note}
+
 Structure your answer as follows:
 
 Open with 2-4 plain-language sentences on this person's Chiron
@@ -457,6 +464,7 @@ case study.
 flaw or pathology.
 - Be SELECTIVE — cover what matters most.
 
+{cache_marker}{naming_note}
 Here is the full computed chart data — pay closest attention to
 Chiron's own entry and any aspect lines involving it:
 {reference_block}
@@ -486,6 +494,7 @@ def build_chiron_deep_dive_summary_only_prompt(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -518,7 +527,7 @@ the growth direction), its houses (WHERE in life this pull between old
 patterns and new growth plays out), and its aspects (which other parts
 of the personality reinforce the pull toward comfort, and which
 support movement toward growth).
-{naming_note}
+
 Structure your answer as follows:
 
 ## Overview
@@ -624,6 +633,7 @@ the SPECIFIC combination of signs, houses, and aspects given below —
 never a generic "the Nodes mean growth" gloss with nothing
 chart-specific attached to it.
 
+{cache_marker}{naming_note}
 Here is the full computed chart data — pay closest attention to the \
 North Node and South Node entries and any aspect lines involving \
 either of them, with the rest provided as supporting context:
@@ -655,6 +665,7 @@ def build_lunar_nodes_deep_dive_prompt(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -671,7 +682,7 @@ comfort (South Node) and growth (North Node) together, not as two
 separate points.
 
 The Nodes have NO traditional dignity status — never invent one.
-{naming_note}
+
 Structure your answer as follows:
 
 Open with 2-4 plain-language sentences on this person's nodal axis
@@ -713,6 +724,7 @@ case study.
 not a flaw.
 - Be SELECTIVE — cover what matters most.
 
+{cache_marker}{naming_note}
 Here is the full computed chart data — pay closest attention to the
 North Node and South Node entries and any aspect lines involving
 either of them:
@@ -743,6 +755,7 @@ def build_lunar_nodes_deep_dive_summary_only_prompt(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -758,8 +771,6 @@ the point here — the client's actual question is. Don't produce a
 general overview of their chart with the question loosely attached;
 every part of your answer should be in direct service of actually
 answering what they asked.
-{naming_note}
-Their question: "{question}"
 
 Structure your answer as follows:
 
@@ -825,6 +836,9 @@ saying what isn't.
 - ONE NEW PLACEMENT PER SENTENCE, same as every other reading here — \
 don't chain several placements into one sentence with "and" or a comma.
 
+{cache_marker}{naming_note}
+Their question: "{question}"
+
 Here is the full computed chart data — draw only on what's actually \
 relevant to their question, treating the rest as available context:
 {reference_block}
@@ -858,4 +872,5 @@ def build_ask_an_astrologer_prompt(
         naming_note=_single_person_naming_note(person_name),
         question=question.strip(),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
