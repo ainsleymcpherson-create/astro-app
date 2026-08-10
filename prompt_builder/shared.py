@@ -21,6 +21,48 @@ from retrieval import load_reference_data, retrieve, format_context_block
 
 
 # ---------------------------------------------------------------------------
+# Prompt caching split point — every *_INSTRUCTIONS template in this
+# package ends its static, byte-identical-across-calls instructional
+# content with this literal marker, followed by the per-request dynamic
+# content (naming note, age/relationship-stage/theme guidance, RAG
+# reference block, and the computed chart data block itself). Callers
+# split on it to build a cache_control-eligible content block for the
+# static prefix and a never-cached block for the dynamic suffix, rather
+# than sending the whole prompt as one un-cacheable string.
+# ---------------------------------------------------------------------------
+
+PROMPT_CACHE_SPLIT_MARKER = "\n\n<<<PROMPT_CACHE_SPLIT>>>\n\n"
+
+
+def split_prompt_for_caching(full_prompt: str) -> tuple[str, str]:
+    """
+    Splits a built prompt into (static_prefix, dynamic_suffix) at the
+    PROMPT_CACHE_SPLIT_MARKER inserted by each *_INSTRUCTIONS template.
+
+    static_prefix is safe to send as a cache_control-marked content
+    block -- it's identical across every call for a given reading
+    type/variant. dynamic_suffix carries this specific request's
+    name/age/chart data and must never be cached.
+
+    Falls back to (full_prompt, "") if the marker is missing for any
+    reason, so a caching bug degrades to "no caching" rather than a
+    broken or truncated prompt.
+    """
+    if PROMPT_CACHE_SPLIT_MARKER not in full_prompt:
+        return full_prompt, ""
+    static_prefix, dynamic_suffix = full_prompt.split(PROMPT_CACHE_SPLIT_MARKER, 1)
+    return static_prefix, dynamic_suffix
+
+
+def strip_cache_marker(full_prompt: str) -> str:
+    """Removes the cache-split marker for human-facing display (e.g.
+    the "Full prompt" debug view), so users don't see an internal
+    implementation detail in what's meant to look like the literal
+    prompt sent to Claude."""
+    return full_prompt.replace(PROMPT_CACHE_SPLIT_MARKER, "\n\n")
+
+
+# ---------------------------------------------------------------------------
 # RAG helpers — loads precomputed reference embeddings once, retrieves
 # relevant chunks at prompt-build time, and formats them for injection.
 # ---------------------------------------------------------------------------
