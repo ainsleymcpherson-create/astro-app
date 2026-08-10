@@ -298,21 +298,21 @@ mathematically precise.
 {naming_note}
 Structure your answer as follows:
 
-First, a **Summary** of the whole chart's career implications — \
-exactly that bolded label, then 2-4 plain-language sentences \
-distilling the single most important career-relevant takeaway. Must \
-be specific to THIS chart, not a generic truth. Head this "## Overview".
+Open with 2-4 plain-language sentences distilling the single most \
+important career-relevant takeaway. Must be specific to THIS chart, \
+not a generic truth. Head this "## Overview".
 
 Then, for EACH of these six sections — Professional Strengths, \
 Professional Watch Areas, Professional Communication Style, Happiness \
 At Work, Work Culture And Style, Professional Growth Trajectory — \
 format its heading as a markdown H2 heading exactly matching that \
-name, then write ONLY a **Summary:** block: 2-4 plain-language \
-sentences distilling that section's real takeaway. Do NOT write \
-"Career Implications" or "Astrological Basis" sections — summary only.
+name, then write ONLY 2-4 plain-language sentences distilling that \
+section's real takeaway. Do NOT write "Career Implications" or \
+"Astrological Basis" sections, and do NOT label the paragraph \
+"Summary" — the whole reading is already a summary, so that label \
+would be redundant on every section.
 
-End with a **Summary** for the Conclusion — 2-4 sentences. Head this \
-"## Conclusion".
+End with a 2-4 sentence Conclusion. Head this "## Conclusion".
 
 General guidelines:
 - EVERY section is Summary-only — one tight paragraph per section, no \
@@ -598,22 +598,21 @@ planet-to-planet aspects.
 {naming_note}
 Structure your answer as follows:
 
-First, a **Summary** of the whole chart's career implications — \
-exactly that bolded label, then 2-4 plain-language sentences. Head \
-this "## Overview".
+Open with 2-4 plain-language sentences distilling the single most \
+important career-relevant takeaway. Head this "## Overview".
 
 Then, for EACH of these six sections — Professional Strengths, \
 Professional Watch Areas, Professional Communication Style, Happiness \
 At Work, Work Culture And Style, Professional Growth Trajectory — \
 format its heading as a markdown H2 heading exactly matching that \
-name, then write ONLY a **Summary:** block: 2-4 plain-language \
-sentences. Do NOT write "Career Implications" or "Astrological Basis" \
-— summary only. If a section would normally lean heavily on houses \
-(e.g. daily work routines), reframe it around planets and dignity \
-instead of skipping it.
+name, then write ONLY 2-4 plain-language sentences. Do NOT write \
+"Career Implications" or "Astrological Basis" sections, and do NOT \
+label the paragraph "Summary" — the whole reading is already a \
+summary, so that label would be redundant on every section. If a \
+section would normally lean heavily on houses (e.g. daily work \
+routines), reframe it around planets and dignity instead of skipping it.
 
-End with a **Summary** for the Conclusion — 2-4 sentences. Head this \
-"## Conclusion".
+End with a 2-4 sentence Conclusion. Head this "## Conclusion".
 
 General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
