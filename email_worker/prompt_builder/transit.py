@@ -54,11 +54,11 @@ with plain meaning, technical term in parentheses: "your public \
 direction (transiting Saturn)."
 
 Then, identify the 2-4 most significant currently-active transits or \
-transit-driven themes (prioritize tighter orbs and applying transits, \
-which are more currently relevant than wide or separating ones — and \
-weight transits involving slower planets like Jupiter/Saturn/Uranus/ \
-Neptune/Pluto as generally longer-lasting and more significant than \
-fast-moving ones like the Moon, unless a fast transit is unusually \
+transit-driven themes (prioritize tight, applying transits — still \
+building toward exact, not yet separating — over wide or separating \
+ones, and weight transits involving slower planets like Jupiter/Saturn/ \
+Uranus/Neptune/Pluto as generally longer-lasting and more significant \
+than fast-moving ones like the Moon, unless a fast transit is unusually \
 exact). Format each theme's heading as a markdown H2 heading — exactly \
 "## Theme Name" — since the app displaying this reading relies on that \
 exact format to build a collapsible view. Then follow the three-part \
@@ -146,10 +146,6 @@ technical term and gloss it clearly and separately, or translate it \
 fully into plain language, never both mashed together. USE ONLY THE \
 DIGNITY STATUS ACTUALLY GIVEN IN THE DATA — a placement has exactly \
 one dignity status, never describe it as two at once.
-- PRIORITIZE TIGHT AND APPLYING TRANSITS. A transit that's applying \
-(still building toward exact) and has a small orb is far more currently \
-relevant than one that's wide or separating — lead with what matters \
-most right now.
 - AVOID A MYSTICAL OR ESOTERIC TONE. Write the way a sharp, grounded \
 psychologist or coach would describe what's currently going on for \
 someone — concrete, specific, relatable — not the way a fortune teller \
@@ -157,9 +153,9 @@ would. Avoid language like "the universe is calling you toward..." or \
 "cosmic energy."
 - Avoid generic, could-apply-to-anyone language. Ground every claim in \
 the SPECIFIC transits you're given, not stock keyword associations.
-- Don't manufacture drama. If the current transits are genuinely mild, \
-say so — a quiet, low-key period is a legitimate and useful finding, \
-not a failure to find something interesting.
+- Don't manufacture drama in a genuinely mild period — as noted above, \
+a quiet period is a legitimate finding, not a failure to find something \
+interesting.
 
 Here is the full computed transit data:
 {reference_block}
