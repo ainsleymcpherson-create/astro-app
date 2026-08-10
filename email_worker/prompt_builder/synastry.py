@@ -103,15 +103,13 @@ REQUIRED, not optional.
 
 General guidelines:
 - OVERVIEW AND CONCLUSION: plain flowing prose only — no chunking, no
-bolded sub-labels, no bullets.
-- TONE AND LANGUAGE IN THE OVERVIEW, CONCLUSION, AND EVERY "WORKING
-IMPLICATIONS" BLOCK (this does NOT apply to "Astrological Basis"
-sections, which intentionally do contain astrology — see below): do
-not include astrological descriptions here at all. Keep this content
-to what you've determined from the reading, stated in plain business
-terms. Use the astrology to arrive at your interpretation, but don't
-surface the astrology itself anywhere outside the dedicated
-Astrological Basis sections.
+bolded sub-labels, no bullets. This, and every "Working Implications"
+block, must also stay free of astrological descriptions entirely (this
+does NOT apply to "Astrological Basis" sections, which intentionally do
+contain astrology). Keep this content to what you've determined from
+the reading, stated in plain business terms. Use the astrology to
+arrive at your interpretation, but don't surface the astrology itself
+anywhere outside the dedicated Astrological Basis sections.
 - EACH OF THE TWO DETAIL SECTIONS: open with 1-2 plain-language
 sentences summarizing that person's professional character. Then a
 three-part structure, IN ORDER:
@@ -414,35 +412,31 @@ HOW TO WEIGH AND SYNTHESIZE THE DATA — these method rules govern how
 you read everything below, and they matter as much as what you say:
 - READ EACH PERSON'S NATAL BASELINE FIRST. Before interpreting any
 cross-chart contact, check how that planet operates natally for its
-owner — its dignity and its own-chart condition are the context that
-determines how the contact actually lands. You cannot accurately read
-how one partner's Mars triggers the other person without knowing how
-that person handles their own natal Mars: a partner's Saturn pressing
-on a dignified, well-supported Moon lands as steadying; the same
-contact to a Moon in Detriment can land as criticism that confirms an
-existing wound. Use both people's dignity data this way throughout —
-as the baseline each cross-contact filters through, not just as
-standalone facts.
+owner — its dignity and own-chart condition are the context that
+determines how the contact lands. A partner's Saturn pressing on a
+dignified, well-supported Moon lands as steadying; the same contact to
+a Moon in Detriment can land as criticism that confirms an existing
+wound. Use both people's dignity data this way throughout — as the
+baseline each cross-contact filters through, not just standalone facts.
 - USE HOUSE OVERLAYS AS THE "WHERE." Overlays — whose planets fall
 into which houses of the other person's chart — show the practical,
-everyday arenas where a dynamic actually plays out: home, career,
-intimacy, shared resources. When you name a cross-contact, use the
-overlay data to say WHERE in the couple's real life it shows up, not
-just what it feels like in the abstract.
-- WEIGHT HIERARCHICALLY. The personal planets (Sun, Moon, Mercury,
-Venus, Mars) and the angles (Ascendant, Descendant, Midheaven, IC)
-are the primary drivers of daily chemistry, mutual understanding, and
-emotional resonance — center the reading on contacts involving them.
-Treat the outer planets (Jupiter, Saturn, Uranus, Neptune, Pluto) as
-structural containers and longer-arc backdrop: real, but secondary —
-UNLESS an outer planet tightly contacts a personal planet or angle,
-which promotes that specific contact to primary significance.
-- WEIGHT TIGHT ORBS HEAVILY. The orb and tightness data provided
-below is real signal — an essentially exact contact to a personal
-point carries far more lived, day-to-day weight than a wide one.
-Prioritize the tightest contacts when deciding what the reading is
-actually about; mention wide contacts only when they reinforce a
-theme the tight ones establish.
+everyday arenas where a dynamic plays out: home, career, intimacy,
+shared resources. When you name a cross-contact, use the overlay data
+to say WHERE in the couple's real life it shows up, not just what it
+feels like in the abstract.
+- WEIGHT HIERARCHICALLY, AND WEIGHT TIGHT ORBS HEAVILY. The personal
+planets (Sun, Moon, Mercury, Venus, Mars) and the angles (Ascendant,
+Descendant, Midheaven, IC) are the primary drivers of daily chemistry,
+mutual understanding, and emotional resonance — center the reading on
+contacts involving them. Treat outer planets (Jupiter, Saturn, Uranus,
+Neptune, Pluto) as structural containers and longer-arc backdrop: real,
+but secondary — unless one tightly contacts a personal planet or
+angle, which promotes that specific contact to primary significance.
+Within that, the orb/tightness data is real signal too — an
+essentially exact contact to a personal point carries far more
+day-to-day weight than a wide one. Prioritize the tightest contacts
+when deciding what the reading is actually about; mention wide
+contacts only when they reinforce a theme the tight ones establish.
 - LOOK BEYOND "GOOD" VS. "BAD" ASPECTS. Hard aspects (squares,
 oppositions, difficult conjunctions) create friction — but friction
 is also what maintains growth, passion, and resilience over time.
@@ -554,13 +548,8 @@ angle (sesquiquadrate) to Hoss's own warmth (Venus) — a small, nagging \
 friction around what each of them actually finds lovable, easy to miss \
 day-to-day but real. On top of that, A's Venus is also square Hoss's \
 emotional instincts (the Moon), meaning attraction and comfort don't \
-always arrive together for these two." Other BAD example: "Drive \
-(Mars) is in its weakest dignity (detriment) in diplomatic Libra, \
-sitting in the 6th house and square both the 3rd and 9th houses." \
-GOOD: "Your drive (Mars) sits in Libra. That's its weakest placement. \
-It lands in your 6th house of daily work and health. From there it's \
-at odds with your 3rd house of everyday communication." If a sentence \
-contains more than one astrological object, break it.
+always arrive together for these two." If a sentence contains more \
+than one astrological object, break it.
 - GLOSS EVERY ASPECT NAME TOO, NOT JUST EVERY POINT. The inverted-form \
 rule above covers planets and points ("Person A's warmth (Venus)"), \
 but the SAME requirement applies to aspect words themselves — square, \
@@ -572,9 +561,8 @@ quincunx, quintile) — these are exactly the ones most likely to get \
 dropped ungapped, since they don't have obvious everyday meaning the \
 way "square" or "trine" might. Never let an aspect name sit in a \
 sentence with zero indication of what kind of connection it actually \
-is. Examples: "a minor, irritation-prone angle (sesquiquadrate)," "a \
-rarer, talent-like spark (quintile)," "an awkward, adjustment-demanding \
-pull (quincunx)," "a low-grade friction (semisquare)."
+is. Examples: "a minor, irritation-prone angle (sesquiquadrate)," "an \
+awkward, adjustment-demanding pull (quincunx)."
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly. Use
 an occasional adjective triad for tone ("The connection is warm,
 intense, and immediate") — once or twice per section, not more.
@@ -987,31 +975,27 @@ destiny; one of them is raising the other. NEVER use: "fated," "a bond \
 that feels fated," "destiny brought them together," "this pairing," \
 "this union," "this match," "these two souls," "coming together," or \
 any language that frames the relationship as two independent people \
-who encountered each other. BAD (real failure case): "Katie and Soley \
-share a bond that feels genuinely fated... Done with intention, this \
-pairing can become a source of mutual growth." GOOD: "Katie and Soley \
-have an unusually strong communication link for a parent and child — \
-how they talk to each other will shape this relationship more than \
-most. As Soley grows, Katie's steadiest work is staying curious about \
-who her child actually is." Also avoid perfectly SYMMETRIC framing \
-("an identity axis that asks both of them to make room") as the \
-default — the parent and child are not equal parties doing equal \
-work; the parent is raising the child, and the reading's framing \
-should reflect that asymmetry naturally. Also avoid INDIVIDUATION \
-language borrowed from adult-relationship advice — "make room to be \
-himself, separate from her," "space to be their own person," "room to \
-individuate" — this is the vocabulary of two adults navigating \
-codependency, not a parent raising a child. A child naturally \
-differentiating from a parent is normal development, not something \
-requiring "separateness" the way two adults in a relationship might. \
-BAD (real failure case): "This is a relationship built for deep \
-loyalty, but Debbie will need to consciously make room for Sean to be \
-himself, separate from her." GOOD: "This bond runs deep, and the real \
-work ahead is developmental: as Sean grows, Debbie's task is to keep \
-making room for who he's becoming, rather than letting her own \
-expectations define him." Correct vocabulary for this \
-reading: "bond," "relationship," "family," "raising," "growing up," \
-"as [child] grows," "between parent and child."
+who encountered each other. Also avoid perfectly SYMMETRIC framing \
+("an identity axis that asks both of them to make room") — the parent \
+and child are not equal parties doing equal work; the parent is \
+raising the child, and the framing should reflect that asymmetry \
+naturally. Also avoid INDIVIDUATION language borrowed from \
+adult-relationship advice — "make room to be himself, separate from \
+her," "space to be their own person," "room to individuate" — this is \
+the vocabulary of two adults navigating codependency, not a parent \
+raising a child; a child naturally differentiating from a parent is \
+normal development, not something requiring "separateness" the way two \
+adults in a relationship might. BAD (real failure case, combining both \
+mistakes): "Katie and Soley share a bond that feels genuinely fated... \
+this pairing can become a source of mutual growth, but Katie will need \
+to make room for Soley to be himself, separate from her." GOOD: "Katie \
+and Soley have an unusually strong communication link for a parent and \
+child — how they talk to each other will shape this relationship more \
+than most. As Soley grows, Katie's steadiest work is staying curious \
+about who her child actually is, rather than letting her own \
+expectations define him." Correct vocabulary for this reading: "bond," \
+"relationship," "family," "raising," "growing up," "as [child] grows," \
+"between parent and child."
 - DIGNITY IS REAL WEIGHTING for both charts. NEVER GLUE A RAW \
 DIGNITY WORD ONTO A VAGUE QUALITY PHRASE — "sits exalted in \
 confidence" is a real failure case: name the technical term and gloss \
