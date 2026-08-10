@@ -61,6 +61,8 @@ from prompt_builder import (
     build_relationship_synastry_summary_only_prompt,
     build_parent_child_synastry_prompt,
     build_parent_child_synastry_summary_only_prompt,
+    split_prompt_for_caching,
+    strip_cache_marker,
 )
 from birth_input import resolve_birth_data, geocode_location_quick
 from profiles_db import safe_user_email
@@ -163,6 +165,20 @@ def _generate_reading_live(api_prompt: str, max_tokens: int = 32000) -> tuple[st
             "prompt below is still available to copy manually."
         )
 
+    # Split into a static, cache_control-eligible prefix (the bulk of
+    # the instructional template, identical across every call for this
+    # reading type/variant) and a dynamic suffix (this person's name,
+    # age, and computed chart data) -- computed once, outside the retry
+    # loop, since it's the same on every attempt. See
+    # prompt_builder.shared.split_prompt_for_caching for the split
+    # rules and the fallback if the marker is ever missing.
+    static_prefix, dynamic_suffix = split_prompt_for_caching(api_prompt)
+    message_content = [
+        {"type": "text", "text": static_prefix, "cache_control": {"type": "ephemeral"}},
+    ]
+    if dynamic_suffix:
+        message_content.append({"type": "text", "text": dynamic_suffix})
+
     max_attempts = 2
     result_text = ""
     stop_reason = None
@@ -201,7 +217,7 @@ def _generate_reading_live(api_prompt: str, max_tokens: int = 32000) -> tuple[st
                 with client.messages.stream(
                     model="claude-sonnet-5",
                     max_tokens=max_tokens,
-                    messages=[{"role": "user", "content": api_prompt}],
+                    messages=[{"role": "user", "content": message_content}],
                 ) as stream:
                     for event in stream:
                         if event.type != "content_block_delta":
@@ -1916,10 +1932,17 @@ if st.session_state.get("results"):
         with tab_map["Prompt"]:
             st.write("Copy this into Claude.ai (or send it via the API yourself) "
                      "to get the full written reading — free, no API call from this app.")
-            st.text_area("Full prompt", value=r["prompt"], height=500, label_visibility="collapsed")
+            # strip_cache_marker: the raw prompt string has an internal
+            # cache-split marker embedded in it (see
+            # prompt_builder.shared.split_prompt_for_caching) that the
+            # actual API call uses to build separate cacheable/dynamic
+            # content blocks. It's meaningless noise to a human copying
+            # this into Claude.ai directly, so strip it for display.
+            _display_prompt = strip_cache_marker(r["prompt"])
+            st.text_area("Full prompt", value=_display_prompt, height=500, label_visibility="collapsed")
             st.download_button(
                 "Download prompt as .txt",
-                data=r["prompt"],
+                data=_display_prompt,
                 file_name="interpretation_prompt.txt",
                 mime="text/plain",
                 width="stretch",
