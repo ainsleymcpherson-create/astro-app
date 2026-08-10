@@ -213,19 +213,19 @@ context.
 {theme_note}
 Structure your answer as follows:
 
-First, a **Summary** of what this current period is broadly about — \
-exactly that bolded label, then 2-4 plain-language sentences. If \
-there are no significant transits right now, say so plainly. Head \
-this "## Overview".
+Open with 2-4 plain-language sentences about what this current period \
+is broadly about. If there are no significant transits right now, \
+say so plainly. Head this "## Overview".
 
 Then, identify the 2-3 most significant currently-active transits or \
 themes. For each, format its heading as a markdown H2 heading — \
-exactly "## Theme Name" — then write ONLY a **Summary:** block: 2-4 \
-plain-language sentences. Do NOT write "What This Means," "Advice," \
-or "Astrological Basis" — summary only.
+exactly "## Theme Name" — then write ONLY 2-4 plain-language \
+sentences. Do NOT write "What This Means," "Advice," or "Astrological \
+Basis" sections, and do NOT label the paragraph "Summary" — the whole \
+reading is already a summary, so that label would be redundant on \
+every section.
 
-End with a **Summary** for the Conclusion — 2-4 sentences. Head this \
-"## Conclusion".
+End with a 2-4 sentence Conclusion. Head this "## Conclusion".
 
 General guidelines:
 - EVERY section is Summary-only — one tight paragraph, no chunking.
