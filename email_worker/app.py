@@ -967,42 +967,66 @@ def stripe_webhook():
                 )
 
             elif product_type == "reading_unlock":
-                # The $3 one-off unlock -- reuses _process_reading_job
-                # wholesale rather than re-implementing chart
-                # computation and prompt dispatch for every reading
-                # type here. That function already handles every
-                # reading type this app supports (Personal, Synastry,
-                # Deep Dive) via its own internal dispatch, since it's
-                # the exact same code path the "Generate Summary and
-                # Email Full Reading" in-app flow already uses.
+                # The $3 one-off unlock. Two delivery paths, chosen by
+                # the person BEFORE paying (stored in metadata, not
+                # decided here): "email" (default -- covers any
+                # in-flight purchases from before "delivery" existed
+                # in metadata) generates and emails the reading right
+                # here, same as always. "in_app" is handled entirely
+                # client-side instead -- the person gets redirected
+                # back to the app after paying, app.py re-verifies the
+                # payment against Stripe's API, and the matching
+                # reading page streams the full reading live on the
+                # page. This webhook has no live connection back to
+                # that browser tab, so for "in_app" there's nothing
+                # for it to generate or send -- it just records the
+                # purchase and gets out of the way.
                 reading_type = metadata.get("reading_type", "General")
-                job = {
-                    "reading_type": reading_type,
-                    "datetime_str": datetime_str,
-                    "location_str": location_str,
-                    "unknown_time": metadata.get("unknown_time") == "true",
-                    "person_name": label,
-                    "email": customer_email,
-                }
-                if reading_type in ("Professional Synastry", "Relationship Synastry", "Parent/Child Synastry"):
-                    _bd_b = datetime.strptime(metadata["birth_date_b"], "%Y-%m-%d")
-                    _bt_b = datetime.strptime(metadata["birth_time_b"], "%H:%M")
-                    job["datetime_str_b"] = f"{_bd_b.strftime('%B %d, %Y')} {_bt_b.strftime('%I:%M %p')}"
-                    job["location_str_b"] = metadata["location_str_b"]
-                    job["unknown_time_b"] = metadata.get("unknown_time_b") == "true"
-                    job["person_name_b"] = metadata.get("label_b")
-                    if metadata.get("relationship_stage"):
-                        job["relationship_stage"] = metadata["relationship_stage"]
+                delivery = metadata.get("delivery", "email")
 
-                success, message = _process_reading_job(job)
-                if success:
+                if delivery == "in_app":
                     _record_purchase_worker(
                         customer_email, "reading_unlock", f"{reading_type} — {label}",
                         300, data_object.get("id"),
                     )
-                    print(f"[email_worker] Reading unlock ({reading_type}) sent to {customer_email}")
+                    print(f"[email_worker] Reading unlock ({reading_type}) chose in-app "
+                          f"delivery -- skipping email, purchase recorded for {customer_email}")
                 else:
-                    print(f"[email_worker] Reading unlock ({reading_type}) FAILED: {message}")
+                    # reuses _process_reading_job wholesale rather than
+                    # re-implementing chart computation and prompt
+                    # dispatch for every reading type here. That
+                    # function already handles every reading type this
+                    # app supports (Personal, Synastry, Deep Dive) via
+                    # its own internal dispatch, since it's the exact
+                    # same code path the "Generate Summary and Email
+                    # Full Reading" in-app flow already uses.
+                    job = {
+                        "reading_type": reading_type,
+                        "datetime_str": datetime_str,
+                        "location_str": location_str,
+                        "unknown_time": metadata.get("unknown_time") == "true",
+                        "person_name": label,
+                        "email": customer_email,
+                    }
+                    if reading_type in ("Professional Synastry", "Relationship Synastry", "Parent/Child Synastry"):
+                        _bd_b = datetime.strptime(metadata["birth_date_b"], "%Y-%m-%d")
+                        _bt_b = datetime.strptime(metadata["birth_time_b"], "%H:%M")
+                        job["datetime_str_b"] = f"{_bd_b.strftime('%B %d, %Y')} {_bt_b.strftime('%I:%M %p')}"
+                        job["location_str_b"] = metadata["location_str_b"]
+                        job["unknown_time_b"] = metadata.get("unknown_time_b") == "true"
+                        job["person_name_b"] = metadata.get("label_b")
+                        if metadata.get("relationship_stage"):
+                            job["relationship_stage"] = metadata["relationship_stage"]
+
+                    success, message = _process_reading_job(job)
+                    if success:
+                        _record_purchase_worker(
+                            customer_email, "reading_unlock", f"{reading_type} — {label}",
+                            300, data_object.get("id"),
+                        )
+                        print(f"[email_worker] Reading unlock ({reading_type}) sent to {customer_email}")
+                    else:
+                        print(f"[email_worker] Reading unlock ({reading_type}) FAILED: {message}")
 
             elif product_type == "full_access_subscription":
                 # Account-level entitlement, not tied to any specific
