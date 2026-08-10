@@ -13,6 +13,7 @@ from dignity import DignityResult
 from .shared import (
     build_synastry_data_block, _relationship_stage_guidance,
     _reference_context_block, _build_synastry_retrieval_query,
+    PROMPT_CACHE_SPLIT_MARKER,
 )
 
 PROFESSIONAL_SYNASTRY_INSTRUCTIONS = """\
@@ -32,7 +33,7 @@ You have both people's computed placements, dignity, and cross-chart
 aspects — mathematically precise. Which placements exist for each
 person depends on birth time — see below.
 
-BIRTH TIME STATUS: {birth_time_status} This affects what's reliable:
+BIRTH TIME STATUS varies by person and affects what's reliable:
 - Unknown birth time excludes that person's Ascendant, Midheaven,
   Descendant, Imum Coeli, houses, Vertex, and Arabic Parts (Part of
   Fortune/Spirit) — all require an exact time. Their planets, Chiron, Lilith,
@@ -42,7 +43,7 @@ BIRTH TIME STATUS: {birth_time_status} This affects what's reliable:
   since these depend only on planetary position, not time-of-day.
 - Note any of this briefly and matter-of-factly in the Overview — not
   as an apology, just accurate scope-setting.
-{naming_note}
+
 Work-relevant signal concentrates in: Sun-Saturn contacts (respect,
 authority, whether one person feels supported or constrained by the
 other), Mercury contacts (communication), Mars-Mars and Mars-Saturn
@@ -207,6 +208,8 @@ away from their usual romantic reading:
 - Ground every claim in the SPECIFIC placements given — no generic,
 could-apply-to-anyone language.
 
+{cache_marker}BIRTH TIME STATUS: {birth_time_status}
+{naming_note}
 Here is the full computed synastry data for both people:
 {reference_block}
 {data_block}
@@ -258,6 +261,7 @@ def build_professional_synastry_prompt(
         naming_note=naming_note,
         data_block=data_block,
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -273,8 +277,6 @@ reading itself. The output should read like a workplace summary, not \
 an astrology reading or a romantic compatibility report — no "chemistry," \
 "attraction," or romantic framing anywhere.
 
-BIRTH TIME STATUS: {birth_time_status}
-{naming_note}
 Structure your answer as follows:
 
 Open with 2-4 plain-language sentences on the working dynamic, purely \
@@ -319,6 +321,8 @@ image shape Sean's sense of self." Two direct statements, no \
 negate-then-correct scaffolding.
 - Be SELECTIVE — cover what matters most.
 
+{cache_marker}BIRTH TIME STATUS: {birth_time_status}
+{naming_note}
 Here is the full computed synastry data for both people:
 {reference_block}
 {data_block}
@@ -363,6 +367,7 @@ def build_professional_synastry_summary_only_prompt(
         naming_note=naming_note,
         data_block=data_block,
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -384,7 +389,7 @@ cross-chart aspects between them (Person A's planets to Person B's
 planets, and vice versa) — all mathematically precise. Which placements
 exist for each person depends on birth time — see below.
 
-BIRTH TIME STATUS: {birth_time_status} This affects what's reliable:
+BIRTH TIME STATUS varies by person and affects what's reliable:
 - Unknown birth time excludes that person's Ascendant, Midheaven,
   Descendant, Imum Coeli, houses, Vertex, and Arabic Parts (Part of
   Fortune/Spirit) — all require an exact time. Their planets, Chiron, Lilith,
@@ -394,7 +399,7 @@ BIRTH TIME STATUS: {birth_time_status} This affects what's reliable:
   since these depend only on planetary position, not time-of-day.
 - Note any of this briefly and matter-of-factly in the Overview — not
   as an apology, just accurate scope-setting.
-{naming_note}{relationship_stage_guidance}
+
 Romantic synastry signal traditionally concentrates in: Venus-Mars
 contacts (attraction and chemistry — the classic romantic signal),
 Moon-Moon and Moon-Venus contacts (emotional safety and how naturally
@@ -602,6 +607,8 @@ Don't hedge away from that framing or redirect it toward a platonic or
 professional angle — direct romantic and emotional language is correct
 and expected throughout.
 
+{cache_marker}BIRTH TIME STATUS: {birth_time_status}
+{naming_note}{relationship_stage_guidance}
 Here is the full computed synastry data for both people:
 {reference_block}
 {data_block}
@@ -658,6 +665,7 @@ def build_relationship_synastry_prompt(
         data_block=data_block,
         relationship_stage_guidance=_relationship_stage_guidance(relationship_stage),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -671,8 +679,6 @@ romantic compatibility — the condensed, headline version of a full \
 relationship synastry reading, not the full reading itself. Romantic \
 and emotional language is exactly right here.
 
-BIRTH TIME STATUS: {birth_time_status}
-{naming_note}{relationship_stage_guidance}
 Structure your answer as follows:
 
 Open with 2-4 plain-language sentences on the connection between \
@@ -743,6 +749,8 @@ stagnate; and synthesize repeating themes rather than listing isolated \
 aspects.
 - Be SELECTIVE — cover what matters most.
 
+{cache_marker}BIRTH TIME STATUS: {birth_time_status}
+{naming_note}{relationship_stage_guidance}
 Here is the full computed synastry data for both people:
 {reference_block}
 {data_block}
@@ -792,6 +800,7 @@ def build_relationship_synastry_summary_only_prompt(
         data_block=data_block,
         relationship_stage_guidance=_relationship_stage_guidance(relationship_stage, compact=True),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -820,7 +829,7 @@ cross-chart aspects between them and house overlays — all
 mathematically precise. Which placements exist for each person depends
 on birth time — see below.
 
-BIRTH TIME STATUS: {birth_time_status} This affects what's reliable:
+BIRTH TIME STATUS varies by person and affects what's reliable:
 - Unknown birth time excludes that person's Ascendant, Midheaven,
   Descendant, Imum Coeli, houses, Vertex, and Arabic Parts — all
   require an exact time. Their planets, Chiron, Lilith, and Lunar Nodes remain
@@ -829,7 +838,7 @@ BIRTH TIME STATUS: {birth_time_status} This affects what's reliable:
   reading — stay fully reliable even if one or both times are unknown.
 - Note any of this briefly and matter-of-factly in the Overview — not
   as an apology, just accurate scope-setting.
-{naming_note}
+
 Parent-child synastry signal traditionally concentrates in: Moon
 contacts (emotional attunement — whether the child instinctively feels
 safe, soothed, and understood by this parent, the single most
@@ -1017,6 +1026,8 @@ dynamic is likely to matter most.
 - AVOID GENERIC, COULD-APPLY-TO-ANYONE LANGUAGE. Ground every claim in
 the SPECIFIC combination of placements between these two actual charts.
 
+{cache_marker}BIRTH TIME STATUS: {birth_time_status}
+{naming_note}
 Here is the full computed synastry data for both people (Person A is
 the parent, Person B is the child):
 {reference_block}
@@ -1071,6 +1082,7 @@ def build_parent_child_synastry_prompt(
         naming_note=naming_note,
         data_block=data_block,
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -1087,8 +1099,6 @@ parent; practical framing should be addressed to them.
 PERSON A IS THE PARENT. PERSON B IS THE CHILD. Keep these roles
 straight throughout — never swap them.
 
-BIRTH TIME STATUS: {birth_time_status}
-{naming_note}
 Structure your answer as follows:
 
 Open with 2-4 plain-language sentences on the bond between this
@@ -1151,6 +1161,8 @@ grows."
 the PARENT can consciously do — never toward what the child should fix.
 - Be SELECTIVE — cover what matters most.
 
+{cache_marker}BIRTH TIME STATUS: {birth_time_status}
+{naming_note}
 Here is the full computed synastry data for both people (Person A is
 the parent, Person B is the child):
 {reference_block}
@@ -1198,4 +1210,5 @@ def build_parent_child_synastry_summary_only_prompt(
         naming_note=naming_note,
         data_block=data_block,
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
