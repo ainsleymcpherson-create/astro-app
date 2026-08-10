@@ -12,6 +12,7 @@ from .shared import (
     build_transit_data_block, _single_person_naming_note,
     _transit_theme_guidance,
     _reference_context_block, _build_transit_retrieval_query,
+    PROMPT_CACHE_SPLIT_MARKER,
 )
 
 TRANSIT_INSTRUCTIONS = """\
@@ -35,8 +36,7 @@ falls in, the aspects between transiting planets and natal points (with \
 tight, transit-appropriate orbs — only genuinely close, currently \
 active connections are included), and the person's natal essential \
 dignity for context. All mathematically precise, not approximated.
-{naming_note}
-{theme_note}
+
 Structure your answer as follows:
 
 First, provide an overview of what this current period is broadly \
@@ -157,6 +157,8 @@ the SPECIFIC transits you're given, not stock keyword associations.
 a quiet period is a legitimate finding, not a failure to find something \
 interesting.
 
+{cache_marker}{naming_note}
+{theme_note}
 Here is the full computed transit data:
 {reference_block}
 {data_block}
@@ -192,6 +194,7 @@ def build_transit_prompt(
         naming_note=_single_person_naming_note(person_name),
         theme_note=_transit_theme_guidance(theme),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
 
 
@@ -209,8 +212,7 @@ the condensed, headline version, not the full reading.
 "natal" placements are fixed from birth. You have the exact computed \
 transiting positions, transit-to-natal aspects, and natal dignity for \
 context.
-{naming_note}
-{theme_note}
+
 Structure your answer as follows:
 
 Open with 2-4 plain-language sentences about what this current period \
@@ -258,6 +260,8 @@ the way a warm, wise reader who cares about them would.
 - NEVER quote numeric degrees or orb values.
 - Be SELECTIVE — prioritize the tightest, most active transits.
 
+{cache_marker}{naming_note}
+{theme_note}
 Here is the current transit data:
 {reference_block}
 {data_block}
@@ -286,4 +290,5 @@ def build_transit_summary_only_prompt(
         naming_note=_single_person_naming_note(person_name),
         theme_note=_transit_theme_guidance(theme),
         reference_block=reference_block,
+        cache_marker=PROMPT_CACHE_SPLIT_MARKER,
     )
