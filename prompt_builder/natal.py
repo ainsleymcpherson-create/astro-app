@@ -30,24 +30,18 @@ uncovered — an orientation before the detailed themes, written as \
 continuous block, and not chunked or bulleted). Head this section with \
 the exact markdown heading "## Overview" (two hash symbols, one space, \
 then the word). The Overview uses the SAME naming convention as the \
-"What This Means" sections described below: name planets, signs, \
-houses, angles, lesser-used points (like Chiron or Lilith), and aspect words \
-(like conjunct) directly, with each technical term carrying a plain- \
-English meaning alongside it. PREFER THE INVERTED FORM — lead with \
-plain meaning, put the technical term in parentheses: "your drive \
-(Mars)," "your public role (the Midheaven)," "your 10th house of \
-career and reputation." Use the longer "X, which governs Y" form only \
-for points that need more explaining, like "Chiron, a lesser-known \
-body tied to old wounds and the potential to turn them into wisdom." \
+"What This Means" sections described below (see guideline 2 for the \
+full rule, including the inverted-parenthetical form and sign-glossing) \
+— name planets, signs, houses, angles, lesser-used points (like Chiron \
+or Lilith), and aspect words directly, each glossed in plain English, \
+e.g. "your drive (Mars)," "your 10th house of career and reputation." \
 Do NOT paraphrase placements into vague circumlocutions like "the \
 career point" or "an old sensitivity" to avoid naming them — name the \
-actual point AND gloss it. GLOSS EVERY SIGN THE FIRST TIME IT'S NAMED \
-IN THE OVERVIEW — this is not optional and not automatically inherited \
-from the "What This Means" instructions below, it applies directly \
-here too. A brief 2-3 word descriptor right after the sign name. Not \
-"Your core identity (the Sun) sits in Capricorn." — write "Your core \
-identity (the Sun) sits in Capricorn, disciplined and ambitious." \
-Structure the Overview's paragraphs like this:
+actual point AND gloss it. This sign-glossing requirement is not \
+automatically inherited from below — GLOSS EVERY SIGN THE FIRST TIME \
+IT'S NAMED IN THE OVERVIEW too, briefly: "Your core identity (the Sun) \
+sits in Capricorn, disciplined and ambitious." Structure the Overview's \
+paragraphs like this:
 - OPEN WITH A PUNCHY DECLARATIVE THESIS, BUT ONE ACTUALLY GROUNDED IN \
 THIS SPECIFIC CHART — one or two short, confident sentences, with no \
 hedging and no astrology in them at all. The sentence must be \
@@ -211,7 +205,7 @@ lead-in. THEN follow with a four-part structure, IN THIS ORDER:
   like in this person's daily life — how it shows up in a real \
   situation, a habit, a reaction, a pattern they'd recognize in \
   themselves. Never let a technical term stand as if its meaning were \
-  obvious. Two specific failures to avoid:
+  obvious. Three specific failures to avoid:
     (a) VAGUE STRENGTH LANGUAGE. Phrases like "operates at full \
     strength," "is well-placed," or "is weakened here" are meaningless \
     on their own. Say what the strength or weakness DOES. Instead of: \
@@ -229,44 +223,28 @@ lead-in. THEN follow with a four-part structure, IN THIS ORDER:
     something you do well. It's close to the engine driving your whole \
     public identity — the thing people remember you for, and likely \
     the thing that opens doors."
-    (c) NAMING A CATEGORY INSTEAD OF DESCRIBING BEHAVIOR. Saying what \
-    KIND of thing something is isn't the same as saying how it shows \
-    up. Describe the observable behavior, the recognizable habit, the \
-    thing they'd catch themselves doing. Instead of: "This means your \
-    core identity and your emotional needs are both entangled in deep, \
-    transformative bonds rather than casual ones." — that only labels \
-    the bonds as "deep" without saying what deep looks like. Write \
-    something like: "You don't do surface-level well. Small talk with \
-    someone you're close to feels like a waste, and you'd rather know \
-    what someone actually fears than what they did last weekend. \
-    People tend to tell you things they haven't told anyone else." \
-    Compare that to a good version: "Neptune sitting right there blurs \
-    the edges further, making it easy to idealize partners or \
-    financial situations and harder to see them clearly." — that one \
-    works because it names a specific, recognizable behavior.
-    (d) STOPPING AT A THEMATIC LABEL. Rephrasing a geometric fact into \
-    a narrative-sounding label is NOT the same as saying what it means \
-    — this is the most common way pure description sneaks past the \
-    other rules, because it sounds like interpretation without \
-    actually being one. Instead of: "The Sun is essentially conjunct \
-    your 9th house cusp and essentially opposite your 3rd house — a \
-    direct line between big-picture belief and everyday communication." \
-    — that sentence never leaves the chart. It describes a geometric \
-    relationship and gives it a poetic-sounding name, but doesn't say \
-    what it actually does in a life. A sentence has done its job only \
-    when it describes something the person would recognize about \
-    themselves — a behavior, a reaction, a habit — not when it names \
-    what two houses or planets have to do with each other. Write \
-    something like: "You'd rather explain what something means than \
-    describe what happened. Small talk makes you restless — you want \
-    the big picture, the why, not the play-by-play. People come to you \
-    when they need someone to make sense of things, not report on \
-    them." As a working test: if you could delete the technical term \
-    from a sentence and the sentence would still just be restating a \
-    relationship between two abstract things ("a direct line between X \
-    and Y," "a tension between A and B," "a bridge connecting C and \
-    D") rather than describing a person, it hasn't done its job yet — \
-    keep going until it lands on something recognizably human.
+    (c) NAMING A CATEGORY, OR STOPPING AT A THEMATIC LABEL, INSTEAD OF \
+    DESCRIBING BEHAVIOR. Saying what KIND of thing something is, or \
+    rephrasing a geometric fact into a narrative-sounding label ("a \
+    direct line between big-picture belief and everyday communication"), \
+    is NOT the same as saying how it shows up — this is the most common \
+    way pure description sneaks past the other rules, because it sounds \
+    like interpretation without actually being one. Instead of: "This \
+    means your core identity and your emotional needs are both \
+    entangled in deep, transformative bonds rather than casual ones." — \
+    that only labels the bonds as "deep" without saying what deep looks \
+    like. Write something like: "You don't do surface-level well. Small \
+    talk with someone you're close to feels like a waste, and you'd \
+    rather know what someone actually fears than what they did last \
+    weekend. People tend to tell you things they haven't told anyone \
+    else." A sentence has done its job only when it describes something \
+    the person would recognize about themselves — a behavior, a \
+    reaction, a habit — not when it just names what two things have to \
+    do with each other. As a working test: if you could delete the \
+    technical term from a sentence and it would still just be restating \
+    an abstract relationship ("a tension between A and B," "a bridge \
+    connecting C and D") rather than describing a person, keep going \
+    until it lands on something recognizably human.
   PURE DESCRIPTION SHOULD NEVER OUTWEIGH MEANING. If you notice \
   yourself writing two or more sentences in a row that only state \
   positions, aspects, or houses without landing on what it means or \
@@ -337,7 +315,7 @@ negate-then-correct scaffolding.
   sign, and aspect details each get their OWN sentence rather than \
   being appended as trailing clauses. This does NOT mean cutting \
   information — every fact still appears, just distributed across more \
-  sentences. Two worked examples:
+  sentences. One worked example:
     BAD (six things in one sentence): "Drive (Mars) is in its weakest \
     dignity (detriment) in diplomatic Libra, sitting in the 6th house \
     and square both the 3rd and 9th houses (everyday communication and \
@@ -348,15 +326,6 @@ negate-then-correct scaffolding.
     house of daily work and health. From there it's at odds with both \
     your 3rd house of everyday communication and your 9th house of \
     big-picture belief."
-    BAD: "It's placed in the 10th house, which governs career, public \
-    reputation, and life direction, and it sits in an essentially \
-    exact conjunction with the Sun (your core identity) in Cancer, \
-    also in the 10th, alongside Chiron."
-    GOOD: "It's placed in your 10th house of career and public \
-    reputation. Right beside it sits your core identity (the Sun), in \
-    Cancer. The two are essentially exact. Chiron is there too — a \
-    lesser-known body tied to old wounds and the potential to turn \
-    them into wisdom."
   If a sentence contains more than one astrological object, break it.
   VARY SENTENCE LENGTH THROUGHOUT THE ENTIRE READING, the way natural \
   writing does. Follow a longer sentence with a short, punchy one that \
@@ -388,16 +357,7 @@ different dignities at once (e.g. both "rules its own sign" AND \
 and use that one. And don't stack the dignity claim, a sign gloss, a \
 house placement, and the payoff into a single sentence — that's the \
 ONE NEW PLACEMENT PER SENTENCE rule above, and dignity claims are not \
-exempt from it. Real failure case, all in one sentence: "your \
-messenger (Mercury) rules its own sign (Gemini, the communicator) and \
-sits exalted in confidence right at your career point, making you a \
-fluent, quick thinking presence in professional settings." Rewritten \
-correctly, across separate sentences: "Your messenger (Mercury) rules \
-its own sign here, Gemini, the communicator — so it operates at full \
-strength. It also sits right at your career point (the Midheaven), \
-putting communication at the center of how you're seen professionally. \
-Together, that makes you a fluent, quick-thinking presence in \
-professional settings."
+exempt from it.
 4. TREAT PATTERNS AS UNITS. A Grand Trine, T-Square, or Yod is not just \
 "three aspects" — explain what the pattern as a whole represents (ease vs. \
 tension vs. a specific pressure point demanding resolution), and name \
@@ -657,25 +617,16 @@ only, without birth-time-dependent points like the rising sign or \
 houses (not as an apology, just an accurate framing of scope). Head \
 this section with the exact markdown heading "## Overview". The \
 Overview uses the SAME naming convention as the "What This Means" \
-sections described below: name planets, signs, Chiron, the Nodes, and \
-aspect words (like conjunct) directly, with each technical term \
-carrying a plain-English meaning alongside it. PREFER THE INVERTED \
-FORM — lead with plain meaning, put the technical term in \
-parentheses: "your drive (Mars)," "your discipline (Saturn)." Use the \
-longer "X, which governs Y" form only for points that need more \
-explaining, like "Chiron, a lesser-known body tied to old wounds and \
-the potential to turn them into wisdom," or "Lilith, a point tied to \
-raw instinct and whatever's been repressed or shamed rather than \
-integrated." Do NOT paraphrase \
-placements into vague circumlocutions like "an old sensitivity" to \
-avoid naming them — name the actual point AND gloss it. GLOSS EVERY \
-SIGN THE FIRST TIME IT'S NAMED IN THE OVERVIEW — this is not optional \
-and not automatically inherited from the "What This Means" \
-instructions below, it applies directly here too. A brief 2-3 word \
-descriptor right after the sign name. Not "Your core identity (the \
-Sun) sits in Capricorn." — write "Your core identity (the Sun) sits \
-in Capricorn, disciplined and ambitious." Structure the Overview's \
-paragraphs like this:
+sections described below (see guideline 2 for the full rule) — name \
+planets, signs, Chiron, the Nodes, and aspect words directly, each \
+glossed in plain English, preferring the inverted form: "your drive \
+(Mars)," "your discipline (Saturn)." Do NOT paraphrase placements into \
+vague circumlocutions like "an old sensitivity" to avoid naming them — \
+name the actual point AND gloss it. This sign-glossing requirement is \
+not automatically inherited from below — GLOSS EVERY SIGN THE FIRST \
+TIME IT'S NAMED IN THE OVERVIEW too, briefly: "Your core identity (the \
+Sun) sits in Capricorn, disciplined and ambitious." Structure the \
+Overview's paragraphs like this:
 - OPEN WITH A PUNCHY DECLARATIVE THESIS, BUT ONE ACTUALLY GROUNDED IN \
 THIS SPECIFIC CHART — one or two short, confident sentences, with no \
 hedging and no astrology in them at all. The sentence must be \
@@ -823,7 +774,7 @@ structure, IN THIS ORDER:
   like in this person's daily life — how it shows up in a real \
   situation, a habit, a reaction, a pattern they'd recognize in \
   themselves. Never let a technical term stand as if its meaning were \
-  obvious. Two specific failures to avoid:
+  obvious. Three specific failures to avoid:
     (a) VAGUE STRENGTH LANGUAGE. Phrases like "operates at full \
     strength," "is well-placed," or "is weakened here" are meaningless \
     on their own. Say what the strength or weakness DOES. Instead of: \
@@ -840,44 +791,28 @@ structure, IN THIS ORDER:
     all that together, and communication isn't just something you do \
     well. It's close to the engine driving how you move through the \
     world — the thing people remember you for."
-    (c) NAMING A CATEGORY INSTEAD OF DESCRIBING BEHAVIOR. Saying what \
-    KIND of thing something is isn't the same as saying how it shows \
-    up. Describe the observable behavior, the recognizable habit, the \
-    thing they'd catch themselves doing. Instead of: "This means your \
-    core identity and your emotional needs are both entangled in deep, \
-    transformative bonds rather than casual ones." — that only labels \
-    the bonds as "deep" without saying what deep looks like. Write \
-    something like: "You don't do surface-level well. Small talk with \
-    someone you're close to feels like a waste, and you'd rather know \
-    what someone actually fears than what they did last weekend. \
-    People tend to tell you things they haven't told anyone else." \
-    Compare that to a good version: "Neptune sitting right there blurs \
-    the edges further, making it easy to idealize partners or \
-    financial situations and harder to see them clearly." — that one \
-    works because it names a specific, recognizable behavior.
-    (d) STOPPING AT A THEMATIC LABEL. Rephrasing a geometric fact into \
-    a narrative-sounding label is NOT the same as saying what it means \
-    — this is the most common way pure description sneaks past the \
-    other rules, because it sounds like interpretation without \
-    actually being one. Instead of: "The Sun is essentially conjunct \
-    your 9th house cusp and essentially opposite your 3rd house — a \
-    direct line between big-picture belief and everyday communication." \
-    — that sentence never leaves the chart. It describes a geometric \
-    relationship and gives it a poetic-sounding name, but doesn't say \
-    what it actually does in a life. A sentence has done its job only \
-    when it describes something the person would recognize about \
-    themselves — a behavior, a reaction, a habit — not when it names \
-    what two houses or planets have to do with each other. Write \
-    something like: "You'd rather explain what something means than \
-    describe what happened. Small talk makes you restless — you want \
-    the big picture, the why, not the play-by-play. People come to you \
-    when they need someone to make sense of things, not report on \
-    them." As a working test: if you could delete the technical term \
-    from a sentence and the sentence would still just be restating a \
-    relationship between two abstract things ("a direct line between X \
-    and Y," "a tension between A and B," "a bridge connecting C and \
-    D") rather than describing a person, it hasn't done its job yet — \
-    keep going until it lands on something recognizably human.
+    (c) NAMING A CATEGORY, OR STOPPING AT A THEMATIC LABEL, INSTEAD OF \
+    DESCRIBING BEHAVIOR. Saying what KIND of thing something is, or \
+    rephrasing a geometric fact into a narrative-sounding label ("a \
+    direct line between big-picture belief and everyday communication"), \
+    is NOT the same as saying how it shows up — this is the most common \
+    way pure description sneaks past the other rules, because it sounds \
+    like interpretation without actually being one. Instead of: "This \
+    means your core identity and your emotional needs are both \
+    entangled in deep, transformative bonds rather than casual ones." — \
+    that only labels the bonds as "deep" without saying what deep looks \
+    like. Write something like: "You don't do surface-level well. Small \
+    talk with someone you're close to feels like a waste, and you'd \
+    rather know what someone actually fears than what they did last \
+    weekend. People tend to tell you things they haven't told anyone \
+    else." A sentence has done its job only when it describes something \
+    the person would recognize about themselves — a behavior, a \
+    reaction, a habit — not when it just names what two things have to \
+    do with each other. As a working test: if you could delete the \
+    technical term from a sentence and it would still just be restating \
+    an abstract relationship ("a tension between A and B," "a bridge \
+    connecting C and D") rather than describing a person, keep going \
+    until it lands on something recognizably human.
   PURE DESCRIPTION SHOULD NEVER OUTWEIGH MEANING. If you notice \
   yourself writing two or more sentences in a row that only state \
   positions, aspects, or houses without landing on what it means or \
@@ -945,7 +880,7 @@ negate-then-correct scaffolding.
   comma. Dignity, sign, and aspect details each get their OWN sentence \
   rather than being appended as trailing clauses. This does NOT mean \
   cutting information — every fact still appears, just distributed \
-  across more sentences. Two worked examples:
+  across more sentences. One worked example:
     BAD (several things in one sentence): "Drive (Mars) is in its \
     weakest dignity (detriment) in diplomatic Libra, and square both \
     Mercury and Jupiter."
@@ -954,13 +889,6 @@ negate-then-correct scaffolding.
     against Mars's instinct to just push forward. It's also at odds \
     with how you think and communicate (Mercury). And with your sense \
     of growth and opportunity (Jupiter)."
-    BAD: "Mercury sits in Gemini, its own sign, meaning it operates at \
-    full strength, and it's in an essentially exact conjunction with \
-    the Sun (your core identity) in Cancer, alongside Chiron."
-    GOOD: "Mercury sits in Gemini. That's its own sign, so it operates \
-    at full strength. Right beside it is your core identity (the Sun), \
-    in Cancer. Chiron is there too — a lesser-known body tied to old \
-    wounds and the potential to turn them into wisdom."
   If a sentence contains more than one astrological object, break it.
   VARY SENTENCE LENGTH THROUGHOUT THE ENTIRE READING, the way natural \
   writing does. Follow a longer sentence with a short, punchy one that \
