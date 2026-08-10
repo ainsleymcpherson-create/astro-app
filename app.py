@@ -8,6 +8,15 @@ router. All the actual logic lives in the page files.
 """
 
 import os
+
+# Loads .env into os.environ for local development. In production
+# (Streamlit Cloud/Render), .env won't exist -- load_dotenv() just
+# does nothing in that case, since real environment variables are
+# already set by the platform. This makes it safe to leave in
+# permanently rather than needing to strip it out before deploying.
+from dotenv import load_dotenv
+load_dotenv()
+
 import streamlit as st
 
 st.set_page_config(page_title="Tenth House Readings", layout="wide")
