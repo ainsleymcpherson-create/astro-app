@@ -3,9 +3,11 @@ my_account_page.py
 
 A dedicated, full-width account page -- everything that used to live
 cramped inside the sidebar's "My Profiles" section, given proper room:
-account info, Full Access subscription status (with a real cancel
-button, not just a status readout), saved birth profiles, and
-one-time purchase history.
+an editable display name, the account's login email (plus a verified
+flow for adding a second login email -- see profiles_db.py's
+account_email_aliases/email_change_requests tables), Full Access
+subscription status (with a real cancel button, not just a status
+readout), saved birth profiles, and one-time purchase history.
 
 Requires login -- this is explicitly account-level, unlike most of
 the rest of this app which works fully anonymously. Fails safe (shows
@@ -29,6 +31,63 @@ import streamlit as st
 
 from profiles_db import safe_user_email
 
+
+def _get_secret(name: str):
+    """Same lookup pattern used in the reading pages (Colab secret,
+    then Streamlit secrets, then a plain env var) -- duplicated here
+    rather than imported, since importing another page file would
+    also execute all of ITS top-level st.* calls (Streamlit runs each
+    page file as its own standalone script)."""
+    try:
+        from google.colab import userdata
+        val = userdata.get(name)
+        if val:
+            return val
+    except Exception:
+        pass
+    try:
+        if name in st.secrets:
+            return st.secrets[name]
+    except Exception:
+        pass
+    return os.environ.get(name)
+
+
+def _enqueue_email_change_confirmation(new_email: str, token: str) -> tuple[bool, str]:
+    """
+    Publishes a job to QStash asking the email worker to send the
+    "confirm your new email" link -- reuses the exact same
+    /generate-and-email endpoint and QStash credentials the reading-
+    delivery emails already use (see enqueue_full_reading_email in
+    personal_readings_page.py), just with a different "kind" in the
+    payload so the worker sends a plain confirmation email instead of
+    generating a reading. Returns (success, message) rather than
+    raising, matching that same pattern.
+    """
+    qstash_token = _get_secret("QSTASH_TOKEN")
+    worker_url = _get_secret("EMAIL_WORKER_URL")
+    if not qstash_token or not worker_url:
+        return False, (
+            "Email delivery isn't configured yet (missing QSTASH_TOKEN "
+            "or EMAIL_WORKER_URL in secrets), so a confirmation email "
+            "can't be sent right now."
+        )
+    try:
+        qstash_url = _get_secret("QSTASH_URL") or "https://qstash-us-east-1.upstash.io"
+        os.environ["QSTASH_URL"] = qstash_url
+
+        from qstash import QStash
+        client = QStash(qstash_token)
+        client.message.publish_json(
+            url=worker_url,
+            body={"kind": "email_change_confirmation", "to_email": new_email, "token": token},
+            timeout="60s",
+        )
+        return True, f"Check {new_email} for a confirmation link — it expires in 24 hours."
+    except Exception as e:
+        return False, f"Couldn't send the confirmation email ({type(e).__name__}: {e})."
+
+
 st.title("👤 My Account")
 
 if "auth" not in st.secrets or not st.user.is_logged_in:
@@ -41,7 +100,49 @@ elif "DATABASE_URL" not in os.environ:
 else:
     user_email = safe_user_email()
 
-    st.caption(f"Signed in as {user_email}")
+    # --- Name and email ---
+    st.subheader("Account")
+    from profiles_db import (
+        get_display_name, set_display_name, list_linked_emails, request_email_change,
+    )
+
+    _current_name = get_display_name(user_email) or ""
+    with st.form("account_name_form"):
+        _name_input = st.text_input("Name", value=_current_name, placeholder="Add your name")
+        if st.form_submit_button("Save name"):
+            set_display_name(user_email, _name_input.strip())
+            st.success("Name updated.", icon="✅")
+            st.rerun()
+
+    st.text_input("Email", value=user_email, disabled=True,
+                   help="This is the email you're currently logged in with.")
+    _linked = list_linked_emails(user_email)
+    if _linked:
+        st.caption("Also linked to this account: " + ", ".join(_linked))
+
+    with st.expander("Add another login email"):
+        st.caption("Useful if you sign in with more than one Google account, "
+                   "or want a backup way to log in. We'll send a confirmation "
+                   "link to the new address before it's linked — nothing "
+                   "changes until you click it.")
+        with st.form("add_email_form"):
+            _new_email_input = st.text_input("New email address", placeholder="you@example.com")
+            if st.form_submit_button("Send confirmation email"):
+                if not _new_email_input.strip():
+                    st.error("Enter an email address first.")
+                else:
+                    _ok, _result = request_email_change(user_email, _new_email_input.strip())
+                    if not _ok:
+                        st.error(_result)
+                    else:
+                        _sent_ok, _sent_msg = _enqueue_email_change_confirmation(
+                            _new_email_input.strip().lower(), _result,
+                        )
+                        if _sent_ok:
+                            st.success(_sent_msg, icon="✅")
+                        else:
+                            st.error(_sent_msg)
+
     st.divider()
 
     # --- Full Access subscription ---
