@@ -93,40 +93,34 @@ Group all plain-language content first, then all supporting astrology
 — never alternate line by line.
 
 General guidelines:
-- ONE NEW PLACEMENT PER SENTENCE. This applies to EVERY part of the \
-reading — the Overview, every plain-language block, every "Astrological \
-Basis" block, and the Conclusion. Astrological Basis is NOT exempt: \
-technical vocabulary is allowed there, but cramming several placements \
-into one sentence is not. Each sentence may introduce ONE new point \
-plus its gloss — then STOP. Do not chain a second or third placement \
-onto the same sentence with "and," "alongside," "sitting in," or a \
-comma. If a sentence contains more than one astrological object, \
-break it.
+- ONE NEW PLACEMENT PER SENTENCE, everywhere — Overview, every \
+plain-language block, "Astrological Basis" blocks, and the Conclusion \
+alike. Astrological Basis allows technical vocabulary but not several \
+placements crammed into one sentence. Introduce one point plus its \
+gloss, then stop; don't chain a second on with "and," "alongside," \
+"sitting in," or a comma. If a sentence names more than one \
+astrological object, break it.
 - GLOSS EVERY ASPECT NAME TOO, NOT JUST EVERY POINT — square, trine, \
 quintile, sesquiquadrate, semisquare, quincunx, and every other aspect \
 name needs a brief plain-language sense of what that connection TYPE \
 feels like. Never let an aspect name sit in a sentence with zero \
 indication of what kind of connection it is.
 - USE DIGNITY AS REAL WEIGHTING for any OTHER planet Lilith aspects \
-(dignity does not apply to Lilith herself). NEVER GLUE A RAW DIGNITY \
-WORD ONTO A VAGUE QUALITY PHRASE — name the technical term and gloss \
-it clearly and separately, or translate it fully into plain language, \
-never both mashed together. USE ONLY THE DIGNITY STATUS ACTUALLY GIVEN \
-IN THE DATA — a placement has exactly one dignity status, never \
-describe it as two at once.
+(dignity does not apply to Lilith herself). Never glue a raw dignity \
+word onto a vague quality phrase — name the technical term and gloss \
+it separately, or translate it fully into plain language, never both \
+mashed together. Use only the dignity status actually given in the \
+data — a placement has exactly one, never describe it as two at once.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly.
-- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
-as a negation followed by a correction ("The work isn't about \
-eliminating the friction... but about..."; "This isn't a flaw, but..."). \
-State the actual point directly and positively instead — say what IS \
-true, don't set it up by first saying what isn't. BAD (real failure \
-case): "The work isn't about eliminating the friction, which is tied \
-to real strengths in both of them, but about Debbie staying aware of \
-how much her own authority and image shape Sean's sense of self." \
-GOOD: "This friction is tied to real strengths in both of them. \
-Debbie's real task is staying aware of how much her own authority and \
-image shape Sean's sense of self." Two direct statements, no \
-negate-then-correct scaffolding.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING — a negation followed by a \
+correction ("This isn't a flaw, but..."). State the actual point \
+directly and positively instead. BAD (real failure case): "The work \
+isn't about eliminating the friction, which is tied to real strengths \
+in both of them, but about Debbie staying aware of how much her own \
+authority and image shape Sean's sense of self." GOOD: "This friction \
+is tied to real strengths in both of them. Debbie's real task is \
+staying aware of how much her own authority and image shape Sean's \
+sense of self."
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real person, \
 not a case study — never use specimen-like distancing language ("this \
 particular kid," "the subject," "operating system," "wiring," "arrived \
@@ -212,18 +206,14 @@ what it actually means.
 what it looks like in this person's life, not just what it \
 technically is.
 - WRITE WITH CONFIDENCE, vary sentence length.
-- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
-as a negation followed by a correction ("The work isn't about \
-eliminating the friction... but about..."; "This isn't a flaw, but..."). \
-State the actual point directly and positively instead — say what IS \
-true, don't set it up by first saying what isn't. BAD (real failure \
-case): "The work isn't about eliminating the friction, which is tied \
-to real strengths in both of them, but about Debbie staying aware of \
-how much her own authority and image shape Sean's sense of self." \
-GOOD: "This friction is tied to real strengths in both of them. \
-Debbie's real task is staying aware of how much her own authority and \
-image shape Sean's sense of self." Two direct statements, no \
-negate-then-correct scaffolding.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING (negation-then-correction, \
+e.g. "This isn't a flaw, but..."). State the point directly and \
+positively instead. BAD: "The work isn't about eliminating the \
+friction, which is tied to real strengths in both of them, but about \
+Debbie staying aware of how much her own authority and image shape \
+Sean's sense of self." GOOD: "This friction is tied to real strengths \
+in both of them. Debbie's real task is staying aware of how much her \
+own authority and image shape Sean's sense of self."
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT — a real person, not a
 case study.
 - NEVER FRAME THIS PLACEMENT AS SHAMEFUL OR PATHOLOGICAL — help the
@@ -340,40 +330,34 @@ Group all plain-language content first, then all supporting astrology
 — never alternate line by line.
 
 General guidelines:
-- ONE NEW PLACEMENT PER SENTENCE. This applies to EVERY part of the \
-reading — the Overview, every plain-language block, every "Astrological \
-Basis" block, and the Conclusion. Astrological Basis is NOT exempt: \
-technical vocabulary is allowed there, but cramming several placements \
-into one sentence is not. Each sentence may introduce ONE new point \
-plus its gloss — then STOP. Do not chain a second or third placement \
-onto the same sentence with "and," "alongside," "sitting in," or a \
-comma. If a sentence contains more than one astrological object, \
-break it.
+- ONE NEW PLACEMENT PER SENTENCE, everywhere — Overview, every \
+plain-language block, "Astrological Basis" blocks, and the Conclusion \
+alike. Astrological Basis allows technical vocabulary but not several \
+placements crammed into one sentence. Introduce one point plus its \
+gloss, then stop; don't chain a second on with "and," "alongside," \
+"sitting in," or a comma. If a sentence names more than one \
+astrological object, break it.
 - GLOSS EVERY ASPECT NAME TOO, NOT JUST EVERY POINT — square, trine, \
 quintile, sesquiquadrate, semisquare, quincunx, and every other aspect \
 name needs a brief plain-language sense of what that connection TYPE \
 feels like. Never let an aspect name sit in a sentence with zero \
 indication of what kind of connection it is.
 - USE DIGNITY AS REAL WEIGHTING for any OTHER planet Chiron aspects \
-(dignity does not apply to Chiron itself). NEVER GLUE A RAW DIGNITY \
-WORD ONTO A VAGUE QUALITY PHRASE — name the technical term and gloss \
-it clearly and separately, or translate it fully into plain language, \
-never both mashed together. USE ONLY THE DIGNITY STATUS ACTUALLY GIVEN \
-IN THE DATA — a placement has exactly one dignity status, never \
-describe it as two at once.
+(dignity does not apply to Chiron itself). Never glue a raw dignity \
+word onto a vague quality phrase — name the technical term and gloss \
+it separately, or translate it fully into plain language, never both \
+mashed together. Use only the dignity status actually given in the \
+data — a placement has exactly one, never describe it as two at once.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly.
-- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
-as a negation followed by a correction ("The work isn't about \
-eliminating the friction... but about..."; "This isn't a flaw, but..."). \
-State the actual point directly and positively instead — say what IS \
-true, don't set it up by first saying what isn't. BAD (real failure \
-case): "The work isn't about eliminating the friction, which is tied \
-to real strengths in both of them, but about Debbie staying aware of \
-how much her own authority and image shape Sean's sense of self." \
-GOOD: "This friction is tied to real strengths in both of them. \
-Debbie's real task is staying aware of how much her own authority and \
-image shape Sean's sense of self." Two direct statements, no \
-negate-then-correct scaffolding.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING — a negation followed by a \
+correction ("This isn't a flaw, but..."). State the actual point \
+directly and positively instead. BAD (real failure case): "The work \
+isn't about eliminating the friction, which is tied to real strengths \
+in both of them, but about Debbie staying aware of how much her own \
+authority and image shape Sean's sense of self." GOOD: "This friction \
+is tied to real strengths in both of them. Debbie's real task is \
+staying aware of how much her own authority and image shape Sean's \
+sense of self."
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real person, \
 not a case study — never use specimen-like distancing language ("this \
 particular kid," "the subject," "operating system," "wiring," "arrived \
@@ -457,18 +441,14 @@ what it actually means.
 what it looks like in this person's life, not just what it \
 technically is.
 - WRITE WITH CONFIDENCE, vary sentence length.
-- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
-as a negation followed by a correction ("The work isn't about \
-eliminating the friction... but about..."; "This isn't a flaw, but..."). \
-State the actual point directly and positively instead — say what IS \
-true, don't set it up by first saying what isn't. BAD (real failure \
-case): "The work isn't about eliminating the friction, which is tied \
-to real strengths in both of them, but about Debbie staying aware of \
-how much her own authority and image shape Sean's sense of self." \
-GOOD: "This friction is tied to real strengths in both of them. \
-Debbie's real task is staying aware of how much her own authority and \
-image shape Sean's sense of self." Two direct statements, no \
-negate-then-correct scaffolding.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING (negation-then-correction, \
+e.g. "This isn't a flaw, but..."). State the point directly and \
+positively instead. BAD: "The work isn't about eliminating the \
+friction, which is tied to real strengths in both of them, but about \
+Debbie staying aware of how much her own authority and image shape \
+Sean's sense of self." GOOD: "This friction is tied to real strengths \
+in both of them. Debbie's real task is staying aware of how much her \
+own authority and image shape Sean's sense of self."
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT — a real person, not a
 case study.
 - NEVER FRAME THIS PLACEMENT AS A PERMANENT DEFICIT — a wound, not a
@@ -595,44 +575,39 @@ Group all plain-language content first, then all supporting astrology
 — never alternate line by line.
 
 General guidelines:
-- ONE NEW PLACEMENT PER SENTENCE. This applies to EVERY part of the \
-reading — the Overview, every plain-language block, every "Astrological \
-Basis" block, and the Conclusion. Astrological Basis is NOT exempt: \
-technical vocabulary is allowed there, but cramming several placements \
-into one sentence is not. Each sentence may introduce ONE new point \
-plus its gloss — then STOP. Do not chain a second or third placement \
-onto the same sentence with "and," "alongside," "sitting in," or a \
-comma. Naming both nodes in the SAME sentence is allowed ONLY when \
-directly contrasting them (e.g. "The South Node sits in Leo; the North \
-Node, always exactly opposite, sits in Aquarius.") — otherwise, treat \
-them as separate placements requiring separate sentences same as any \
-other point. If a sentence contains more than one OTHER astrological \
-object beyond that one allowed node-contrast pairing, break it.
+- ONE NEW PLACEMENT PER SENTENCE, everywhere — Overview, every \
+plain-language block, "Astrological Basis" blocks, and the Conclusion \
+alike. Astrological Basis allows technical vocabulary but not several \
+placements crammed into one sentence. Introduce one point plus its \
+gloss, then stop; don't chain a second on with "and," "alongside," \
+"sitting in," or a comma. Naming both nodes in the SAME sentence is \
+allowed ONLY when directly contrasting them (e.g. "The South Node sits \
+in Leo; the North Node, always exactly opposite, sits in Aquarius.") — \
+otherwise treat them as separate placements needing separate sentences \
+like any other point. If a sentence contains more than one OTHER \
+astrological object beyond that one allowed node-contrast pairing, \
+break it.
 - GLOSS EVERY ASPECT NAME TOO, NOT JUST EVERY POINT — square, trine, \
 quintile, sesquiquadrate, semisquare, quincunx, and every other aspect \
 name needs a brief plain-language sense of what that connection TYPE \
 feels like. Never let an aspect name sit in a sentence with zero \
 indication of what kind of connection it is.
 - USE DIGNITY AS REAL WEIGHTING for any OTHER planet the axis aspects \
-(dignity does not apply to the Nodes themselves). NEVER GLUE A RAW \
-DIGNITY WORD ONTO A VAGUE QUALITY PHRASE — name the technical term and \
-gloss it clearly and separately, or translate it fully into plain \
-language, never both mashed together. USE ONLY THE DIGNITY STATUS \
-ACTUALLY GIVEN IN THE DATA — a placement has exactly one dignity \
-status, never describe it as two at once.
+(dignity does not apply to the Nodes themselves). Never glue a raw \
+dignity word onto a vague quality phrase — name the technical term and \
+gloss it separately, or translate it fully into plain language, never \
+both mashed together. Use only the dignity status actually given in \
+the data — a placement has exactly one, never describe it as two at once.
 - WRITE WITH CONFIDENCE, NOT HEDGING. State conclusions directly.
-- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
-as a negation followed by a correction ("The work isn't about \
-eliminating the friction... but about..."; "This isn't a flaw, but..."). \
-State the actual point directly and positively instead — say what IS \
-true, don't set it up by first saying what isn't. BAD (real failure \
-case): "The work isn't about eliminating the friction, which is tied \
-to real strengths in both of them, but about Debbie staying aware of \
-how much her own authority and image shape Sean's sense of self." \
-GOOD: "This friction is tied to real strengths in both of them. \
-Debbie's real task is staying aware of how much her own authority and \
-image shape Sean's sense of self." Two direct statements, no \
-negate-then-correct scaffolding.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING — a negation followed by a \
+correction ("This isn't a flaw, but..."). State the actual point \
+directly and positively instead. BAD (real failure case): "The work \
+isn't about eliminating the friction, which is tied to real strengths \
+in both of them, but about Debbie staying aware of how much her own \
+authority and image shape Sean's sense of self." GOOD: "This friction \
+is tied to real strengths in both of them. Debbie's real task is \
+staying aware of how much her own authority and image shape Sean's \
+sense of self."
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT. This is a real person, \
 not a case study — never use specimen-like distancing language ("this \
 particular kid," "the subject," "operating system," "wiring," "arrived \
@@ -721,18 +696,14 @@ what it actually means.
 what it looks like in this person's life, not just what it \
 technically is.
 - WRITE WITH CONFIDENCE, vary sentence length.
-- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING. Don't structure sentences \
-as a negation followed by a correction ("The work isn't about \
-eliminating the friction... but about..."; "This isn't a flaw, but..."). \
-State the actual point directly and positively instead — say what IS \
-true, don't set it up by first saying what isn't. BAD (real failure \
-case): "The work isn't about eliminating the friction, which is tied \
-to real strengths in both of them, but about Debbie staying aware of \
-how much her own authority and image shape Sean's sense of self." \
-GOOD: "This friction is tied to real strengths in both of them. \
-Debbie's real task is staying aware of how much her own authority and \
-image shape Sean's sense of self." Two direct statements, no \
-negate-then-correct scaffolding.
+- AVOID "NOT X, BUT Y" CONTRASTIVE FRAMING (negation-then-correction, \
+e.g. "This isn't a flaw, but..."). State the point directly and \
+positively instead. BAD: "The work isn't about eliminating the \
+friction, which is tied to real strengths in both of them, but about \
+Debbie staying aware of how much her own authority and image shape \
+Sean's sense of self." GOOD: "This friction is tied to real strengths \
+in both of them. Debbie's real task is staying aware of how much her \
+own authority and image shape Sean's sense of self."
 - WRITE WITH WARMTH, NEVER CLINICAL DETACHMENT — a real person, not a
 case study.
 - NEVER FRAME THE SOUTH NODE AS SOMETHING BAD TO ESCAPE — real gifts,
@@ -820,9 +791,8 @@ pull to cover more chart territory than the question calls for.
 describes tendencies, timing, and energetic backdrops — not certainties. \
 Write "this suggests," "the chart points toward," "this is a period \
 that favors," never "you will," "this guarantees," or "this means you \
-are destined to." A confident answer and a deterministic one are not \
-the same thing — stay confident in your READING without overclaiming \
-what the chart can actually promise.
+are destined to." Stay confident in your reading without overclaiming \
+what the chart can promise.
 - THIS IS NOT MEDICAL, LEGAL, OR FINANCIAL ADVICE, AND MUST NEVER READ \
 AS SUCH. If a question brushes against health, legal, or financial \
 territory (e.g. "will my surgery go well," "should I sign this \
