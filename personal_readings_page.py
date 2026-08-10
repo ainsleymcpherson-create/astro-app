@@ -310,7 +310,7 @@ def enqueue_full_reading_email(job_payload: dict) -> tuple[bool, str]:
 
         from qstash import QStash
         client = QStash(qstash_token)
-        client.message.publish_json(url=worker_url, body=job_payload, timeout="300s")
+        client.message.publish_json(url=worker_url, body=job_payload, timeout="900s")
         return True, "The full reading is on its way — check your email in a few minutes."
     except Exception as e:
         return False, (

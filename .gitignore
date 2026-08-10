@@ -16,3 +16,4 @@ venv/
 
 # Generated output
 interpretation_prompt.txt
+.env
