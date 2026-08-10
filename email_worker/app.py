@@ -64,6 +64,7 @@ from prompt_builder import (
     build_chiron_deep_dive_prompt,
     build_lunar_nodes_deep_dive_prompt,
     build_ask_an_astrologer_prompt,
+    split_prompt_for_caching,
 )
 
 app = Flask(__name__)
@@ -375,6 +376,18 @@ def _process_reading_job(job: dict) -> tuple[bool, str]:
         import anthropic
         client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
+        # Split into a static, cache_control-eligible prefix (the bulk
+        # of the instructional template, identical across every call
+        # for this reading type/variant) and a dynamic suffix (this
+        # person's name/age/chart data). See
+        # prompt_builder.shared.split_prompt_for_caching.
+        static_prefix, dynamic_suffix = split_prompt_for_caching(prompt)
+        message_content = [
+            {"type": "text", "text": static_prefix, "cache_control": {"type": "ephemeral"}},
+        ]
+        if dynamic_suffix:
+            message_content.append({"type": "text", "text": dynamic_suffix})
+
         # Streaming for the same reason the main app uses it: with a
         # max_tokens this high, the SDK's non-streaming path refuses to
         # run without it, since generation could exceed the 10-minute
@@ -383,7 +396,7 @@ def _process_reading_job(job: dict) -> tuple[bool, str]:
         with client.messages.stream(
             model="claude-sonnet-5",
             max_tokens=32000,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": message_content}],
         ) as stream:
             for text_chunk in stream.text_stream:
                 accumulated_text += text_chunk
@@ -652,11 +665,17 @@ def _process_weekly_transit_profile(profile: dict) -> tuple[bool, str]:
 
         import anthropic
         client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        static_prefix, dynamic_suffix = split_prompt_for_caching(prompt)
+        message_content = [
+            {"type": "text", "text": static_prefix, "cache_control": {"type": "ephemeral"}},
+        ]
+        if dynamic_suffix:
+            message_content.append({"type": "text", "text": dynamic_suffix})
         accumulated_text = ""
         with client.messages.stream(
             model="claude-sonnet-5",
             max_tokens=4096,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": message_content}],
         ) as stream:
             for text_chunk in stream.text_stream:
                 accumulated_text += text_chunk
@@ -858,11 +877,17 @@ def stripe_webhook():
                 )
                 import anthropic
                 client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+                static_prefix, dynamic_suffix = split_prompt_for_caching(prompt)
+                message_content = [
+                    {"type": "text", "text": static_prefix, "cache_control": {"type": "ephemeral"}},
+                ]
+                if dynamic_suffix:
+                    message_content.append({"type": "text", "text": dynamic_suffix})
                 accumulated_text = ""
                 with client.messages.stream(
                     model="claude-sonnet-5",
                     max_tokens=32000,
-                    messages=[{"role": "user", "content": prompt}],
+                    messages=[{"role": "user", "content": message_content}],
                 ) as stream:
                     for text_chunk in stream.text_stream:
                         accumulated_text += text_chunk
@@ -919,11 +944,17 @@ def stripe_webhook():
                 )
                 import anthropic
                 client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+                static_prefix, dynamic_suffix = split_prompt_for_caching(prompt)
+                message_content = [
+                    {"type": "text", "text": static_prefix, "cache_control": {"type": "ephemeral"}},
+                ]
+                if dynamic_suffix:
+                    message_content.append({"type": "text", "text": dynamic_suffix})
                 accumulated_text = ""
                 with client.messages.stream(
                     model="claude-sonnet-5",
                     max_tokens=32000,
-                    messages=[{"role": "user", "content": prompt}],
+                    messages=[{"role": "user", "content": message_content}],
                 ) as stream:
                     for text_chunk in stream.text_stream:
                         accumulated_text += text_chunk
