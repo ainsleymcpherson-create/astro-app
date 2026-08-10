@@ -61,6 +61,25 @@ if "manage" in st.query_params and "DATABASE_URL" in os.environ:
     else:
         st.info("That management link has already been used or is no longer valid.")
 
+# --- Confirm an "add another login email" request from My Account ---
+# The email-change request itself never modifies anything -- clicking
+# this link is the actual proof the person controls the new inbox, so
+# this is where the new email actually gets linked (see
+# profiles_db.confirm_email_change).
+if "confirm_email" in st.query_params and "DATABASE_URL" in os.environ:
+    from profiles_db import confirm_email_change
+    _confirm_token = st.query_params["confirm_email"]
+    del st.query_params["confirm_email"]
+    _confirmed, _confirm_result = confirm_email_change(_confirm_token)
+    if _confirmed:
+        st.success(
+            f"Email confirmed! You can now log in with {_confirm_result} too — "
+            f"both reach the same account.",
+            icon="✅",
+        )
+    else:
+        st.info(_confirm_result)
+
 # --- Claim a $3 reading unlock chosen for in-app delivery ---
 # Stripe's success_url redirect is NEVER trusted on its own to grant
 # anything -- same rule the webhook itself follows (see
