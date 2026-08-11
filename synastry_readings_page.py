@@ -322,10 +322,13 @@ def enqueue_full_reading_email(job_payload: dict) -> tuple[bool, str]:
 
 st.caption("🔭 Tenth House Readings")
 st.title("Synastry Readings")
-st.caption("Compares two people's charts — for a professional working "
-           "dynamic or a traditional romantic compatibility reading — "
-           "with full support for Part of Fortune, Nodes, Vertex, "
-           "Chiron, and dignity.")
+st.write(
+    "Synastry is an astrological assessment that compares two charts "
+    "to better understand how two people interact. Use this form to "
+    "compare personal or professional compatibility between two charts."
+)
+
+
 
 # Reserves this page position now, at script-execution order, even
 # though it's filled in later (near "if submitted:") once every
@@ -378,25 +381,41 @@ st.markdown(
 SYNASTRY_READING_TYPES = ("Professional Synastry", "Relationship Synastry", "Parent/Child Synastry")
 
 # --- Input form ---
-reading_type = st.selectbox(
+reading_type = st.segmented_control(
     "Reading focus",
     options=["Professional Synastry", "Relationship Synastry", "Parent/Child Synastry"],
-    index=0,
-    help="Professional Synastry compares TWO people's charts to "
-         "analyze their working dynamic — not romantic compatibility. "
-         "Relationship Synastry compares two people's charts for "
-         "traditional romantic compatibility — attraction, emotional "
-         "connection, and long-term potential. Parent/Child Synastry "
-         "compares a parent's chart with their child's — emotional "
-         "attunement, communication, discipline, and what to look out "
-         "for to keep the relationship healthy as the child grows. "
-         "Looking for a reading about just one person instead? Head to "
-         "the Personal Readings page.",
+    default="Professional Synastry",
+    required=True,
+    help="Select which topic you would like your reading to focus on from the options below",
 )
 
-if reading_type == "Parent/Child Synastry":
-    st.caption("👪 For this reading, enter the **parent** as Person A "
-               "and the **child** as Person B.")
+_SYNASTRY_TYPE_DESCRIPTIONS = {
+    "Relationship Synastry": (
+        "💞",
+        "Assesses compatibility between two romantic partners. Special "
+        "focus on where the connection flows easily, where friction "
+        "shows up, and what each person needs to feel understood."
+    ),
+    "Parent/Child Synastry": (
+        "👪",
+        "Assesses the relationship between a parent and child. Special "
+        "focus on emotional attunement, communication style, and "
+        "discipline, with concrete suggestions for staying aligned as "
+        "the child grows. For this reading, enter the parent as "
+        "Person A, and the child as Person B."
+    ),
+    "Professional Synastry": (
+        "💼",
+        "Assesses compatibility in a professional context. Covers "
+        "communication style, collaboration strengths, and likely "
+        "friction points."
+    ),
+}
+if reading_type in _SYNASTRY_TYPE_DESCRIPTIONS:
+    _icon, _desc = _SYNASTRY_TYPE_DESCRIPTIONS[reading_type]
+    with st.container(border=True):
+        st.markdown(f"{_icon} **{reading_type}**")
+        st.write(_desc)
 
 relationship_stage = None
 if reading_type == "Relationship Synastry":
@@ -1904,6 +1923,33 @@ if st.session_state.get("results"):
                             )
                         except Exception as e:
                             st.error(f"Something went wrong setting up checkout: {e}")
+
+                st.divider()
+                st.subheader("Want more?")
+                st.write(
+                    "This is just a starting point. Get a personally-reviewed "
+                    "answer to your own question, or keep the insight coming "
+                    "with regular transit readings — no account needed to "
+                    "purchase either, only the recurring weekly emails "
+                    "require signing up."
+                )
+                _want_more_col1, _want_more_col2 = st.columns(2)
+                with _want_more_col1:
+                    if st.button(
+                        "💬 Ask an Astrologer", width="stretch",
+                        key="want_more_ask_astrologer",
+                        help="One specific question, answered personally "
+                             "using your actual chart.",
+                    ):
+                        st.switch_page("weekly_transits_signup_page.py")
+                with _want_more_col2:
+                    if st.button(
+                        "✨ Advanced Readings", width="stretch",
+                        key="want_more_advanced_readings",
+                        help="Weekly transit emails, or a one-time transit "
+                             "reading — both measured against your own chart.",
+                    ):
+                        st.switch_page("advanced_readings_page.py")
         elif r["interpretation_error"]:
             st.warning("Something went wrong generating the live interpretation:")
             st.code(r["interpretation_error"])

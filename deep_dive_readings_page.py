@@ -326,9 +326,10 @@ def enqueue_full_reading_email(job_payload: dict) -> tuple[bool, str]:
 
 st.caption("🔭 Tenth House Readings")
 st.title("Deep Dive Readings")
-st.caption("Focused readings on one specific point in your chart — "
-           "starting with Black Moon Lilith, with more deep-dive "
-           "topics to come.")
+st.write(
+    "Explores one specific point in your chart in depth, rather than "
+    "your whole chart at once."
+)
 
 # Reserves this page position now, at script-execution order, even
 # though it's filled in later (near "if submitted:") once every
@@ -381,20 +382,39 @@ st.markdown(
 SYNASTRY_READING_TYPES = ("Professional Synastry", "Relationship Synastry")
 
 # --- Input form ---
-reading_type = st.selectbox(
+reading_type = st.segmented_control(
     "Deep dive topic",
     options=["Lilith", "Chiron", "North/South Node"],
-    index=0,
-    help="A focused reading on one specific point (or axis) in your "
-         "chart, rather than the whole chart at once. Lilith: raw "
-         "instinct and desire, particularly what's been repressed or "
-         "shamed. Chiron: the 'wounded healer' — core wounding and the "
-         "capacity to heal through it. North/South Node: the pull "
-         "between old, inherited patterns (South Node) and your "
-         "conscious growth direction (North Node). More topics will be "
-         "added here over time. Looking for a whole-chart reading "
-         "instead? Head to the Personal Readings page.",
+    default="Lilith",
+    required=True,
+    help="Select which topic you would like your reading to focus on from the options below",
 )
+
+_DEEPDIVE_TOPIC_DESCRIPTIONS = {
+    "Lilith": (
+        "🌑",
+        "Explores Black Moon Lilith — your raw, unfiltered instinct "
+        "and desire, particularly whatever has been repressed or "
+        "shamed rather than integrated."
+    ),
+    "Chiron": (
+        "🩹",
+        "Explores Chiron, the \"wounded healer\" — your core wounding, "
+        "and your capacity to heal, both yourself and others, "
+        "through it."
+    ),
+    "North/South Node": (
+        "☊",
+        "Explores your Lunar Nodes — the pull between old, inherited "
+        "patterns (South Node) and your conscious growth direction "
+        "(North Node)."
+    ),
+}
+if reading_type in _DEEPDIVE_TOPIC_DESCRIPTIONS:
+    _icon, _desc = _DEEPDIVE_TOPIC_DESCRIPTIONS[reading_type]
+    with st.container(border=True):
+        st.markdown(f"{_icon} **{reading_type}**")
+        st.write(_desc)
 
 # Read the checkbox's stored value BEFORE the checkbox widget itself is
 # defined further down (it's rendered after the birth time fields, to
@@ -1868,6 +1888,33 @@ if st.session_state.get("results"):
                             )
                         except Exception as e:
                             st.error(f"Something went wrong setting up checkout: {e}")
+
+                st.divider()
+                st.subheader("Want more?")
+                st.write(
+                    "This is just a starting point. Get a personally-reviewed "
+                    "answer to your own question, or keep the insight coming "
+                    "with regular transit readings — no account needed to "
+                    "purchase either, only the recurring weekly emails "
+                    "require signing up."
+                )
+                _want_more_col1, _want_more_col2 = st.columns(2)
+                with _want_more_col1:
+                    if st.button(
+                        "💬 Ask an Astrologer", width="stretch",
+                        key="want_more_ask_astrologer",
+                        help="One specific question, answered personally "
+                             "using your actual chart.",
+                    ):
+                        st.switch_page("weekly_transits_signup_page.py")
+                with _want_more_col2:
+                    if st.button(
+                        "✨ Advanced Readings", width="stretch",
+                        key="want_more_advanced_readings",
+                        help="Weekly transit emails, or a one-time transit "
+                             "reading — both measured against your own chart.",
+                    ):
+                        st.switch_page("advanced_readings_page.py")
         elif r["interpretation_error"]:
             st.warning("Something went wrong generating the live interpretation:")
             st.code(r["interpretation_error"])

@@ -321,9 +321,10 @@ def enqueue_full_reading_email(job_payload: dict) -> tuple[bool, str]:
 
 st.caption("🔭 Tenth House Readings")
 st.title("Personal Readings")
-st.caption("Computes birth charts with full support for Part of Fortune, "
-           "Nodes, Vertex, Chiron, dignity, and house-ruler interpretation "
-           "of empty houses — not just the standard 10 planets.")
+st.write(
+    "Computes the exact positions of the planets and stars at your "
+    "birth to interpret your personality, strengths, and life path."
+)
 
 # Reserves this page position now, at script-execution order, even
 # though it's filled in later (near "if submitted:") once every
@@ -376,18 +377,33 @@ st.markdown(
 SYNASTRY_READING_TYPES = ("Professional Synastry", "Relationship Synastry")
 
 # --- Input form ---
-reading_type = st.selectbox(
+reading_type = st.segmented_control(
     "Reading focus",
     options=["General", "Career / Work"],
-    index=0,
-    help="General covers the whole chart. Career/Work focuses "
-         "specifically on workplace happiness, colleague dynamics, "
-         "work style, and professional strengths/weaknesses. Looking "
-         "for a two-person compatibility reading instead? Head to the "
-         "Synastry Readings page. Looking for a transit reading — "
-         "what's happening right now astrologically? Head to "
-         "Astrology Services.",
+    default="General",
+    required=True,
+    help="Select which topic you would like your reading to focus on from the options below",
 )
+
+_PERSONAL_TYPE_DESCRIPTIONS = {
+    "General": (
+        "🔭",
+        "Interprets your whole birth chart — personality, strengths, "
+        "patterns, and life direction, drawn from every placement in "
+        "your chart, not just your sun sign."
+    ),
+    "Career / Work": (
+        "💼",
+        "Focuses specifically on your professional life — workplace "
+        "happiness, colleague dynamics, work style, and professional "
+        "strengths and weaknesses."
+    ),
+}
+if reading_type in _PERSONAL_TYPE_DESCRIPTIONS:
+    _icon, _desc = _PERSONAL_TYPE_DESCRIPTIONS[reading_type]
+    with st.container(border=True):
+        st.markdown(f"{_icon} **{reading_type}**")
+        st.write(_desc)
 
 # Read the checkbox's stored value BEFORE the checkbox widget itself is
 # defined further down (it's rendered after the birth time fields, to
@@ -1967,6 +1983,33 @@ if st.session_state.get("results"):
                             )
                         except Exception as e:
                             st.error(f"Something went wrong setting up checkout: {e}")
+
+                st.divider()
+                st.subheader("Want more?")
+                st.write(
+                    "This is just a starting point. Get a personally-reviewed "
+                    "answer to your own question, or keep the insight coming "
+                    "with regular transit readings — no account needed to "
+                    "purchase either, only the recurring weekly emails "
+                    "require signing up."
+                )
+                _want_more_col1, _want_more_col2 = st.columns(2)
+                with _want_more_col1:
+                    if st.button(
+                        "💬 Ask an Astrologer", width="stretch",
+                        key="want_more_ask_astrologer",
+                        help="One specific question, answered personally "
+                             "using your actual chart.",
+                    ):
+                        st.switch_page("weekly_transits_signup_page.py")
+                with _want_more_col2:
+                    if st.button(
+                        "✨ Advanced Readings", width="stretch",
+                        key="want_more_advanced_readings",
+                        help="Weekly transit emails, or a one-time transit "
+                             "reading — both measured against your own chart.",
+                    ):
+                        st.switch_page("advanced_readings_page.py")
         elif r["interpretation_error"]:
             st.warning("Something went wrong generating the live interpretation:")
             st.code(r["interpretation_error"])
