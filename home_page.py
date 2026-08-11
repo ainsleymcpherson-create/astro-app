@@ -57,9 +57,9 @@ OFFERINGS = [
     {
         "icon": "🔓",
         "name": "All-Access Subscription",
-        "desc": "Log in and subscribe for unlimited full readings and "
-                "email delivery across Personal, Synastry, and Deep Dive — "
-                "no per-reading purchases needed.",
+        "desc": "✨ Coming soon — unlimited full readings and email "
+                "delivery across Personal, Synastry, and Deep Dive, no "
+                "per-reading purchases needed.",
         "url_path": "/advanced-readings",
     },
     {

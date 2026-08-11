@@ -10,7 +10,7 @@ Covers four reading categories in one place:
     readings across all three
   - Transits: moved here from the Astrology Services page, since it
     fits the same "pick a category, fill in birth data, pay" shape --
-    Weekly Transits ($5/month, with a theme choice) or a One-Time
+    Weekly Transits ($3/month, with a theme choice) or a One-Time
     Transit reading ($7). These keep their own separate pricing and
     Stripe products; they were never part of the $3/$10 unlock
     structure and still aren't.
@@ -407,22 +407,4 @@ else:
         with col_sub:
             st.subheader("Unlimited full readings")
             st.write("**\\$10/month**, all three categories.")
-            if not _is_logged_in:
-                st.info("Log in from the sidebar to subscribe.")
-            elif "STRIPE_FULL_ACCESS_PRICE_ID" not in os.environ:
-                st.caption("Not available right now.")
-            elif st.button("Subscribe — $10/month", width="stretch"):
-                import stripe
-                stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
-                try:
-                    checkout_session = stripe.checkout.Session.create(
-                        mode="subscription",
-                        line_items=[{"price": os.environ["STRIPE_FULL_ACCESS_PRICE_ID"], "quantity": 1}],
-                        customer_email=_user_email,
-                        success_url="https://tenthhousereadings.com/advanced-readings?signup=success",
-                        cancel_url="https://tenthhousereadings.com/advanced-readings?signup=cancelled",
-                        metadata={"product_type": "full_access_subscription", "label": _user_email},
-                    )
-                    st.link_button("Proceed to Secure Checkout →", checkout_session.url, width="stretch", type="primary")
-                except Exception as e:
-                    st.error(f"Something went wrong setting up checkout: {e}")
+            st.caption("✨ Coming soon.")

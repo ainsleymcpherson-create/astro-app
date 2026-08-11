@@ -953,7 +953,7 @@ def stripe_webhook():
                 )
                 _record_purchase_worker(
                     customer_email, "one_time_transit", f"One-Time Transit Reading — {label}",
-                    700, data_object.get("id"),
+                    300, data_object.get("id"),
                 )
                 print(f"[email_worker] One-time transit reading sent to {customer_email}")
 
@@ -1047,7 +1047,7 @@ def stripe_webhook():
                 _question_preview = question if len(question) <= 100 else question[:97] + "..."
                 _record_purchase_worker(
                     customer_email, "ask_an_astrologer", f"Ask an Astrologer: \"{_question_preview}\"",
-                    1000, data_object.get("id"),
+                    300, data_object.get("id"),
                 )
 
             elif product_type == "reading_unlock":

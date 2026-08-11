@@ -1,7 +1,7 @@
 """
 weekly_transits_signup_page.py
 
-Ask an Astrologer ($10, one specific question answered) -- the last
+Ask an Astrologer ($3, one specific question answered) -- the last
 of what used to be three products on this page. Weekly Transits and
 One-Time Transit Reading moved to Advanced Readings, since they fit
 that page's "pick a category, fill in birth data, pay" shape once it
@@ -33,7 +33,7 @@ from birth_input import geocode_location_quick
 
 st.title("🌙 Astrology Services")
 st.write("**Ask an Astrologer** — one specific question, answered using your "
-         "actual chart. **$10**, one-time.")
+         "actual chart. **$3**, one-time.")
 
 if "STRIPE_SECRET_KEY" not in os.environ or "STRIPE_ASK_ASTROLOGER_PRICE_ID" not in os.environ:
     st.warning("This isn't available right now — check back soon.")
@@ -87,7 +87,7 @@ question = st.text_area(
 
 st.divider()
 
-if st.button("Ask my question — $10", width="stretch", type="primary"):
+if st.button("Ask my question — $3", width="stretch", type="primary"):
     errors = []
     if not name.strip():
         errors.append("Please enter your name.")
