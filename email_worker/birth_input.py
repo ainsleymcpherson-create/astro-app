@@ -10,6 +10,8 @@ should import resolve_birth_data from here rather than reimplementing it.
 """
 
 import os
+import time
+import concurrent.futures
 
 # Disable numba's JIT compilation before timezonefinder imports it.
 # timezonefinder uses numba to speed up its lookups, but numba's JIT
@@ -21,6 +23,7 @@ import os
 # and it sidesteps the crash entirely.
 os.environ.setdefault("NUMBA_DISABLE_JIT", "1")
 
+import requests
 from zoneinfo import ZoneInfo
 from dateutil import parser as date_parser
 from geopy.geocoders import Nominatim
@@ -41,13 +44,6 @@ _GEOCODE_CACHE: dict[str, tuple[float, float, str]] = {}
 
 
 @retry(
-    # Catch bare Exception, not a specific geopy exception class. The
-    # first version of this fix only caught GeopyError, and the same
-    # raw "Non-successful status code 429" text kept appearing anyway
-    # — meaning whatever geopy actually raises for this particular
-    # failure isn't reliably a GeopyError subclass in every code path.
-    # Rather than keep guessing at geopy's exact exception hierarchy,
-    # this catches everything, so nothing can slip through unretried.
     retry=retry_if_exception_type(Exception),
     stop=stop_after_attempt(4),
     wait=wait_exponential(multiplier=1, min=2, max=20),
@@ -55,6 +51,40 @@ _GEOCODE_CACHE: dict[str, tuple[float, float, str]] = {}
 )
 def _geocode_with_retry(geolocator, location_str: str):
     return geolocator.geocode(location_str)
+
+
+def _geocode_with_locationiq(location_str: str, api_key: str) -> tuple[float, float, str]:
+    """
+    Fallback geocoder used only when Nominatim (the primary, free
+    geocoder above) has already exhausted its own retries. LocationIQ
+    is built on the same OpenStreetMap data Nominatim uses, so results
+    should closely match what this app already produces — the
+    difference is a dedicated API key rather than Nominatim's free,
+    publicly-shared IP pool, which is what actually gets rate-limited
+    during a shared-infrastructure traffic spike.
+
+    Only two quick attempts here, not its own long backoff sequence —
+    by the time this runs, the primary lookup has already spent a
+    while retrying, and this is meant to be a fast last resort, not a
+    second multi-minute wait.
+    """
+    last_error = None
+    for _attempt in range(2):
+        try:
+            response = requests.get(
+                "https://us1.locationiq.com/v1/search",
+                params={"key": api_key, "q": location_str, "format": "json"},
+                timeout=10,
+            )
+            response.raise_for_status()
+            results = response.json()
+            if not results:
+                raise ValueError(f"LocationIQ found no match for {location_str!r}")
+            top = results[0]
+            return float(top["lat"]), float(top["lon"]), top["display_name"]
+        except Exception as e:
+            last_error = e
+    raise last_error
 
 
 def resolve_birth_data(datetime_str: str, location_str: str, verbose: bool = True) -> BirthData:
@@ -72,32 +102,58 @@ def resolve_birth_data(datetime_str: str, location_str: str, verbose: bool = Tru
     if cache_key in _GEOCODE_CACHE:
         lat, lon, address = _GEOCODE_CACHE[cache_key]
     else:
-        # Explicit timeout: geopy defaults to just 1 second, which is fine
-        # on some networks (e.g. Colab) but too tight on others (e.g.
-        # Streamlit Community Cloud), causing spurious GeocoderUnavailable
-        # errors. User-agent identifies this specific app with contact
-        # info, per Nominatim's usage policy — a generic/anonymous
-        # user-agent is more likely to get caught up in bulk blocking.
         geolocator = Nominatim(
             user_agent="tenth-house-readings-astro-app (contact: via GitHub repo)",
             timeout=10,
         )
+        nominatim_error = None
+        location = None
         try:
-            location = _geocode_with_retry(geolocator, location_str)
+            executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+            future = executor.submit(_geocode_with_retry, geolocator, location_str)
+            try:
+                location = future.result(timeout=75)
+            except concurrent.futures.TimeoutError:
+                raise TimeoutError(
+                    "Location lookup did not respond within 75 seconds"
+                )
+            finally:
+                executor.shutdown(wait=False)
         except Exception as e:
-            raise ValueError(
-                f"The location lookup service is temporarily rate-limited "
-                f"or unavailable after several retries ({type(e).__name__}: "
-                f"{e}). This is an external service issue, not a problem "
-                f"with your input — please wait a minute and try again."
-            ) from e
-        if location is None:
-            raise ValueError(
-                f"Could not find location: {location_str!r}. Try being more "
-                f"specific — e.g. add a state/country, or use a nearby larger city."
-            )
-        lat, lon, address = location.latitude, location.longitude, location.address
-        _GEOCODE_CACHE[cache_key] = (lat, lon, address)
+            nominatim_error = e
+
+        if nominatim_error is not None:
+            locationiq_key = os.environ.get("LOCATIONIQ_API_KEY")
+            if locationiq_key:
+                try:
+                    lat, lon, address = _geocode_with_locationiq(location_str, locationiq_key)
+                    _GEOCODE_CACHE[cache_key] = (lat, lon, address)
+                except Exception as fallback_error:
+                    raise ValueError(
+                        f"The location lookup service is temporarily rate-limited "
+                        f"or unavailable, and the backup geocoder also failed "
+                        f"(primary: {type(nominatim_error).__name__}: "
+                        f"{nominatim_error}; backup: "
+                        f"{type(fallback_error).__name__}: {fallback_error}). "
+                        f"This is an external service issue, not a problem with "
+                        f"your input — please wait a minute and try again."
+                    ) from fallback_error
+            else:
+                raise ValueError(
+                    f"The location lookup service is temporarily rate-limited "
+                    f"or unavailable after several retries "
+                    f"({type(nominatim_error).__name__}: {nominatim_error}). "
+                    f"This is an external service issue, not a problem with "
+                    f"your input — please wait a minute and try again."
+                ) from nominatim_error
+        else:
+            if location is None:
+                raise ValueError(
+                    f"Could not find location: {location_str!r}. Try being more "
+                    f"specific — e.g. add a state/country, or use a nearby larger city."
+                )
+            lat, lon, address = location.latitude, location.longitude, location.address
+            _GEOCODE_CACHE[cache_key] = (lat, lon, address)
 
     tf = TimezoneFinder()
     tz_name = tf.timezone_at(lat=lat, lng=lon)
@@ -118,3 +174,44 @@ def resolve_birth_data(datetime_str: str, location_str: str, verbose: bool = Tru
         print(f"UTC time: {utc_dt}\n")
 
     return BirthData(dt_utc=utc_dt, latitude=lat, longitude=lon)
+
+
+_LAST_LIVE_GEOCODE_CALL: dict[str, float] = {"time": 0.0}
+_LIVE_GEOCODE_MIN_INTERVAL = 1.5  # seconds
+
+
+def geocode_location_quick(location_str: str) -> tuple[bool, str | None]:
+    """
+    Quick, single-attempt geocode check meant for live UI feedback as
+    someone types a location. Deliberately NOT the same robust,
+    retrying lookup resolve_birth_data uses (including its LocationIQ
+    fallback) — this makes exactly one attempt with a short timeout,
+    debounced so rapid typing can't hammer Nominatim with a request
+    per keystroke.
+
+    Returns (found, resolved_display_address_or_None).
+    """
+    cache_key = location_str.strip().lower()
+    if not cache_key:
+        return False, None
+    if cache_key in _GEOCODE_CACHE:
+        _, _, address = _GEOCODE_CACHE[cache_key]
+        return True, address
+
+    now = time.monotonic()
+    if now - _LAST_LIVE_GEOCODE_CALL["time"] < _LIVE_GEOCODE_MIN_INTERVAL:
+        return False, None
+    _LAST_LIVE_GEOCODE_CALL["time"] = now
+
+    try:
+        geolocator = Nominatim(
+            user_agent="tenth-house-readings-astro-app (contact: via GitHub repo)",
+            timeout=6,
+        )
+        location = geolocator.geocode(location_str)
+    except Exception:
+        return False, None
+    if location is None:
+        return False, None
+    _GEOCODE_CACHE[cache_key] = (location.latitude, location.longitude, location.address)
+    return True, location.address
