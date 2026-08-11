@@ -611,7 +611,7 @@ want_email_full = False
 
 GEN_DONT = "Show Prompt"
 GEN_QUICK_ONLY = "Generate Summary"
-GEN_FULL_NOW = "Generate Full Reading (can take 5+ minutes)"
+GEN_FULL_NOW = "Generate Detailed Summary"
 GEN_QUICK_EMAIL = "Generate Summary & Email Full Reading"
 
 # --- Tiered access ---
@@ -1114,8 +1114,7 @@ def render_interpretation(text: str):
                 st.markdown(before_summary)
             st.markdown(summary_content)
             if rest_content:
-                with st.expander("📖 Read more"):
-                    st.markdown(rest_content)
+                st.markdown(rest_content)
         else:
             # Older format without a Summary block — original behavior.
             basis_match = basis_pattern.search(body)
@@ -1744,47 +1743,11 @@ if st.session_state.get("results"):
                 # the email worker uses), so both a Summary extract and
                 # the Full document are genuinely different documents
                 # here, worth offering separately.
-                summary_text = extract_summary_only(r["interpretation_text"])
                 full_text = format_full_text_for_export(r["interpretation_text"])
-                summary_pdf_bytes = _get_or_build_pdf(
-                    "synastry_reading_summary_pdf", summary_text, f"{pdf_title} \u2014 Summary", pdf_subtitle,
-                )
                 full_pdf_bytes = _get_or_build_pdf(
                     "synastry_reading_full_pdf", full_text, pdf_title, pdf_subtitle,
                 )
 
-                st.subheader("Summary Version")
-                sum_col1, sum_col2 = st.columns(2)
-                with sum_col1:
-                    if summary_pdf_bytes:
-                        st.download_button(
-                            "📄 Download as .pdf", data=summary_pdf_bytes,
-                            file_name=f"reading_summary_{date_str}.pdf",
-                            mime="application/pdf", width="stretch",
-                            key="summary_pdf_dl",
-                        )
-                    else:
-                        st.warning(
-                            "⚠️ Couldn't generate the summary PDF right now — "
-                            "this is usually transient. Try again in a moment, "
-                            "or use the .txt download in the meantime.",
-                            icon="⚠️",
-                        )
-                with sum_col2:
-                    st.download_button(
-                        "Download as .txt", data=summary_text,
-                        file_name=f"reading_summary_{date_str}.txt",
-                        mime="text/plain", width="stretch",
-                        key="summary_txt_dl",
-                    )
-                with st.expander("Copy summary as plain text"):
-                    st.text_area(
-                        "Summary (tap inside, select all, copy)",
-                        value=summary_text, height=250,
-                        label_visibility="collapsed", key="summary_copy",
-                    )
-
-                st.subheader("Full Version")
                 full_col1, full_col2 = st.columns(2)
                 with full_col1:
                     if full_pdf_bytes:
@@ -1814,6 +1777,18 @@ if st.session_state.get("results"):
                         value=full_text, height=400,
                         label_visibility="collapsed", key="full_copy",
                     )
+
+                st.divider()
+                st.write(
+                    "Want even more detail sent to your inbox? A fuller, "
+                    "more in-depth version of this reading, by email — "
+                    "coming soon."
+                )
+                st.button(
+                    "📧 Email Me an Even More Detailed Reading",
+                    width="stretch", disabled=True,
+                    key="email_more_detail_placeholder",
+                )
             else:
                 # Quick-summary modes: interpretation_text is already
                 # short summary content, so there's just one document

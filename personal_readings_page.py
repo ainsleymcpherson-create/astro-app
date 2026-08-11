@@ -48,6 +48,8 @@ from synastry_engine import compute_full_synastry
 from prompt_builder import (
     build_interpretation_prompt,
     build_interpretation_prompt_no_time,
+    build_astrological_basis_addon_prompt,
+    build_interpretation_prompt_fast,
     build_summary_only_prompt,
     build_summary_only_prompt_no_time,
     build_career_interpretation_prompt,
@@ -677,7 +679,7 @@ want_email_full = False
 
 GEN_DONT = "Show Prompt"
 GEN_QUICK_ONLY = "Generate Summary"
-GEN_FULL_NOW = "Generate Full Reading (can take 5+ minutes)"
+GEN_FULL_NOW = "Generate Detailed Summary"
 GEN_QUICK_EMAIL = "Generate Summary & Email Full Reading"
 
 # --- Tiered access ---
@@ -715,13 +717,14 @@ else:
         index=0,
         help="Generate Summary: a short, fast version shown here "
              "immediately (a small billed API call), nothing emailed. "
-             "Generate Full Reading: the complete, in-depth reading shown "
-             "here on screen with collapsible sections, plus both Summary "
-             "and Full downloads — this is the original full experience, "
-             "so it takes several minutes. Generate Summary and Email Full "
-             "Reading: the fast summary shows here right away, while the "
-             "full reading generates separately in the background and gets "
-             "emailed to you — no need to keep this page open while you wait.",
+             "Generate Detailed Summary: a longer, more in-depth reading "
+             "shown directly on this page — faster than the emailed "
+             "version, but shorter than it too, good for reading right "
+             "now. Generate Summary and Email Full Reading: the fast "
+             "summary shows here right away, while the full, most "
+             "complete reading generates separately in the background "
+             "and gets emailed to you — no need to keep this page open "
+             "while you wait.",
     )
 generate_live = generation_mode != GEN_DONT
 want_quick_summary = generation_mode in (GEN_QUICK_ONLY, GEN_QUICK_EMAIL)
@@ -1110,17 +1113,18 @@ def render_interpretation(text: str):
     """
     Renders an AI-generated reading. If a section includes a
     **Summary:** block (the newer prompt format — currently General
-    only), shows the summary always-visible and wraps everything else
-    in that section inside a single "Read more" expander. Deliberately
-    does NOT separately collapse "Astrological Basis" within that Read
-    More content — Streamlit doesn't allow nested expanders and will
-    crash if you try, so once a reader opts into "Read more" they see
-    everything else in that section flat, undifferentiated.
+    only), shows the summary and the rest of the section's content
+    both directly, with no "Read more" gating -- General's Full
+    Reading no longer buries any content behind an expander now that
+    Astrological Basis is its own separate, optional generation (see
+    the "🔬 Generate Astrological Basis" CTA) rather than embedded in
+    every theme.
 
     Sections without a Summary block (Career, Transits, and both
-    Synastry types, which haven't been updated to the new format yet)
-    fall back to the original behavior: full content visible, with
-    just "Astrological Basis" collapsed into its own expander.
+    Synastry types, which haven't been updated to the new format yet,
+    and which still embed their own Astrological Basis inline) fall
+    back to the original behavior: full content visible, with just
+    "Astrological Basis" collapsed into its own expander.
 
     Falls back to plain rendering entirely if the text doesn't match
     the expected section structure at all.
@@ -1181,8 +1185,7 @@ def render_interpretation(text: str):
                 st.markdown(before_summary)
             st.markdown(summary_content)
             if rest_content:
-                with st.expander("📖 Read more"):
-                    st.markdown(rest_content)
+                st.markdown(rest_content)
         else:
             # Older format without a Summary block — original behavior.
             basis_match = basis_pattern.search(body)
@@ -1652,9 +1655,30 @@ if st.session_state.get("processing", False):
         interpretation_error = None
 
         if generate_live:
-            api_prompt = quick_summary_prompt if quick_summary_prompt else prompt
-            api_max_tokens = 16000 if quick_summary_prompt else 32000
-            api_effort = "low" if quick_summary_prompt else None
+            if quick_summary_prompt:
+                api_prompt = quick_summary_prompt
+                api_max_tokens = 16000
+                api_effort = "low"
+            elif want_full_now and reading_type == "General":
+                # Live, in-app Full Reading: use the condensed fast
+                # variant (exactly 2 themes, 2-paragraph Overview,
+                # medium effort) -- someone's actively waiting on this
+                # page. The emailed full reading (via email_worker)
+                # still uses the standard, fuller prompt at full
+                # effort, since nobody's watching a spinner for that
+                # one. Career/Work full readings also fall through to
+                # the standard prompt below -- no fast variant built
+                # for that reading type yet.
+                api_prompt = build_interpretation_prompt_fast(
+                    chart, aspects, patterns, dignities, house_readings,
+                    person_name=person_name, age=current_age,
+                )
+                api_max_tokens = 32000
+                api_effort = "medium"
+            else:
+                api_prompt = prompt
+                api_max_tokens = 32000
+                api_effort = None
             interpretation_text, interpretation_error = _generate_reading_live(api_prompt, api_max_tokens, effort=api_effort)
 
         email_job_status = None
@@ -1804,47 +1828,11 @@ if st.session_state.get("results"):
                 # the email worker uses), so both a Summary extract and
                 # the Full document are genuinely different documents
                 # here, worth offering separately.
-                summary_text = extract_summary_only(r["interpretation_text"])
                 full_text = format_full_text_for_export(r["interpretation_text"])
-                summary_pdf_bytes = _get_or_build_pdf(
-                    "reading_summary_pdf", summary_text, f"{pdf_title} \u2014 Summary", pdf_subtitle,
-                )
                 full_pdf_bytes = _get_or_build_pdf(
                     "reading_full_pdf", full_text, pdf_title, pdf_subtitle,
                 )
 
-                st.subheader("Summary Version")
-                sum_col1, sum_col2 = st.columns(2)
-                with sum_col1:
-                    if summary_pdf_bytes:
-                        st.download_button(
-                            "📄 Download as .pdf", data=summary_pdf_bytes,
-                            file_name=f"reading_summary_{date_str}.pdf",
-                            mime="application/pdf", width="stretch",
-                            key="summary_pdf_dl",
-                        )
-                    else:
-                        st.warning(
-                            "⚠️ Couldn't generate the summary PDF right now — "
-                            "this is usually transient. Try again in a moment, "
-                            "or use the .txt download in the meantime.",
-                            icon="⚠️",
-                        )
-                with sum_col2:
-                    st.download_button(
-                        "Download as .txt", data=summary_text,
-                        file_name=f"reading_summary_{date_str}.txt",
-                        mime="text/plain", width="stretch",
-                        key="summary_txt_dl",
-                    )
-                with st.expander("Copy summary as plain text"):
-                    st.text_area(
-                        "Summary (tap inside, select all, copy)",
-                        value=summary_text, height=250,
-                        label_visibility="collapsed", key="summary_copy",
-                    )
-
-                st.subheader("Full Version")
                 full_col1, full_col2 = st.columns(2)
                 with full_col1:
                     if full_pdf_bytes:
@@ -1874,6 +1862,59 @@ if st.session_state.get("results"):
                         value=full_text, height=400,
                         label_visibility="collapsed", key="full_copy",
                     )
+
+                st.divider()
+                st.write(
+                    "Want even more detail sent to your inbox? A fuller, "
+                    "more in-depth version of this reading, by email — "
+                    "coming soon."
+                )
+                st.button(
+                    "📧 Email Me an Even More Detailed Reading",
+                    width="stretch", disabled=True,
+                    key="email_more_detail_placeholder",
+                )
+
+                # Astrological Basis is no longer generated as part of
+                # every theme by default (see natal.py's module docstring
+                # near ASTROLOGICAL_BASIS_ADDON_INSTRUCTIONS) -- it's now
+                # a separate, optional generation, so the reading itself
+                # is faster by default. Only offered for General readings
+                # so far; Career/Synastry/Deep Dive/Transit still include
+                # their own Astrological Basis inline, unchanged.
+                if r["reading_type"] == "General":
+                    st.divider()
+                    if r.get("astrological_basis_text"):
+                        st.subheader("Astrological Basis")
+                        st.markdown(r["astrological_basis_text"])
+                    else:
+                        st.write(
+                            "Want the technical grounding behind this "
+                            "reading — dignity conditions, aspect "
+                            "tightness, and supporting placements that "
+                            "didn't fit into the plain-language version?"
+                        )
+                        if st.button(
+                            "🔬 Generate Astrological Basis", width="stretch",
+                            key="generate_astro_basis",
+                        ):
+                            with st.spinner("Generating technical grounding..."):
+                                basis_prompt = build_astrological_basis_addon_prompt(
+                                    r["chart"], r["aspects"], r["patterns"],
+                                    r["dignities"], r["house_readings"],
+                                    person_name=r["person_name"],
+                                )
+                                basis_text, basis_error = _generate_reading_live(
+                                    basis_prompt, max_tokens=8000,
+                                )
+                            if basis_text:
+                                st.session_state.results["astrological_basis_text"] = basis_text
+                                st.rerun()
+                            elif basis_error:
+                                st.error(
+                                    f"Couldn't generate the technical "
+                                    f"grounding: {basis_error}"
+                                )
             else:
                 # Quick-summary modes: interpretation_text is already
                 # short summary content, so there's just one document

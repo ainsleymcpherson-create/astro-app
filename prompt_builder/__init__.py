@@ -50,6 +50,10 @@ from .natal import (
     build_summary_only_prompt_no_time,
     GENERAL_NO_TIME_INSTRUCTIONS,
     build_interpretation_prompt_no_time,
+    ASTROLOGICAL_BASIS_ADDON_INSTRUCTIONS,
+    build_astrological_basis_addon_prompt,
+    INTERPRETATION_INSTRUCTIONS_FAST,
+    build_interpretation_prompt_fast,
 )
 
 from .career import (
@@ -116,6 +120,8 @@ __all__ = [
     "INTERPRETATION_INSTRUCTIONS", "build_interpretation_prompt",
     "SUMMARY_ONLY_INSTRUCTIONS", "build_summary_only_prompt",
     "build_summary_only_prompt_no_time", "GENERAL_NO_TIME_INSTRUCTIONS",
+    "ASTROLOGICAL_BASIS_ADDON_INSTRUCTIONS", "build_astrological_basis_addon_prompt",
+    "INTERPRETATION_INSTRUCTIONS_FAST", "build_interpretation_prompt_fast",
     "build_interpretation_prompt_no_time",
     # career
     "CAREER_INTERPRETATION_INSTRUCTIONS", "build_career_interpretation_prompt",
