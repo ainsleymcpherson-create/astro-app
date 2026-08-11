@@ -95,7 +95,7 @@ whole chart together — which placements reinforce each other, which \
 create tension, and why. Format each theme's heading as a markdown H2 \
 heading — exactly "## Theme Name" (two hash symbols, one space, then \
 the name) — since the app displaying this reading relies on that exact \
-format to build a collapsible view. Then follow the four-part \
+format to build a collapsible view. Then follow the three-part \
 format described below for each one.
 
 End with a conclusion and summary of key points, but try not to repeat \
@@ -119,7 +119,7 @@ English on first use — accessible through glossing, not through \
 avoiding the terms.
 2. FOR EACH THEME, OPEN with 1-2 sentences of brief plain-language prose \
 summarizing the main takeaway — no bolding, no chunking, just a short \
-lead-in. THEN follow with a four-part structure, IN THIS ORDER:
+lead-in. THEN follow with a three-part structure, IN THIS ORDER:
     **Summary:** Written FIRST, immediately after the 1-2 sentence \
     lead-in and BEFORE "What This Means" — this ordering matters, the \
     app relies on it. 2-4 plain-language sentences distilling this \
@@ -169,36 +169,16 @@ lead-in. THEN follow with a four-part structure, IN THIS ORDER:
     of each chunk. This is where the interpretation and meaning for the \
     person's life lives, so don't just list placements — say what they \
     add up to.
-    **Advice:** Written THIRD, immediately after "What This Means" \
-    and BEFORE "Astrological Basis" — this ordering matters, the app \
-    relies on it. A short paragraph (not chunked, no sub-labels). \
-    Speak directly to the person in the imperative — concrete, \
-    actionable direction they could act on this week. Use the voice of \
-    a trusted advisor giving real guidance: "Don't avoid challenging \
-    projects; this year builds lasting structures." "Align your \
-    professional efforts with your core values." "Be cautious not to \
-    overwork in pursuit of results." Mix warnings with encouragements. \
-    No astrology at all in this block — it's pure direction. Keep it \
-    to 2-4 sentences.
-    **Astrological Basis:** Written FOURTH and LAST, 2-4 short chunks covering \
-    the more precise technical grounding that didn't fit naturally into \
-    "What This Means" above — dignity conditions, additional supporting \
-    placements, aspect relationships worth naming, and how tight or \
-    loose a connection is described QUALITATIVELY (e.g. "an extremely \
-    tight, exact connection" or "a looser but still active link") for a \
-    reader who wants the fuller picture. Don't just repeat what "What \
-    This Means" already named — add the next layer of depth. DO use \
-    everything the degree data tells you — an aspect's tightness, two \
-    points being nearly exact — as real interpretive input; just express \
-    those \
-    conclusions in words. NEVER quote the numeric values themselves \
-    anywhere in the reading — no "13.9°", no "at 21 degrees Libra", no \
-    orb numbers. The data below includes exact degrees and orbs because \
-    that's how the chart is computed, but the reading itself should \
-    translate all of that into words, not repeat the numbers.
-  Do NOT alternate line-by-line between meaning and astrological facts \
-  — group all the plain-language interpretation together first, then \
-  all the supporting astrology together, once per theme.
+    **Advice:** Written THIRD and LAST, immediately after "What This \
+    Means" — this ordering matters, the app relies on it. A short \
+    paragraph (not chunked, no sub-labels). Speak directly to the \
+    person in the imperative — concrete, actionable direction they \
+    could act on this week. Use the voice of a trusted advisor giving \
+    real guidance: "Don't avoid challenging projects; this year builds \
+    lasting structures." "Align your professional efforts with your \
+    core values." "Be cautious not to overwork in pursuit of results." \
+    Mix warnings with encouragements. No astrology at all in this \
+    block — it's pure direction. Keep it to 2-4 sentences.
   ALWAYS CASH OUT TECHNICAL STATEMENTS INTO LIVED EXPERIENCE. Naming \
   and glossing a placement is only half the job. Every technical \
   statement must be immediately followed by what it actually looks \
@@ -304,10 +284,8 @@ negate-then-correct scaffolding.
   ONE NEW PLACEMENT PER SENTENCE. This is the most important sentence \
   rule in this entire prompt, and it applies to EVERY part of the \
   reading without exception — the Overview, every "What This Means" \
-  block, every "Advice" block, every "Astrological Basis" block, and \
-  the Conclusion. The Astrological Basis sections are NOT exempt: \
-  technical vocabulary is allowed there, but cramming several \
-  placements into one sentence is not. Each sentence may introduce ONE \
+  block, every "Advice" block, and the Conclusion. Each sentence may \
+  introduce ONE \
   new point (planet, angle, house, or body) plus its gloss — then \
   STOP. The next placement gets its own sentence. Do not chain a \
   second or third placement onto the same sentence with "and," \
@@ -393,7 +371,7 @@ Here is the full computed chart data:
 {data_block}
 
 Now write the reading: opening overview, 2-4 themes each in the \
-four-part format above, then a closing conclusion. You don't \
+three-part format above, then a closing conclusion. You don't \
 need to follow a rigid template of "personality, then love, then \
 career" — let the chart's own emphases (strong patterns, dignified \
 planets, activated houses) determine which themes emerge and what gets \
@@ -428,6 +406,97 @@ def build_interpretation_prompt(
         data_block=data_block,
         naming_note=_single_person_naming_note(person_name),
         age_guidance=_age_guidance(age),
+        reference_block=reference_block,
+    )
+
+
+# ---------------------------------------------------------------------------
+# General reading — Astrological Basis add-on (optional, generated
+# separately from the main Full Reading now that it's no longer part
+# of every theme by default -- see the "Want the technical grounding?"
+# CTA in personal_readings_page.py). Standalone: covers the chart's
+# most significant technical details as its own self-contained write-up,
+# not tied to the specific themes a prior Full Reading generation
+# happened to cover.
+# ---------------------------------------------------------------------------
+
+ASTROLOGICAL_BASIS_ADDON_INSTRUCTIONS = """\
+You are an experienced astrologer providing the technical grounding \
+behind a reading this person already received — the "show your work" \
+layer for someone who wants the fuller picture: dignity conditions, \
+aspect tightness, and supporting placements that a plain-language \
+summary would have glossed over.
+{naming_note}
+You have access to this person's full computed chart data — planetary \
+positions, dignity, aspects, patterns, and house placements, all \
+mathematically precise, not approximated.
+
+Structure your answer as 4-6 short chunks (not full paragraphs — each \
+chunk should be 2-4 sentences), each covering one notable technical \
+thread in this chart: a planet's dignity condition and what it means \
+for how that planet operates, the chart's tightest or most significant \
+aspects and what that tightness signals, any aspect patterns \
+(stelliums, grand trines, T-squares, etc.) worth naming, and any other \
+detail a more astrologically literate reader would want to know that a \
+plain-language summary would have skipped. Head each chunk with a \
+short bolded label naming what it covers (e.g. "**Sun's dignity:**", \
+"**The tightest aspect:**").
+
+Head the whole answer with the exact markdown heading \
+"## Astrological Basis".
+
+Guidelines:
+- NAME PLACEMENTS DIRECTLY, using the inverted form: lead with plain \
+meaning, technical term in parentheses — "your drive (Mars)" — rather \
+than "Mars, the planet of drive." Gloss any sign the first time it's \
+named, briefly (2-3 words).
+- ONE NEW PLACEMENT PER SENTENCE — don't cram multiple planets or \
+aspects into one sentence with "and" or a comma. Technical vocabulary \
+is allowed here more freely than in a plain-language summary, but \
+each new point still needs its own sentence.
+- Describe aspect tightness QUALITATIVELY (e.g. "an extremely tight, \
+exact connection" or "a looser but still active link") — NEVER quote \
+the numeric values themselves anywhere in the reading — no "13.9°", \
+no "at 21 degrees Libra", no orb numbers. The data below includes \
+exact degrees and orbs because that's how the chart is computed, but \
+translate all of that into words, not repeated numbers.
+- This is a technical supplement, not a full interpretation — don't \
+repeat the "what this means for your life" framing from a full \
+reading. Assume the reader already has that; this is the astrology \
+underneath it.
+
+Here is the full computed chart data:
+{reference_block}
+{data_block}
+
+Now write the Astrological Basis section.\
+"""
+
+
+def build_astrological_basis_addon_prompt(
+    chart: dict[str, ChartPoint],
+    aspects: list[Aspect],
+    patterns: dict[str, list[AspectPattern]],
+    dignities: dict[str, DignityResult],
+    house_readings: dict[int, HouseReading],
+    min_tightness: float = 1.0,
+    person_name: str | None = None,
+) -> str:
+    """
+    Builds the standalone "Astrological Basis" add-on prompt -- the
+    optional, separately-generated technical grounding layer for
+    people who specifically want it, now that it's no longer part of
+    every Full Reading by default (see the module docstring above).
+    """
+    data_block = build_data_block(
+        chart, aspects, patterns, dignities, house_readings,
+        min_tightness=min_tightness,
+    )
+    query = _build_retrieval_query(chart, aspects, dignities)
+    reference_block = _reference_context_block(query, category="personal_readings")
+    return ASTROLOGICAL_BASIS_ADDON_INSTRUCTIONS.format(
+        data_block=data_block,
+        naming_note=_single_person_naming_note(person_name),
         reference_block=reference_block,
     )
 
@@ -679,7 +748,7 @@ Then, identify the 2-4 biggest THEMES that emerge when you look at the \
 whole chart together. Format each theme's heading as a markdown H2 \
 heading — exactly "## Theme Name" (two hash symbols, one space, then \
 the name) — since the app displaying this reading relies on that exact \
-format to build a collapsible view. Then follow the four-part \
+format to build a collapsible view. Then follow the three-part \
 format described below for each one.
 
 End with a conclusion and summary of key points, but try not to repeat \
@@ -699,7 +768,7 @@ chunking. They follow the same naming convention as everywhere else: \
 technical terms are welcome as long as each is glossed in plain \
 English on first use.
 2. FOR EACH THEME, OPEN with 1-2 sentences of brief plain-language prose \
-summarizing the main takeaway. THEN follow with a four-part \
+summarizing the main takeaway. THEN follow with a three-part \
 structure, IN THIS ORDER:
     **Summary:** Written FIRST, immediately after the 1-2 sentence \
     lead-in and BEFORE "What This Means" — this ordering matters, the \
@@ -741,36 +810,16 @@ structure, IN THIS ORDER:
     person experiences or acts in the world, not just what the \
     placement technically is. Claim, then the named-and-glossed \
     placements behind it, then the real-life payoff.
-    **Advice:** Written THIRD, immediately after "What This Means" \
-    and BEFORE "Astrological Basis" — this ordering matters, the app \
-    relies on it. A short paragraph (not chunked, no sub-labels). \
-    Speak directly to the person in the imperative — concrete, \
-    actionable direction they could act on this week. Use the voice of \
-    a trusted advisor giving real guidance: "Don't avoid challenging \
-    projects; this year builds lasting structures." "Align your \
-    professional efforts with your core values." "Be cautious not to \
-    overwork in pursuit of results." Mix warnings with encouragements. \
-    No astrology at all in this block — it's pure direction. Keep it \
-    to 2-4 sentences.
-    **Astrological Basis:** Written FOURTH and LAST, 2-4 short chunks covering \
-    the more precise technical grounding that didn't fit naturally into \
-    "What This Means" above — dignity conditions, additional supporting \
-    placements, aspect relationships worth naming, and how tight or \
-    loose a connection is described QUALITATIVELY (e.g. "an extremely \
-    tight, exact connection" or "a looser but still active link"). \
-    Don't just repeat what "What This Means" already named — add the \
-    next layer of depth. DO use everything the degree data tells you — \
-    an aspect's tightness, two points being nearly exact — as real \
-    interpretive input; \
-    just express those conclusions in words. NEVER quote the numeric \
-    values themselves anywhere in the reading — no "13.9°", no "at 21 \
-    degrees Libra", no orb numbers. The data below includes exact \
-    degrees and orbs because that's how the chart is computed, but the \
-    reading itself should translate all of that into words, not repeat \
-    the numbers.
-  Group all the plain-language interpretation together first, then all \
-  the supporting astrology together, once per theme — don't alternate \
-  line-by-line between the two.
+    **Advice:** Written THIRD and LAST, immediately after "What This \
+    Means" — this ordering matters, the app relies on it. A short \
+    paragraph (not chunked, no sub-labels). Speak directly to the \
+    person in the imperative — concrete, actionable direction they \
+    could act on this week. Use the voice of a trusted advisor giving \
+    real guidance: "Don't avoid challenging projects; this year builds \
+    lasting structures." "Align your professional efforts with your \
+    core values." "Be cautious not to overwork in pursuit of results." \
+    Mix warnings with encouragements. No astrology at all in this \
+    block — it's pure direction. Keep it to 2-4 sentences.
   ALWAYS CASH OUT TECHNICAL STATEMENTS INTO LIVED EXPERIENCE. Naming \
   and glossing a placement is only half the job. Every technical \
   statement must be immediately followed by what it actually looks \
@@ -873,10 +922,8 @@ negate-then-correct scaffolding.
   ONE NEW PLACEMENT PER SENTENCE. This is the most important sentence \
   rule in this entire prompt, and it applies to EVERY part of the \
   reading without exception — the Overview, every "What This Means" \
-  block, every "Advice" block, every "Astrological Basis" block, and \
-  the Conclusion. The Astrological Basis sections are NOT exempt: \
-  technical vocabulary is allowed there, but cramming several \
-  placements into one sentence is not. Each sentence may introduce ONE \
+  block, every "Advice" block, and the Conclusion. Each sentence may \
+  introduce ONE \
   new point (planet or body) plus its gloss — then STOP. The next \
   placement gets its own sentence. Do not chain a second or third \
   placement onto the same sentence with "and," "alongside," or a \
@@ -957,7 +1004,7 @@ of those are reliable without an exact birth time):
 {data_block}
 
 Now write the reading: opening overview, 2-4 themes each in the \
-four-part format above, then a closing conclusion. Let the \
+three-part format above, then a closing conclusion. Let the \
 chart's own emphases (strong patterns, dignified planets) determine \
 which themes emerge.\
 """
