@@ -61,6 +61,7 @@ OFFERINGS = [
                 "delivery across Personal, Synastry, and Deep Dive, no "
                 "per-reading purchases needed.",
         "url_path": "/advanced-readings",
+        "disabled": True,
     },
     {
         "icon": "💬",
@@ -77,5 +78,8 @@ row2 = st.columns(2)
 for offering, col in zip(OFFERINGS, row1 + row2):
     with col:
         with st.container(border=True):
-            st.markdown(f"**[{offering['icon']} {offering['name']}]({offering['url_path']})**")
+            if offering.get("disabled"):
+                st.markdown(f"**{offering['icon']} {offering['name']}**")
+            else:
+                st.markdown(f"**[{offering['icon']} {offering['name']}]({offering['url_path']})**")
             st.write(offering["desc"])
