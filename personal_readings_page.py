@@ -136,7 +136,7 @@ def get_secret(name: str):
     return os.environ.get(name)
 
 
-def _generate_reading_live(api_prompt: str, max_tokens: int = 32000) -> tuple[str | None, str | None]:
+def _generate_reading_live(api_prompt: str, max_tokens: int = 32000, effort: str | None = None) -> tuple[str | None, str | None]:
     """
     Runs a live, billed Claude API call and streams the result, with one
     automatic retry on an empty or cut-off response. Extracted from the
@@ -197,11 +197,14 @@ def _generate_reading_live(api_prompt: str, max_tokens: int = 32000) -> tuple[st
                 accumulated_text = ""
                 thinking_chars = 0
                 update_counter = 0
-                with client.messages.stream(
-                    model="claude-sonnet-5",
-                    max_tokens=max_tokens,
-                    messages=[{"role": "user", "content": api_prompt}],
-                ) as stream:
+                _stream_kwargs = {
+                    "model": "claude-sonnet-5",
+                    "max_tokens": max_tokens,
+                    "messages": [{"role": "user", "content": api_prompt}],
+                }
+                if effort:
+                    _stream_kwargs["output_config"] = {"effort": effort}
+                with client.messages.stream(**_stream_kwargs) as stream:
                     for event in stream:
                         if event.type != "content_block_delta":
                             continue
@@ -1651,7 +1654,8 @@ if st.session_state.get("processing", False):
         if generate_live:
             api_prompt = quick_summary_prompt if quick_summary_prompt else prompt
             api_max_tokens = 16000 if quick_summary_prompt else 32000
-            interpretation_text, interpretation_error = _generate_reading_live(api_prompt, api_max_tokens)
+            api_effort = "low" if quick_summary_prompt else None
+            interpretation_text, interpretation_error = _generate_reading_live(api_prompt, api_max_tokens, effort=api_effort)
 
         email_job_status = None
         if want_email_full:

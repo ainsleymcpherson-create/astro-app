@@ -457,12 +457,15 @@ reading. Head this section with the exact markdown heading "## Overview".
 
 Then, identify the 2-3 biggest THEMES in the chart — which placements \
 reinforce each other, which create tension, and why. For each theme, \
-format its heading as a markdown H2 heading — exactly "## Theme Name" \
-— then write ONLY 2-4 plain-language sentences distilling that \
-theme's real takeaway. Do NOT write "What This Means," "Advice," or \
-"Astrological Basis" sections, and do NOT label the paragraph \
-"Summary" — the whole reading is already a summary, so that label \
-would be redundant on every section.
+invent a short, specific, evocative title for it — e.g. "## The \
+Ambition Behind the Warmth" — and format it as a markdown H2 heading. \
+The words "Theme Name" must NEVER appear anywhere in the actual \
+heading text — that phrase describes what to do (name the theme), \
+not literal words to include. Then write ONLY 2-4 plain-language \
+sentences distilling that theme's real takeaway. Do NOT write "What \
+This Means," "Advice," or "Astrological Basis" sections, and do NOT \
+label the paragraph "Summary" — the whole reading is already a \
+summary, so that label would be redundant on every section.
 
 End with a 2-4 sentence Conclusion distilling what actually matters \
 most, without repeating the Overview. Head this section with the \

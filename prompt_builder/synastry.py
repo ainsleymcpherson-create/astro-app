@@ -278,17 +278,28 @@ BIRTH TIME STATUS: {birth_time_status}
 Structure your answer as follows:
 
 Open with 2-4 plain-language sentences on the working dynamic, purely \
-from a professional perspective, no astrology in it. Head this "## Overview".
+from a professional perspective, no astrology in it. Every claim must \
+be attributed to a specific person by name — never write generic, \
+unattributed statements like "one person brings X, the other brings \
+Y" or "it works well when roles are divided." Say who does what, \
+specifically, from the very first sentence. Head this "## Overview".
 
-Then, for EACH of these two sections — Detail: Person A, and Detail: \
-Person B — format its heading as a markdown H2 heading exactly \
-matching that name (substituting the person's actual name if provided, \
-e.g. "## Detail: Maria"), then write ONLY 2-4 plain-language sentences \
+Then, for EACH person, write a section headed with ONLY their name as \
+a markdown H2 heading (e.g. "## Maria" — if no name was given, use \
+"## Person A" / "## Person B" instead), with no "Detail:" prefix — \
+this is a summary, not the full detailed reading, so labeling it \
+"Detail" is misleading. Write ONLY 2-4 plain-language sentences \
 focused on THAT person as a professional, with at most a brief \
-reference to the other person. Do NOT write "Working Implications," \
-"Advice," or "Astrological Basis" sections, and do NOT label the \
-paragraph "Summary" — the whole reading is already a summary, so that \
-label would be redundant on every section.
+reference to the other person. Every sentence must make a concrete, \
+specific claim you could act on — never vague, abstract phrasing that \
+could mean almost anything, like "outcomes that were meant to be \
+theirs to control" or "work crowding out downtime." If a sentence \
+could be paraphrased as "things get complicated" without losing any \
+real information, rewrite it to say the actual specific thing. Do NOT \
+write "Working Implications," "Advice," or "Astrological Basis" \
+sections, and do NOT label the paragraph "Summary" — the whole \
+reading is already a summary, so that label would be redundant on \
+every section.
 
 End with a 2-4 sentence Conclusion bringing the two together: how \
 they mesh, and the main friction point worth both people's attention.

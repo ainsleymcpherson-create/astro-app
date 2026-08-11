@@ -218,12 +218,15 @@ is broadly about. If there are no significant transits right now, \
 say so plainly. Head this "## Overview".
 
 Then, identify the 2-3 most significant currently-active transits or \
-themes. For each, format its heading as a markdown H2 heading — \
-exactly "## Theme Name" — then write ONLY 2-4 plain-language \
-sentences. Do NOT write "What This Means," "Advice," or "Astrological \
-Basis" sections, and do NOT label the paragraph "Summary" — the whole \
-reading is already a summary, so that label would be redundant on \
-every section.
+themes. For each, invent a short, specific, evocative title for it — \
+e.g. "## Saturn Presses On Your Career Ambitions" — and format it as \
+a markdown H2 heading. The words "Theme Name" must NEVER appear \
+anywhere in the actual heading text — that phrase describes what to \
+do (name the transit/theme), not literal words to include. Then \
+write ONLY 2-4 plain-language sentences. Do NOT write "What This \
+Means," "Advice," or "Astrological Basis" sections, and do NOT label \
+the paragraph "Summary" — the whole reading is already a summary, so \
+that label would be redundant on every section.
 
 End with a 2-4 sentence Conclusion. Head this "## Conclusion".
 
