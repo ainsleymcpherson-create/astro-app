@@ -213,17 +213,17 @@ except Exception as e:
     st.exception(e)
 finally:
     with st.sidebar:
-        st.page_link("home_page.py", label="Home")
-        st.write("READINGS")
+        st.page_link("home_page.py", label="Home", icon=":material/home:")
+        st.write("Readings")
         _indent, _nested = st.columns([1, 9])
         with _nested:
-            st.page_link("personal_readings_page.py", label="Personal", icon="🔭")
-            st.page_link("synastry_readings_page.py", label="Synastry", icon="👥")
-            st.page_link("deep_dive_readings_page.py", label="Deep Dive", icon="🔍")
-        st.page_link("advanced_readings_page.py", label="Advanced Readings")
-        st.page_link("weekly_transits_signup_page.py", label="Astrology Services")
-        st.page_link("resources_page.py", label="Resources")
-        st.page_link("my_account_page.py", label="My Account")
+            st.page_link("personal_readings_page.py", label="Personal", icon=":material/person:")
+            st.page_link("synastry_readings_page.py", label="Synastry", icon=":material/group:")
+            st.page_link("deep_dive_readings_page.py", label="Deep Dive", icon=":material/search:")
+        st.page_link("advanced_readings_page.py", label="Advanced Readings", icon=":material/auto_awesome:")
+        st.page_link("weekly_transits_signup_page.py", label="Astrology Services", icon=":material/nights_stay:")
+        st.page_link("resources_page.py", label="Resources", icon=":material/menu_book:")
+        st.page_link("my_account_page.py", label="My Account", icon=":material/account_circle:")
 
     # --- Optional login (saved profiles) ---
     if "auth" in st.secrets:
