@@ -104,12 +104,10 @@ REQUIRED, not optional.
 General guidelines:
 - OVERVIEW AND CONCLUSION: plain flowing prose only — no chunking, no
 bolded sub-labels, no bullets. This, and every "Working Implications"
-block, must also stay free of astrological descriptions entirely (this
-does NOT apply to "Astrological Basis" sections, which intentionally do
-contain astrology). Keep this content to what you've determined from
-the reading, stated in plain business terms. Use the astrology to
-arrive at your interpretation, but don't surface the astrology itself
-anywhere outside the dedicated Astrological Basis sections.
+block, must also stay free of astrological descriptions entirely.
+Keep this content to what you've determined from the reading, stated
+in plain business terms. Use the astrology to arrive at your
+interpretation, but don't surface the astrology itself anywhere.
 - EACH OF THE TWO DETAIL SECTIONS: open with 1-2 plain-language
 sentences summarizing that person's professional character. Then a
 three-part structure, IN ORDER:
@@ -132,28 +130,18 @@ three-part structure, IN ORDER:
     forward quickly, which can rub against Person B's need for
     structure" instead. Always name WHICH person — never leave it
     ambiguous.
-    **Advice:** SECOND, right after Working Implications and BEFORE
-    Astrological Basis — this ordering matters, the app relies on it.
-    A short paragraph, not chunked. Speak directly to the OTHER person
-    in the imperative — concrete, actionable direction for working
-    well with the person this section profiles. Mix warnings with
+    **Advice:** SECOND and LAST, right after Working Implications —
+    this ordering matters, the app relies on it. A short paragraph,
+    not chunked. Speak directly to the OTHER person in the
+    imperative — concrete, actionable direction for working well
+    with the person this section profiles. Mix warnings with
     encouragements. No astrology in this block. 2-4 sentences.
-    **Astrological Basis:** THIRD, and this is supporting evidence
-    ONLY — keep it brief and minimal, 1-2 short chunks, just enough for
-    a curious reader to see where the claim came from. This is NOT the
-    place to elaborate further — all the actual depth and insight
-    belongs in Working Implications above. Technical terms are allowed
-    here with brief plain glosses. Label which person each placement
-    belongs to.
-  Group all plain-language content first, then all supporting astrology
-  — never alternate line by line. The reading as a whole should feel
-  like a business document that happens to cite astrology as its
-  method, not an astrology reading that happens to mention business.
+  The reading as a whole should feel like a business document that
+  happens to cite astrology as its method, not an astrology reading
+  that happens to mention business.
 - ONE NEW PLACEMENT PER SENTENCE. This applies to EVERY part of the \
-reading — the Overview, every plain-language block, every "Astrological \
-Basis" block, and the Conclusion. Astrological Basis is NOT exempt: \
-technical vocabulary is allowed there, but cramming several placements \
-into one sentence is not. Each sentence may introduce ONE new point \
+reading — the Overview, every plain-language block, and the \
+Conclusion. Each sentence may introduce ONE new point \
 plus its gloss — then STOP. Do not chain a second or third placement \
 onto the same sentence with "and," "alongside," "sitting in," or a \
 comma. Dignity, house, sign, and aspect details each get their OWN \
@@ -523,25 +511,14 @@ summarizing the takeaway. Then a three-part structure, IN ORDER:
     technical term in parentheses ("Person A's warmth (Venus)" rather
     than "Person A's Venus, the planet of warmth"). Always name WHICH
     person — never leave it ambiguous.
-    **Advice:** SECOND, right after "What This Means" and BEFORE
-    "Astrological Basis" — this ordering matters, the app relies on
-    it. A short paragraph, not chunked. Speak directly to the two
-    people in the imperative — concrete, actionable relationship
-    guidance. Mix warnings with encouragements. No astrology in this
-    block. 2-4 sentences.
-    **Astrological Basis:** THIRD, 1-2 short chunks, just enough
-    supporting evidence for a curious reader to see where the claim
-    came from — this isn't the place for further elaboration, which
-    belongs in "What This Means" above. Technical terms are allowed
-    here with brief plain glosses. Label which person each placement
-    belongs to.
-  Group all plain-language content first, then all supporting astrology
-  — never alternate line by line.
+    **Advice:** SECOND and LAST, right after "What This Means" —
+    this ordering matters, the app relies on it. A short paragraph,
+    not chunked. Speak directly to the two people in the imperative —
+    concrete, actionable relationship guidance. Mix warnings with
+    encouragements. No astrology in this block. 2-4 sentences.
 - ONE NEW PLACEMENT PER SENTENCE. This applies to EVERY part of the \
-reading — the Overview, every plain-language block, every "Astrological \
-Basis" block, and the Conclusion. Astrological Basis is NOT exempt: \
-technical vocabulary is allowed there, but cramming several placements \
-into one sentence is not. Each sentence may introduce ONE new point \
+reading — the Overview, every plain-language block, and the \
+Conclusion. Each sentence may introduce ONE new point \
 plus its gloss — then STOP. Do not chain a second or third placement \
 onto the same sentence with "and," "alongside," "sitting in," or a \
 comma. Dignity, house, sign, and aspect details each get their OWN \
@@ -925,29 +902,22 @@ summarizing the takeaway. Then a three-part structure, IN ORDER:
     child's emotional instincts (the Moon)" rather than "the child's
     Moon, the planet of emotion"). Always name WHICH person — never
     leave it ambiguous.
-    **Advice:** SECOND, right after "What This Means" and BEFORE
-    "Astrological Basis" — this ordering matters, the app relies on
-    it. A short paragraph, not chunked. Speak directly to the parent
-    in the imperative — concrete, actionable guidance they could act
-    on this week. Mix warnings with encouragements. No astrology in
-    this block. 2-4 sentences.
-    **Astrological Basis:** THIRD, 1-2 short chunks, just enough
-    supporting evidence for a curious reader to see where the claim
-    came from. Technical terms are allowed here with brief plain
-    glosses. Label which person each placement belongs to.
-  Group all plain-language content first, then all supporting astrology
-  — never alternate line by line.
+    **Advice:** SECOND and LAST, right after "What This Means" —
+    this ordering matters, the app relies on it. A short paragraph,
+    not chunked. Speak directly to the parent in the imperative —
+    concrete, actionable guidance they could act on this week. Mix
+    warnings with encouragements. No astrology in this block. 2-4
+    sentences.
 - ONE NEW PLACEMENT PER SENTENCE. This applies to EVERY part of the \
-reading — the Overview, every plain-language block, every "Astrological \
-Basis" block, and the Conclusion. Astrological Basis is NOT exempt: \
-technical vocabulary is allowed there, but cramming several placements \
-into one sentence is not. Each sentence may introduce ONE new point \
-plus its gloss — then STOP. Do not chain a second or third placement \
-onto the same sentence with "and," "alongside," "sitting in," or a \
-comma. This applies to SYNASTRY CONTACTS just as much as single-chart \
-placements — never stack two different cross-chart aspects into one \
-sentence because they both involve the same planet. If a sentence \
-contains more than one astrological object, break it.
+reading — the Overview, every plain-language block, and the \
+Conclusion. Technical vocabulary is allowed, but cramming several \
+placements into one sentence is not. Each sentence may introduce ONE \
+new point plus its gloss — then STOP. Do not chain a second or third \
+placement onto the same sentence with "and," "alongside," "sitting \
+in," or a comma. This applies to SYNASTRY CONTACTS just as much as \
+single-chart placements — never stack two different cross-chart \
+aspects into one sentence because they both involve the same planet. \
+If a sentence contains more than one astrological object, break it.
 - GLOSS EVERY ASPECT NAME TOO, NOT JUST EVERY POINT — square, trine, \
 quintile, sesquiquadrate, semisquare, quincunx, and every other aspect \
 name needs a brief plain-language sense of what that connection TYPE \
